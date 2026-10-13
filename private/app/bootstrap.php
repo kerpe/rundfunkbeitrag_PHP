@@ -1,0 +1,42 @@
+<?php
+declare(strict_types=1);
+final class AppError extends RuntimeException {public function __construct(public string $reason,public int $status=400,public mixed $details=null){parent::__construct($reason);}}
+function fail(string $code,int $status=400,mixed $details=null):never{throw new AppError($code,$status,$details);}
+function private_root():string{return dirname(__DIR__);}
+function config():array{static $c;if(!$c){$file=private_root().'/config.php';if(!is_file($file))fail('INSTALLATION_REQUIRED',503);$c=require $file;}return $c;}
+function now():string{return gmdate('Y-m-d\TH:i:s.000\Z');}
+function uuid():string{$b=random_bytes(16);$b[6]=chr((ord($b[6])&15)|64);$b[8]=chr((ord($b[8])&63)|128);$h=bin2hex($b);return substr($h,0,8).'-'.substr($h,8,4).'-'.substr($h,12,4).'-'.substr($h,16,4).'-'.substr($h,20);}
+function secret_hash(string $v):string{return hash_hmac('sha256',$v,config()['app_secret']);}
+function db():PDO{static $db;if(!$db){$c=config();$db=new PDO($c['db_dsn'],$c['db_user'],$c['db_password'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);}return $db;}
+function sql(string $q,array $args=[]):PDOStatement{$s=db()->prepare($q);$s->execute($args);return $s;}
+function record(string $id,bool $lock=false):?array{$r=sql('SELECT * FROM rb_records WHERE id=?'.($lock?' FOR UPDATE':''),[$id])->fetch();if(!$r)return null;$r['value']=json_decode($r['data_json'],true,512,JSON_THROW_ON_ERROR);return $r;}
+function put(string $id,string $kind,array $value,string $parent='',string $owner='',?int $expires=null):void{$t=time();sql('INSERT INTO rb_records(id,kind,parent_id,owner_hash,data_json,version,created_at,updated_at,expires_at) VALUES (?,?,?,?,?,1,?,?,?) ON DUPLICATE KEY UPDATE data_json=VALUES(data_json),version=version+1,owner_hash=VALUES(owner_hash),updated_at=VALUES(updated_at),expires_at=VALUES(expires_at)',[$id,$kind,$parent,$owner,json_encode($value,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),$t,$t,$expires]);}
+function records(string $kind,?string $parent=null):array{$q='SELECT * FROM rb_records WHERE kind=?';$a=[$kind];if($parent!==null){$q.=' AND parent_id=?';$a[]=$parent;}$q.=' ORDER BY created_at,id LIMIT 200';return array_map(fn($r)=>json_decode($r['data_json'],true,512,JSON_THROW_ON_ERROR),sql($q,$a)->fetchAll());}
+function rules():array{static $r;return $r??=json_decode(file_get_contents(__DIR__.'/rules.json'),true,512,JSON_THROW_ON_ERROR);}
+function settings():array{return record('settings:service')['value']??rules()['emptySettings'];}
+function text(mixed $v,int $min=1,int $max=4000):string{if(!is_string($v)||mb_strlen(trim($v))<$min||mb_strlen($v)>$max)fail('INVALID_FIELD');return trim($v);}
+function email(mixed $v):string{$v=strtolower(text($v,3,254));if(!filter_var($v,FILTER_VALIDATE_EMAIL))fail('INVALID_EMAIL');return $v;}
+function operation(array $b):string{$v=$b['operationId']??'';if(!is_string($v)||!preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i',$v))fail('INVALID_OPERATION');return $v;}
+function body():array{$raw=file_get_contents('php://input',false,null,0,150001);if(strlen($raw)>150000)fail('BODY_TOO_LARGE',413);if(strtolower(explode(';',$_SERVER['CONTENT_TYPE']??'')[0])!=='application/json')fail('JSON_REQUIRED',415);try{$b=json_decode($raw,true,512,JSON_THROW_ON_ERROR);}catch(Throwable){fail('INVALID_JSON');}if(!is_array($b)||!str_starts_with(ltrim($raw),'{'))fail('INVALID_JSON');return $b;}
+function safe_session():void{if(session_status()===PHP_SESSION_ACTIVE)return;$dir=private_root().'/data/sessions';if(!is_dir($dir))mkdir($dir,0700,true);session_save_path($dir);ini_set('session.use_strict_mode','1');ini_set('session.use_only_cookies','1');ini_set('session.gc_maxlifetime','28800');$secure=str_starts_with(config()['public_url'],'https://');session_name($secure?'__Host-rb-session':'rb-session-local');session_set_cookie_params(['lifetime'=>28800,'path'=>'/','secure'=>$secure,'httponly'=>true,'samesite'=>'Strict']);session_start();$_SESSION['csrf']??=bin2hex(random_bytes(32));$_SESSION['owner']??=bin2hex(random_bytes(32));}
+function owner():string{return secret_hash('customer:'.$_SESSION['owner']);}
+function admin():bool{$c=config();return ($_SESSION['admin_until']??0)>time()&&hash_equals(secret_hash($c['admin_hash']),$_SESSION['admin_fingerprint']??'');}
+function actor():string{return 'admin:'.substr(hash('sha256',config()['admin_email']),0,24);}
+function require_admin():void{if(!admin())fail('STAFF_ACCESS_REQUIRED',401);}
+function csrf():void{if(($_SERVER['HTTP_ORIGIN']??'')!==config()['public_url'])fail('SAME_ORIGIN_REQUIRED',403);$supplied=$_SERVER['HTTP_X_CSRF_TOKEN']??$_POST['csrf']??'';if(!is_string($supplied)||!hash_equals($_SESSION['csrf'],$supplied))fail('CSRF_REQUIRED',403);}
+function rate(string $key,int $limit,int $seconds):void{$id='rate:'.secret_hash($key);$r=record($id,true);$v=$r['value']??['count'=>0,'end'=>0];if($v['end']<time())$v=['count'=>0,'end'=>time()+$seconds];if(++$v['count']>$limit)fail('RATE_LIMITED',429);put($id,'rate',$v,'','',$v['end']);}
+function current_case(string $id,bool $staff=false):array{$r=record('case:'.$id,true);if(!$r||$r['owner_hash']==='erasing'||(!$staff&&!hash_equals($r['owner_hash'],owner())))fail('CASE_NOT_FOUND',404);return $r['value'];}
+function expected(array $b,array $c):void{if(($b['expectedVersion']??null)!==$c['version'])fail('VERSION_CONFLICT',409);}
+function canonical(mixed $v):mixed{if(is_array($v)){if(!array_is_list($v))ksort($v);foreach($v as &$i)$i=canonical($i);}return $v;}
+function request_hash(string $id,string $actor,string $action,array $b):string{return hash('sha256',json_encode(canonical([$id,$actor,$action,$b]),JSON_UNESCAPED_UNICODE));}
+function replay(string $id,string $op,string $by,string $action,array $b):?array{$event=record('event:'.$op);if(!$event)return null;$v=$event['value'];if($v['caseId']!==$id||$v['requestHash']!==request_hash($id,$by,$action,$b))fail('OPERATION_CONFLICT',409);return current_case($id,$by!=='customer');}
+function save_case(array $before,array $next,string $op,string $by,string $action,array $body):array{$r=record('case:'.$before['id'],true);if(!$r||$r['value']['version']!==$before['version'])fail('VERSION_CONFLICT',409);$next['version']=$before['version']+1;$next['updatedAt']=now();put('case:'.$before['id'],'case',$next,'',$r['owner_hash']);put('event:'.$op,'event',['id'=>$op,'caseId'=>$before['id'],'action'=>$action,'actor'=>$by,'at'=>now(),'created_at'=>now(),'detail_json'=>json_encode(['action'=>$action,'state'=>$next['state']]),'detail'=>['action'=>$action,'state'=>$next['state']],'requestHash'=>request_hash($before['id'],$by,$action,$body)],$before['id']);if($action==='order'){put('package:'.$op,'package',['id'=>$op,'sequence'=>count(records('package',$before['id']))+1,'created_at'=>now(),'snapshot'=>$next],$before['id']);queue_notice($next,$action,$op);}elseif(in_array($action,['request-information','record-submission','record-response','withdraw','review-withdrawal','plan-refund','record-refund','official-follow-up','complaint','privacy-request','resolve-privacy'],true))queue_notice($next,$action,$op);return $next;}
+function public_case(array $c):array{foreach($c['documents'] as &$d)unset($d['objectKey']);foreach(['data','answers','checks'] as $k)if(empty($c[$k]))$c[$k]=(object)[];return $c;}
+function public_settings():array{$s=settings();unset($s['authorityAcceptanceReference'],$s['retentionPolicyReference'],$s['launchApprovalReference']);$s['launchReady']=$s['liveEnabled']&&!settings_missing(settings())&&mail_ready();$s['liveEnabled']=$s['launchReady'];return $s;}
+function h(string $v):string{return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
+function response_json(array $value,int $status=200):never{http_response_code($status);header('Content-Type: application/json; charset=utf-8');header('Cache-Control: private, no-store');header('Vary: Cookie');echo json_encode($value,JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_THROW_ON_ERROR);exit;}
+require __DIR__.'/validation.php';
+require __DIR__.'/documents.php';
+require __DIR__.'/mail.php';
+require __DIR__.'/operations.php';
+require __DIR__.'/api.php';

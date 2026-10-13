@@ -1,0 +1,11 @@
+{
+  "entry.tsx": {
+    "file": "assets/entry-CyfJg8dB.js",
+    "name": "entry",
+    "src": "entry.tsx",
+    "isEntry": true,
+    "css": [
+      "assets/entry-Bk9HM146.css"
+    ]
+  }
+}

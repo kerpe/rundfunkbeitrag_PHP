@@ -1,0 +1,10 @@
+/private/config.php
+/private/installation-key.php
+/private/data/
+/PRIVATE_INSTALLATION_KEY.txt
+/frontend/node_modules/
+/tests/mail.jsonl
+/tests/*.pdf
+*.log
+*.zip
+.DS_Store
