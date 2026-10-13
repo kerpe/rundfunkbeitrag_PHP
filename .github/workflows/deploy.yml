@@ -58,6 +58,9 @@ jobs:
             for d in $(ftp --list-only "ftp://$host/domains/" 2>/dev/null | grep -v '^\.'); do
               echo "domains/$d/:"; ftp --list-only "ftp://$host/domains/$d/" || true
             done
+            for d in "$PUBLIC_DIR" "$PRIVATE_DIR"; do
+              echo "$d:"; ftp --list-only "ftp://$host/$d" || true
+            done
             exit 1
           fi
 
