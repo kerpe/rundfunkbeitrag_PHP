@@ -8,8 +8,8 @@
 #   FTP_USERNAME  hPanel -> Files -> FTP Accounts
 #   FTP_PASSWORD
 # Optional repository variables (same page, "Variables" tab):
-#   FTP_PUBLIC_DIR   default: public_html/
-#   FTP_PRIVATE_DIR  default: private/
+#   FTP_PUBLIC_DIR   default: domains/rundfunkbeitrag.help/public_html/
+#   FTP_PRIVATE_DIR  default: domains/rundfunkbeitrag.help/private/
 #   FTP_PROTOCOL     default: ftps (use ftp only if ftps fails)
 name: Deploy to Hostinger
 
@@ -43,8 +43,8 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          PUBLIC_DIR: ${{ vars.FTP_PUBLIC_DIR || 'public_html/' }}
-          PRIVATE_DIR: ${{ vars.FTP_PRIVATE_DIR || 'private/' }}
+          PUBLIC_DIR: ${{ vars.FTP_PUBLIC_DIR || 'domains/rundfunkbeitrag.help/public_html/' }}
+          PRIVATE_DIR: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
           PROTOCOL: ${{ vars.FTP_PROTOCOL || 'ftps' }}
         run: |
           host="${FTP_SERVER#ftp://}"; host="${host%/}"
@@ -55,6 +55,9 @@ jobs:
           ftp -I "ftp://$host/${PRIVATE_DIR}config.php" >/dev/null || { echo "::error::${PRIVATE_DIR}config.php not found on the server"; ok=0; }
           if [ $ok = 0 ]; then
             echo "Top-level folders visible over FTP:"; ftp --list-only "ftp://$host/" || true
+            for d in $(ftp --list-only "ftp://$host/domains/" 2>/dev/null | grep -v '^\.'); do
+              echo "domains/$d/:"; ftp --list-only "ftp://$host/domains/$d/" || true
+            done
             exit 1
           fi
 
@@ -67,7 +70,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
           local-dir: ./public_html/
-          server-dir: ${{ vars.FTP_PUBLIC_DIR || 'public_html/' }}
+          server-dir: ${{ vars.FTP_PUBLIC_DIR || 'domains/rundfunkbeitrag.help/public_html/' }}
 
       - name: Upload private
         if: env.HAS_FTP == 'true'
@@ -78,7 +81,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
           local-dir: ./private/
-          server-dir: ${{ vars.FTP_PRIVATE_DIR || 'private/' }}
+          server-dir: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
           exclude: |
             **/.git*
             **/.git*/**

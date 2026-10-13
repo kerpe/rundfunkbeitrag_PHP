@@ -102,7 +102,7 @@ Hostinger „Git“ automatinio diegimo **nenaudokite**: jis visą saugyklą nuk
 
 1. hPanel → **Files → FTP Accounts**: susiraskite FTP serverį (hostname arba IP), vartotojo vardą ir, jei reikia, nustatykite naują slaptažodį.
 2. GitHub saugykloje → **Settings → Secrets and variables → Actions → New repository secret**: sukurkite `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`.
-3. Jei prisijungus per FTP aplankas `public_html` nėra pačiame pradiniame kataloge (pvz., yra `domains/jusu-domenas/public_html`), skirtuke **Variables** nustatykite `FTP_PUBLIC_DIR` ir `FTP_PRIVATE_DIR` (pvz., `domains/jusu-domenas/public_html/` ir `domains/jusu-domenas/private/`). Jei FTPS neveikia, nustatykite `FTP_PROTOCOL` = `ftp`.
+3. Numatyta, kad per FTP failai yra `domains/rundfunkbeitrag.help/public_html/` ir `domains/rundfunkbeitrag.help/private/`. Jei jie kitur, skirtuke **Variables** nustatykite `FTP_PUBLIC_DIR` ir `FTP_PRIVATE_DIR`. Jei FTPS neveikia, nustatykite `FTP_PROTOCOL` = `ftp`.
 4. GitHub → **Actions → Deploy to Hostinger → Run workflow**, kad paleistumėte pirmą kartą. Toliau jis pasileis pats po kiekvieno pakeitimo `main` šakoje.
 
 ## 9. Kūrimo šaltiniai
