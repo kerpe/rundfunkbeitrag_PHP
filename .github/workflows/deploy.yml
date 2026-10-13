@@ -51,17 +51,14 @@ jobs:
           tls=(); [ "$PROTOCOL" = ftps ] && tls=(--ssl-reqd --insecure)
           ftp() { curl -sS "${tls[@]}" --user "$FTP_USERNAME:$FTP_PASSWORD" "$@"; }
           ok=1
-          ftp -I "ftp://$host/${PUBLIC_DIR}index.php" >/dev/null || { echo "::error::${PUBLIC_DIR}index.php not found on the server"; ok=0; }
+          # The public folder only has to exist: Hostinger's own Git deploy can leave it without index.php.
+          ftp --list-only "ftp://$host/${PUBLIC_DIR}" >/dev/null || { echo "::error::${PUBLIC_DIR} not found on the server"; ok=0; }
           ftp -I "ftp://$host/${PRIVATE_DIR}config.php" >/dev/null || { echo "::error::${PRIVATE_DIR}config.php not found on the server"; ok=0; }
           if [ $ok = 0 ]; then
             echo "Top-level folders visible over FTP:"; ftp --list-only "ftp://$host/" || true
             for d in $(ftp --list-only "ftp://$host/domains/" 2>/dev/null | grep -v '^\.'); do
               echo "domains/$d/:"; ftp --list-only "ftp://$host/domains/$d/" || true
             done
-            for d in "$PUBLIC_DIR" "$PRIVATE_DIR" "${PUBLIC_DIR}public_html/" "${PUBLIC_DIR}private/"; do
-              echo "$d:"; ftp --list-only "ftp://$host/$d" || true
-            done
-            for f in .htaccess index.php; do ftp -I "ftp://$host/${PUBLIC_DIR}$f" >/dev/null 2>&1 && echo "has ${PUBLIC_DIR}$f"; ftp -I "ftp://$host/${PUBLIC_DIR}public_html/$f" >/dev/null 2>&1 && echo "has ${PUBLIC_DIR}public_html/$f"; done
             exit 1
           fi
 
