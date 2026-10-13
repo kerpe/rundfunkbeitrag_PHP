@@ -58,9 +58,10 @@ jobs:
             for d in $(ftp --list-only "ftp://$host/domains/" 2>/dev/null | grep -v '^\.'); do
               echo "domains/$d/:"; ftp --list-only "ftp://$host/domains/$d/" || true
             done
-            for d in "$PUBLIC_DIR" "$PRIVATE_DIR"; do
+            for d in "$PUBLIC_DIR" "$PRIVATE_DIR" "${PUBLIC_DIR}public_html/" "${PUBLIC_DIR}private/"; do
               echo "$d:"; ftp --list-only "ftp://$host/$d" || true
             done
+            for f in .htaccess index.php; do ftp -I "ftp://$host/${PUBLIC_DIR}$f" >/dev/null 2>&1 && echo "has ${PUBLIC_DIR}$f"; ftp -I "ftp://$host/${PUBLIC_DIR}public_html/$f" >/dev/null 2>&1 && echo "has ${PUBLIC_DIR}public_html/$f"; done
             exit 1
           fi
 
