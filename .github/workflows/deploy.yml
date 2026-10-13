@@ -49,9 +49,10 @@ jobs:
         run: |
           host="${FTP_SERVER#ftp://}"; host="${host%/}"
           tls=(); [ "$PROTOCOL" = ftps ] && tls=(--ssl-reqd --insecure)
-          ftp() { curl -sS "${tls[@]}" --user "$FTP_USERNAME:$FTP_PASSWORD" "$@"; }
+          ftp() { curl -sS --max-time 60 "${tls[@]}" --user "$FTP_USERNAME:$FTP_PASSWORD" "$@"; }
           ok=1
-          ftp -I "ftp://$host/${PUBLIC_DIR}index.php" >/dev/null || { echo "::error::${PUBLIC_DIR}index.php not found on the server"; ok=0; }
+          # The public folder only has to exist: Hostinger's own Git deploy can leave it without index.php.
+          ftp --list-only "ftp://$host/${PUBLIC_DIR}" >/dev/null || { echo "::error::${PUBLIC_DIR} not found on the server"; ok=0; }
           ftp -I "ftp://$host/${PRIVATE_DIR}config.php" >/dev/null || { echo "::error::${PRIVATE_DIR}config.php not found on the server"; ok=0; }
           if [ $ok = 0 ]; then
             echo "Top-level folders visible over FTP:"; ftp --list-only "ftp://$host/" || true
@@ -72,19 +73,25 @@ jobs:
           local-dir: ./public_html/
           server-dir: ${{ vars.FTP_PUBLIC_DIR || 'domains/rundfunkbeitrag.help/public_html/' }}
 
+      # lftp instead of FTP-Deploy-Action here: on Hostinger the action's FTPS data
+      # connection resets when it enters folders that already exist (private/app).
       - name: Upload private
         if: env.HAS_FTP == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
-          local-dir: ./private/
-          server-dir: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
-          exclude: |
-            **/.git*
-            **/.git*/**
-            config.php
-            installation-key.php
-            data/**
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          PRIVATE_DIR: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
+          PROTOCOL: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp >/dev/null
+          host="${FTP_SERVER#ftp://}"; host="${host%/}"
+          ssl=false; [ "$PROTOCOL" = ftps ] && ssl=true
+          export LFTP_PASSWORD="$FTP_PASSWORD"
+          lftp --env-password -u "$FTP_USERNAME" "$host" -e "
+            set ftp:ssl-force $ssl; set ftp:ssl-protect-data $ssl; set ssl:verify-certificate no;
+            set net:max-retries 3; set net:timeout 30;
+            mirror -R --verbose --no-perms \
+              -x '^config\.php$' -x '^installation-key\.php$' -x '^data/' -x '(^|/)\.git' \
+              ./private/ '$PRIVATE_DIR';
+            bye"
