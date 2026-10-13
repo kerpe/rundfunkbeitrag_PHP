@@ -49,7 +49,7 @@ jobs:
         run: |
           host="${FTP_SERVER#ftp://}"; host="${host%/}"
           tls=(); [ "$PROTOCOL" = ftps ] && tls=(--ssl-reqd --insecure)
-          ftp() { curl -sS "${tls[@]}" --user "$FTP_USERNAME:$FTP_PASSWORD" "$@"; }
+          ftp() { curl -sS --max-time 60 "${tls[@]}" --user "$FTP_USERNAME:$FTP_PASSWORD" "$@"; }
           ok=1
           # The public folder only has to exist: Hostinger's own Git deploy can leave it without index.php.
           ftp --list-only "ftp://$host/${PUBLIC_DIR}" >/dev/null || { echo "::error::${PUBLIC_DIR} not found on the server"; ok=0; }
