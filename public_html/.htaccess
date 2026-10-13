@@ -11,3 +11,6 @@ RewriteRule ^ index.php [QSA,L]
 <FilesMatch "\.(?:sql|log|ini|bak|env|jsonl)$">
 Require all denied
 </FilesMatch>
+<Files ".ftp-deploy-sync-state.json">
+Require all denied
+</Files>

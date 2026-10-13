@@ -1,0 +1,87 @@
+# Uploads the site to Hostinger over FTP whenever main changes.
+# public_html/ goes to the site's public_html; private/ goes next to it,
+# outside the web root. Files that are not in the repository (config.php,
+# installation-key.php, data/) are never touched.
+#
+# Repository secrets (Settings -> Secrets and variables -> Actions):
+#   FTP_SERVER    the IP shown in hPanel, without ftp:// (e.g. 92.113.18.12)
+#   FTP_USERNAME  hPanel -> Files -> FTP Accounts
+#   FTP_PASSWORD
+# Optional repository variables (same page, "Variables" tab):
+#   FTP_PUBLIC_DIR   default: public_html/
+#   FTP_PRIVATE_DIR  default: private/
+#   FTP_PROTOCOL     default: ftps (use ftp only if ftps fails)
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_FTP: ${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}
+    steps:
+      - name: Check FTP settings
+        if: env.HAS_FTP != 'true'
+        run: echo "::notice::FTP secrets are not set yet, so nothing was deployed. Add FTP_SERVER, FTP_USERNAME and FTP_PASSWORD."
+
+      - uses: actions/checkout@v4
+        if: env.HAS_FTP == 'true'
+
+      # Refuse to upload unless the live site is where we expect it, so a
+      # wrong folder setting can never create a second copy of the site.
+      - name: Check the target folders on the server
+        if: env.HAS_FTP == 'true'
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          PUBLIC_DIR: ${{ vars.FTP_PUBLIC_DIR || 'public_html/' }}
+          PRIVATE_DIR: ${{ vars.FTP_PRIVATE_DIR || 'private/' }}
+          PROTOCOL: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+        run: |
+          host="${FTP_SERVER#ftp://}"; host="${host%/}"
+          tls=(); [ "$PROTOCOL" = ftps ] && tls=(--ssl-reqd --insecure)
+          ftp() { curl -sS "${tls[@]}" --user "$FTP_USERNAME:$FTP_PASSWORD" "$@"; }
+          ok=1
+          ftp -I "ftp://$host/${PUBLIC_DIR}index.php" >/dev/null || { echo "::error::${PUBLIC_DIR}index.php not found on the server"; ok=0; }
+          ftp -I "ftp://$host/${PRIVATE_DIR}config.php" >/dev/null || { echo "::error::${PRIVATE_DIR}config.php not found on the server"; ok=0; }
+          if [ $ok = 0 ]; then
+            echo "Top-level folders visible over FTP:"; ftp --list-only "ftp://$host/" || true
+            exit 1
+          fi
+
+      - name: Upload public_html
+        if: env.HAS_FTP == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          local-dir: ./public_html/
+          server-dir: ${{ vars.FTP_PUBLIC_DIR || 'public_html/' }}
+
+      - name: Upload private
+        if: env.HAS_FTP == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          local-dir: ./private/
+          server-dir: ${{ vars.FTP_PRIVATE_DIR || 'private/' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            config.php
+            installation-key.php
+            data/**

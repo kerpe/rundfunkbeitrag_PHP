@@ -96,6 +96,15 @@ Kopijuokite kartu MySQL duomenų bazę ir `private/data/uploads`; saugiai atskir
 
 Atnaujindami kodą išsaugokite esamus `private/config.php` ir `private/data`. Nekopijuokite naujo `installation-key.php` į jau įdiegtą svetainę. Išsaugotas įmonės nustatymų tekstas nekeičia anksčiau pateiktų užsakymų dokumentų. Klientų duomenų ištrynimas leidžiamas tik užbaigtai bylai, pasibaigus jūsų nustatytam saugojimo laikui ir aiškiai patvirtinus ištrynimą administratoriaus skydelyje.
 
+### Automatinis atnaujinimas iš GitHub (FTP)
+
+Hostinger „Git“ automatinio diegimo **nenaudokite**: jis visą saugyklą nukopijuoja į vieną aplanką, todėl atsiranda `public_html/public_html` ir svetainė rodo 403. Vietoj to kiekvieną `main` šakos pakeitimą įkelia GitHub Actions (`.github/workflows/deploy.yml`): `public_html` turinys patenka į svetainės `public_html`, o `private` – šalia jo. Failų `private/config.php`, `private/installation-key.php` ir `private/data` jis neliečia.
+
+1. hPanel → **Files → FTP Accounts**: susiraskite FTP serverį (hostname arba IP), vartotojo vardą ir, jei reikia, nustatykite naują slaptažodį.
+2. GitHub saugykloje → **Settings → Secrets and variables → Actions → New repository secret**: sukurkite `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`.
+3. Jei prisijungus per FTP aplankas `public_html` nėra pačiame pradiniame kataloge (pvz., yra `domains/jusu-domenas/public_html`), skirtuke **Variables** nustatykite `FTP_PUBLIC_DIR` ir `FTP_PRIVATE_DIR` (pvz., `domains/jusu-domenas/public_html/` ir `domains/jusu-domenas/private/`). Jei FTPS neveikia, nustatykite `FTP_PROTOCOL` = `ftp`.
+4. GitHub → **Actions → Deploy to Hostinger → Run workflow**, kad paleistumėte pirmą kartą. Toliau jis pasileis pats po kiekvieno pakeitimo `main` šakoje.
+
 ## 9. Kūrimo šaltiniai
 
 `frontend` yra pasirenkamas React / Vite išvaizdos kūrimo projektas atskiroje [šaltinių šakoje](https://github.com/evaldas0905/business-mvp/tree/php-source-2026-10-12). Diegimo šakoje šio katalogo nėra. Tik jei ateityje norėsite patys keisti šaltinius, savo kompiuteryje su Node.js 24 vykdykite `npm ci`, `npm run check`, `npm run build` šiame kataloge. Rezultatas patenka į `public_html`; hostinge Node.js nereikia. PDF bibliotekos jau įtrauktos, o jų versijos užfiksuotos `private/composer.lock`.
