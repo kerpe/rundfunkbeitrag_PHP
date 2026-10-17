@@ -1,0 +1,64 @@
+# Uploads the site to the second host (OVHcloud, rundfunkbeitragsupport.de)
+# over SFTP whenever main changes. Runs next to deploy.yml (Hostinger) and
+# does not touch it. public_html/ and private/ go into the OVH site folder;
+# files that are not in the repository (config.php, installation-key.php,
+# data/) are never touched.
+#
+# Repository secret (Settings -> Secrets and variables -> Actions):
+#   OVH_SFTP_PASSWORD  OVH -> Web hosting -> FTP - SSH, password of the main login
+# Optional repository variables (same page, "Variables" tab):
+#   OVH_SFTP_HOST  default: ftp.cluster151.hosting.ovh.net
+#   OVH_SFTP_USER  default: imzdlyl
+#   OVH_SITE_DIR   default: xihiut7kcn/  (the site's Root folder is <dir>public_html)
+name: Deploy to OVH
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ovh
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_SFTP: ${{ secrets.OVH_SFTP_PASSWORD != '' }}
+      SFTP_HOST: ${{ vars.OVH_SFTP_HOST || 'ftp.cluster151.hosting.ovh.net' }}
+      SFTP_USER: ${{ vars.OVH_SFTP_USER || 'imzdlyl' }}
+      SITE_DIR: ${{ vars.OVH_SITE_DIR || 'xihiut7kcn/' }}
+      LFTP_PASSWORD: ${{ secrets.OVH_SFTP_PASSWORD }}
+    steps:
+      - name: Check SFTP settings
+        if: env.HAS_SFTP != 'true'
+        run: echo "::notice::OVH_SFTP_PASSWORD is not set yet, so nothing was deployed to OVH."
+
+      - uses: actions/checkout@v4
+        if: env.HAS_SFTP == 'true'
+
+      - name: Install lftp
+        if: env.HAS_SFTP == 'true'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp >/dev/null
+
+      # Refuse to upload unless the installed site is where we expect it, so a
+      # wrong folder setting can never create a second copy of the site.
+      - name: Check the target folders on the server
+        if: env.HAS_SFTP == 'true'
+        run: |
+          lftp --env-password -u "$SFTP_USER" "sftp://$SFTP_HOST" -e "
+            set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30;
+            cls ${SITE_DIR}public_html/index.php ${SITE_DIR}private/config.php;
+            bye" || { echo "::error::${SITE_DIR}public_html or ${SITE_DIR}private/config.php not found on OVH"; exit 1; }
+
+      - name: Upload public_html and private
+        if: env.HAS_SFTP == 'true'
+        run: |
+          lftp --env-password -u "$SFTP_USER" "sftp://$SFTP_HOST" -e "
+            set sftp:auto-confirm yes; set net:max-retries 3; set net:timeout 30;
+            mirror -R --verbose --no-perms ./public_html/ '${SITE_DIR}public_html/';
+            mirror -R --verbose --no-perms \
+              -x '^config\.php$' -x '^installation-key\.php$' -x '^data/' -x '(^|/)\.git' \
+              ./private/ '${SITE_DIR}private/';
+            bye"
