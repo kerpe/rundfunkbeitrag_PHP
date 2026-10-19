@@ -1,11 +1,11 @@
 {
   "entry.tsx": {
-    "file": "assets/entry-956da65a.js",
+    "file": "assets/entry-2c65096d.js",
     "name": "entry",
     "src": "entry.tsx",
     "isEntry": true,
     "css": [
-      "assets/entry-de85eb0c.css"
+      "assets/entry-013e858e.css"
     ]
   }
 }
