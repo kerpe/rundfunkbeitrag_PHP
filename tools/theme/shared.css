@@ -52,3 +52,33 @@ html body .mj input,html body .mj select,html body .mj textarea,html body .field
 html body .mj-sidebar li[aria-current=step]>span:first-child{background:var(--t-primary)}
 html body .mj-header{border-bottom-color:var(--t-line);background:var(--t-surface)}
 @media (max-width:760px){html body .landing-hero:before{inset:-40px -30% auto auto;width:110vw;height:360px;opacity:.55}}
+/* Service cards: the whole card starts the request; details link stays separately clickable */
+html body .public-service-card{position:relative;cursor:pointer}
+html body .public-service-card .service-start,html body .public-service-card .service-actions{position:static !important}
+html body .public-service-card .service-start:after{content:"";position:absolute;inset:0;border-radius:inherit}
+html body .public-service-card .service-start:before{content:"→";order:2;margin-left:6px}
+html body .public-service-card .service-start{display:inline-flex;align-items:center;justify-content:center;gap:0}
+html body .public-service-card .service-details{position:relative;z-index:1}
+html body .public-service-card:hover .service-start{background:var(--t-primary) !important;color:var(--t-on-primary) !important;border-color:var(--t-primary) !important}
+html body .landing-other{align-items:flex-start}
+html body .landing-other a{white-space:normal;color:var(--t-primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+/* Phone start button in the hero and sticky bar */
+html body .hero-mobile-cta{display:none}
+html body .rb-sticky-cta{display:none}
+@media (max-width:760px){
+ html body .hero-mobile-cta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;min-height:56px;padding:0 10px 0 24px;border-radius:999px;background:var(--t-primary);color:var(--t-on-primary) !important;font-weight:700;font-size:1.0625rem;text-decoration:none !important;box-shadow:0 10px 24px -12px var(--t-primary)}
+ html body .hero-mobile-cta span{background:#ffffff26;border-radius:999px;padding:7px 14px;font-size:.9375rem}
+ html body .rb-sticky-cta{display:flex;position:fixed;z-index:50;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));align-items:center;justify-content:space-between;gap:12px;padding:8px 8px 8px 20px;border-radius:999px;background:var(--t-surface);border:1px solid var(--t-line);box-shadow:0 16px 40px -12px #0000004d;transform:translateY(140%);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none}
+ html body .rb-sticky-cta.is-visible{transform:none;opacity:1;pointer-events:auto}
+ html body .rb-sticky-cta span{font-size:.9375rem;color:var(--t-muted)}
+ html body .rb-sticky-cta strong{color:var(--t-ink);font-size:1.125rem;margin-right:4px}
+ html body .rb-sticky-cta a{display:inline-flex;align-items:center;min-height:46px;padding:0 22px;border-radius:999px;background:var(--t-primary);color:var(--t-on-primary) !important;font-weight:700;text-decoration:none !important}
+}
+@media (prefers-reduced-motion:reduce){html body .rb-sticky-cta,html body .public-service-card{transition:none}}
+/* FAQ groups */
+html body .faq-groups{display:grid;gap:28px;min-width:0}
+html body .faq-group h3{font-size:.875rem !important;letter-spacing:.06em;text-transform:uppercase;color:var(--t-primary);margin:0 0 4px}
+html body .faq-more{justify-self:start;min-height:48px;padding:0 24px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-surface);color:var(--t-primary);font-weight:700;font-size:1rem}
+html body .faq-more:hover{border-color:var(--t-primary)}
+html body .landing-faq .section-heading{align-self:start;position:sticky;top:24px}
+@media (max-width:760px){html body .landing-faq .section-heading{position:static}}
