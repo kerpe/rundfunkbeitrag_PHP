@@ -1,22 +1,27 @@
 # Self-hosted website typography
 
-Manrope (weight axis 200–800) is the active family across the logo wordmark,
-headings, body text, customer forms and administration. It uses the bundled
-SIL Open Font License 1.1 notice. Source Serif 4 is retained as an unused
-previous-design asset and is no longer declared or requested by the website.
+Instrument Sans (weight axis 400–700) is the active family for the logo
+wordmark, headings, body text, customer forms and the admin login. Fraunces
+(weight 300–800, italic look via the theme) is used only for the emphasised
+phrase in the homepage headline. Both use the bundled SIL Open Font License 1.1
+notices (`InstrumentSans-OFL.txt`, `Fraunces-OFL.txt`).
 
-Original variable TTFs were obtained from the Google Fonts upstream repository:
+Manrope and Source Serif 4 are kept as previous-design assets. Manrope is still
+declared by the bundle CSS as a fallback but is no longer requested by the
+current theme.
 
+Original variable TTFs were obtained from the Google Fonts upstream repository
+and converted to WOFF2 without changing glyphs, names, outlines or axes:
+
+- https://github.com/google/fonts/tree/main/ofl/instrumentsans
+- https://github.com/google/fonts/tree/main/ofl/fraunces
 - https://github.com/google/fonts/tree/main/ofl/manrope
 - https://github.com/google/fonts/tree/main/ofl/sourceserif4
 
-The WOFF2 files are format conversions of the complete upstream fonts. No
-glyphs, names, outlines, or axes were changed or removed. German and English
-characters and the euro symbol are included. Fonts are served from this Site;
-the browser does not contact Google Fonts or another external font service.
+German and English characters and the euro symbol are included. Fonts are
+served from this site; the browser does not contact Google Fonts or another
+external font service.
 
-CSS uses `font-display: swap` and system fallbacks. Variable weights distinguish
-the wordmark (780/450), display headlines (720), section headings (650),
-labels and actions (600), navigation (550), and body text (400). Font sizes
-use responsive clamps for headlines, 16 px for form entry and normal body text,
-and 14 px for supporting notices.
+CSS uses `font-display: swap` and system fallbacks. Text is never smaller than
+13 px; supporting text is 14 px, body text 16–17 px. Colours and sizes are set
+by `tools/theme/` (see `tools/theme/build.py`).
