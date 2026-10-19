@@ -1,0 +1,84 @@
+/* ---- Theme layer ---- */
+:root{--font-sans:var(--t-body);--font-display:var(--t-display);--default-font-family:var(--t-body);--background:var(--t-bg);--foreground:var(--t-ink);--primary:var(--t-primary);--ring:var(--t-primary);--radius:.875rem}
+html body{background:var(--t-bg);color:var(--t-ink);font-family:var(--t-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+html body .public-site,html body .landing-page,html body .mj{background:var(--t-bg) !important;color:var(--t-ink)}
+html body .mj{--mj-ink:var(--t-ink);--mj-green:var(--t-primary);--mj-line:var(--t-line);font-size:17px}
+/* Typography */
+html body h1,html body h2,html body h3{font-family:var(--t-display);color:inherit}
+html body .landing-hero h1{font-weight:var(--t-h-weight) !important;letter-spacing:-.035em !important;font-size:clamp(2.4rem,5vw,4.5rem) !important;line-height:1.04 !important}
+html body .landing-hero h1 .hero-emphasis{font-family:var(--t-accent-font);font-style:var(--t-em-style);font-weight:var(--t-em-weight);letter-spacing:-.02em;color:var(--t-primary) !important;position:relative;display:inline-block !important}
+html body .landing-hero h1 .hero-emphasis:after{content:"";position:absolute;left:0;right:.2em;bottom:.04em;height:.16em;border-radius:99px;background:var(--t-accent);opacity:.55;z-index:-1}
+html body .landing-hero .hero-intro{font-size:clamp(1.0625rem,1.4vw,1.1875rem) !important;line-height:1.65 !important;color:var(--t-muted) !important}
+html body .section-heading h2,html body .landing-final h2,html body .landing-support h2{font-weight:var(--t-h-weight) !important;letter-spacing:-.03em !important;font-size:clamp(1.85rem,3.2vw,2.75rem) !important;line-height:1.12 !important}
+html body .mj h1{font-weight:var(--t-h-weight);letter-spacing:-.03em}
+html body .landing-page p,html body .landing-page li{font-size:max(1rem,1em)}
+html body .landing-page h3{font-size:1.125rem;letter-spacing:-.01em}
+/* Eyebrows become pills */
+html body .eyebrow,html body .router-kicker,html body .mj-eyebrow{display:inline-flex !important;align-items:center;gap:8px;width:fit-content;background:var(--t-tag);color:var(--t-tag-ink) !important;border-radius:99px;padding:6px 14px;font-size:.8125rem !important;letter-spacing:.06em !important;font-weight:700 !important}
+html body .eyebrow:before,html body .router-kicker:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--t-accent)}
+html body .landing-included .eyebrow{background:#ffffff1f;color:#fff !important}
+/* Header */
+html body .language-bar{background:var(--t-dark-2) !important}
+html body .site-header{border-bottom:0 !important}
+html body .header-nav a{font-weight:600;font-size:.9375rem;color:var(--t-ink)}
+html body .header-nav a:hover{color:var(--t-primary)}
+/* Hero decoration */
+html body .landing-hero{position:relative;border-bottom:0 !important;isolation:isolate}
+html body .landing-hero:before{content:"";position:absolute;z-index:-1;inset:10px -8% auto auto;width:min(720px,70vw);height:620px;background:radial-gradient(closest-side at 60% 40%,var(--t-blob1),transparent 72%),radial-gradient(closest-side at 30% 75%,var(--t-blob2),transparent 70%);filter:blur(10px);opacity:.9;pointer-events:none}
+html body .landing-hero-points span{background:var(--t-surface);border:1px solid var(--t-line);border-radius:99px;padding:6px 14px;font-weight:600;color:var(--t-ink)}
+html body .landing-hero-points svg{color:var(--t-primary) !important}
+/* Cards */
+html body .router-card,html body .landing-start-card{background:var(--t-surface) !important;border:1px solid var(--t-line) !important;border-radius:24px !important;box-shadow:0 1px 2px #0000000a,0 24px 48px -24px #0000002e !important;border-top:1px solid var(--t-line) !important}
+html body .landing-price strong,html body .landing-price>span:first-child{font-family:var(--t-display);letter-spacing:-.04em}
+html body .public-service-card{background:var(--t-surface);border:1px solid var(--t-line) !important;border-radius:20px !important;padding:22px 24px !important;margin-bottom:12px;transition:transform .18s,box-shadow .18s,border-color .18s}
+html body .public-service-card:hover{transform:translateY(-2px);box-shadow:0 18px 40px -24px #00000040;border-color:var(--t-primary) !important;background:var(--t-surface) !important}
+html body .public-service-grid{border:0 !important}
+html body .service-index img,html body .service-index svg,html body .service-index>span:first-child{background:var(--t-tag) !important;border-radius:12px !important}
+html body .rb-processes li,html body .rb-about-facts,html body .mj-card,html body .mj-route,html body .landing-situations article,html body .rb-review-list figure{border-radius:18px !important;border-color:var(--t-line) !important;background:var(--t-surface)}
+html body .landing-preparation,html body .landing-final{background:var(--t-surface) !important;border:1px solid var(--t-line);border-radius:28px !important}
+html body .landing-evidence-note{border-radius:14px;border-left-color:var(--t-accent) !important}
+html body .landing-included{background:radial-gradient(600px 300px at 90% 0%,#ffffff14,transparent 70%),linear-gradient(160deg,var(--t-dark),var(--t-dark-2)) !important;border-radius:32px !important}
+html body .landing-included svg{color:var(--t-accent) !important}
+html body .landing-step-label{font-family:var(--t-display)}
+html body .faq-list [data-slot=accordion-item]{border-color:var(--t-line) !important}
+/* Buttons */
+html body .check-button,html body .public-button,html body .mj-primary{background:var(--t-primary) !important;color:var(--t-on-primary) !important;border-radius:999px !important;min-height:54px;font-size:1rem !important;font-weight:700 !important;letter-spacing:-.005em;box-shadow:0 10px 24px -12px var(--t-primary) !important;transition:background-color .18s,transform .18s}
+html body .check-button:hover,html body .public-button:hover,html body .mj-primary:hover{background:var(--t-primary-hover) !important;transform:translateY(-1px)}
+html body .service-start{border-radius:999px !important;border-color:var(--t-line) !important;color:var(--t-primary) !important;background:var(--t-surface) !important}
+html body .service-start:hover{background:var(--t-primary) !important;color:var(--t-on-primary) !important;border-color:var(--t-primary) !important}
+html body .mj button:not(.mj-primary),html body .mj-actions button{border-radius:999px}
+html body .mj input,html body .mj select,html body .mj textarea,html body .field>input,html body .field>textarea{border-radius:12px !important;border-color:var(--t-line)}
+/* Order sidebar steps */
+html body .mj-sidebar li[aria-current=step]>span:first-child{background:var(--t-primary)}
+html body .mj-header{border-bottom-color:var(--t-line);background:var(--t-surface)}
+@media (max-width:760px){html body .landing-hero:before{inset:-40px -30% auto auto;width:110vw;height:360px;opacity:.55}}
+/* Service cards: the whole card starts the request; details link stays separately clickable */
+html body .public-service-card{position:relative;cursor:pointer}
+html body .public-service-card .service-start,html body .public-service-card .service-actions{position:static !important}
+html body .public-service-card .service-start:after{content:"";position:absolute;inset:0;border-radius:inherit}
+html body .public-service-card .service-start:before{content:"→";order:2;margin-left:6px}
+html body .public-service-card .service-start{display:inline-flex;align-items:center;justify-content:center;gap:0}
+html body .public-service-card .service-details{position:relative;z-index:1}
+html body .public-service-card:hover .service-start{background:var(--t-primary) !important;color:var(--t-on-primary) !important;border-color:var(--t-primary) !important}
+html body .landing-other{align-items:flex-start}
+html body .landing-other a{white-space:normal;color:var(--t-primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+/* Phone start button in the hero and sticky bar */
+html body .hero-mobile-cta{display:none}
+html body .rb-sticky-cta{display:none}
+@media (max-width:760px){
+ html body .hero-mobile-cta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;min-height:56px;padding:0 10px 0 24px;border-radius:999px;background:var(--t-primary);color:var(--t-on-primary) !important;font-weight:700;font-size:1.0625rem;text-decoration:none !important;box-shadow:0 10px 24px -12px var(--t-primary)}
+ html body .hero-mobile-cta span{background:#ffffff26;border-radius:999px;padding:7px 14px;font-size:.9375rem}
+ html body .rb-sticky-cta{display:flex;position:fixed;z-index:50;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));align-items:center;justify-content:space-between;gap:12px;padding:8px 8px 8px 20px;border-radius:999px;background:var(--t-surface);border:1px solid var(--t-line);box-shadow:0 16px 40px -12px #0000004d;transform:translateY(140%);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none}
+ html body .rb-sticky-cta.is-visible{transform:none;opacity:1;pointer-events:auto}
+ html body .rb-sticky-cta span{font-size:.9375rem;color:var(--t-muted)}
+ html body .rb-sticky-cta strong{color:var(--t-ink);font-size:1.125rem;margin-right:4px}
+ html body .rb-sticky-cta a{display:inline-flex;align-items:center;min-height:46px;padding:0 22px;border-radius:999px;background:var(--t-primary);color:var(--t-on-primary) !important;font-weight:700;text-decoration:none !important}
+}
+@media (prefers-reduced-motion:reduce){html body .rb-sticky-cta,html body .public-service-card{transition:none}}
+/* FAQ groups */
+html body .faq-groups{display:grid;gap:28px;min-width:0}
+html body .faq-group h3{font-size:.875rem !important;letter-spacing:.06em;text-transform:uppercase;color:var(--t-primary);margin:0 0 4px}
+html body .faq-more{justify-self:start;min-height:48px;padding:0 24px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-surface);color:var(--t-primary);font-weight:700;font-size:1rem}
+html body .faq-more:hover{border-color:var(--t-primary)}
+html body .landing-faq .section-heading{align-self:start;position:sticky;top:24px}
+@media (max-width:760px){html body .landing-faq .section-heading{position:static}}

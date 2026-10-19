@@ -1,0 +1,13 @@
+@font-face{font-family:"Fraunces";src:url(/fonts/fraunces-variable.woff2) format("woff2");font-weight:300 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Instrument Sans";src:url(/fonts/instrumentsans-variable.woff2) format("woff2");font-weight:400 700;font-stretch:75% 100%;font-style:normal;font-display:swap}
+:root{
+ --t-display:"Instrument Sans","Segoe UI",Helvetica,Arial,sans-serif;
+ --t-accent-font:"Fraunces",Georgia,serif;
+ --t-body:"Instrument Sans","Segoe UI",Helvetica,Arial,sans-serif;
+ --t-bg:#f7f4ee; --t-surface:#fffdf9; --t-ink:#14302b; --t-muted:#5b625c; --t-line:#e4ddd0;
+ --t-primary:#0f6e62; --t-primary-hover:#0a564c; --t-on-primary:#fff;
+ --t-accent:#f2a65a; --t-accent-soft:#fde9d2; --t-tag:#dcefe9; --t-tag-ink:#0b5a50;
+ --t-dark:#123a34; --t-dark-2:#0c2b26;
+ --t-blob1:#bfe3d8; --t-blob2:#fbd9b3;
+ --t-h-weight:600; --t-em-style:italic; --t-em-weight:500;
+}
