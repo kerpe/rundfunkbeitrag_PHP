@@ -89,3 +89,31 @@ html body .mj-route img.rb-icon-img{width:64px !important;height:64px !important
 html body .landing-page .public-service-card{grid-template-columns:64px minmax(0,1fr) 210px}
 @media (width<=800px){html body .landing-page .public-service-card{grid-template-columns:56px minmax(0,1fr) 180px}html body .service-index img.rb-icon-img{width:56px !important;height:56px !important}}
 @media (width<=600px){html body .landing-page .public-service-card{grid-template-columns:52px minmax(0,1fr)}html body .service-index img.rb-icon-img{width:52px !important;height:52px !important;margin:-6px -6px 0}}
+/* Case page: what happens now, second-home deadline */
+html body .mj-next{margin:4px 0 20px;padding:16px 18px;border-radius:12px;background:var(--t-accent-soft);border:1px solid var(--t-line)}
+html body .mj-next strong{display:block;color:var(--t-ink);margin-bottom:4px}
+html body .mj-next p{margin:4px 0 0}
+html body .rb-deadline{margin:8px 0 4px;padding:12px 14px;border-radius:10px;border:1px solid var(--t-line);border-left:4px solid var(--t-primary);background:var(--t-surface)}
+html body .rb-deadline[data-state=soon]{border-left-color:var(--t-accent)}
+html body .rb-deadline[data-state=over]{border-left-color:#b4472f}
+html body .rb-deadline strong{display:block;color:var(--t-ink)}
+html body .rb-deadline p{margin:4px 0 0;font-size:.9375rem;color:var(--t-muted)}
+/* Service pages: free official route; additional-home guide */
+html body .public-free{margin:32px 0 24px;padding:24px 28px;border-radius:16px;background:var(--t-surface);border:1px dashed var(--t-primary)}
+html body .public-free h2{margin-top:0}
+html body .public-free a,html body .rb-article a{color:var(--t-primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+html body .rb-hub{margin-top:28px}
+html body .rb-hub .public-price h2{font-size:1.1875rem}
+/* Guide articles (/ratgeber, /guide) */
+html body .rb-article{max-width:760px}
+html body .rb-article h2{margin:32px 0 10px}
+html body .rb-article ul{padding-left:1.25em}
+html body .rb-article li{margin:6px 0}
+html body .rb-article .eyebrow a{text-decoration:none}
+html body .rb-article-list{list-style:none;padding:0 !important;display:grid;gap:14px}
+html body .rb-article-list li{padding:18px 20px;border:1px solid var(--t-line);border-radius:14px;background:var(--t-surface)}
+html body .rb-article-list li p{margin:6px 0 0;color:var(--t-muted)}
+html body .rb-article-cta{margin:36px 0 20px;padding:24px 28px;border-radius:16px;background:var(--t-surface);border:1px solid var(--t-line);border-top:3px solid var(--t-primary)}
+html body .rb-article-cta h2{margin-top:0}
+html body .rb-article-cta .public-button{color:var(--t-on-primary);text-decoration:none;margin-right:16px}
+html body .rb-article-note{font-size:.875rem;color:var(--t-muted);margin-top:28px}
