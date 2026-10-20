@@ -166,10 +166,8 @@ html body .rb-deadline[data-state=soon]{border-left-color:var(--t-accent)}
 html body .rb-deadline[data-state=over]{border-left-color:#b4472f}
 html body .rb-deadline strong{display:block;color:var(--t-ink)}
 html body .rb-deadline p{margin:4px 0 0;font-size:.9375rem;color:var(--t-muted)}
-/* Service pages: free official route; additional-home guide */
-html body .public-free{margin:32px 0 24px;padding:24px 28px;border-radius:16px;background:var(--t-surface);border:1px dashed var(--t-primary)}
-html body .public-free h2{margin-top:0}
-html body .public-free a,html body .rb-article a{color:var(--t-primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+/* Additional-home guide page */
+html body .rb-article a,html body .public-content .rb-guide-link a{color:var(--t-primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
 html body .rb-hub{margin-top:28px}
 html body .rb-hub .public-price h2{font-size:1.1875rem}
 /* Guide articles (/ratgeber, /guide) */
