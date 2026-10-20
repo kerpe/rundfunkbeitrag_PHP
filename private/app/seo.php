@@ -1,0 +1,40 @@
+<?php
+// Page titles, descriptions, guide pages (/ratgeber, /guide) and sitemap.xml.
+function seo_articles():array{static $a=null;return $a??=require __DIR__.'/articles.php';}
+function seo_codes():array{return ['zusammenziehen'=>'P-04','ausland'=>'P-05','weitere-wohnung-aufgeben'=>'P-06','sterbefall'=>'P-07','anmelden'=>'P-01','daten-aendern'=>'P-02','zahlung-aendern'=>'P-03','zweitwohnung'=>'P-08'];}
+function seo_services():array{return [
+ 'zusammenziehen'=>['Rundfunkbeitrag abmelden beim Zusammenziehen','Sie ziehen zu jemandem, der bereits zahlt? Wir melden Ihr Beitragskonto ab, damit nicht doppelt gezahlt wird. Einmalig 39 €, offizielle Formulare kostenlos.'],
+ 'ausland'=>['Rundfunkbeitrag abmelden beim Umzug ins Ausland','Dauerhaft ins Ausland? Wir melden Ihren Rundfunkbeitrag ab, auch auf Englisch. Einmalig 39 €, offizielles Formular kostenlos.'],
+ 'weitere-wohnung-aufgeben'=>['Eine von mehreren Wohnungen abmelden','Sie geben eine von mehreren Wohnungen auf? Wir melden sie beim Beitragsservice ab. Einmalig 39 €, offizielles Formular kostenlos.'],
+ 'sterbefall'=>['Rundfunkbeitrag nach Todesfall abmelden','Wir melden das Beitragskonto einer verstorbenen Person für Angehörige ab. Einmalig 39 €, offizielles Formular kostenlos.'],
+ 'anmelden'=>['Wohnung erstmals beim Rundfunkbeitrag anmelden','Erste eigene Wohnung oder neue WG? Wir melden Ihre Wohnung beim Beitragsservice an. Einmalig 39 €, offizielles Formular kostenlos.'],
+ 'daten-aendern'=>['Name oder Adresse beim Rundfunkbeitrag ändern','Umzug oder neuer Name? Wir teilen die Änderung dem Beitragsservice mit. Einmalig 39 €, offizielles Formular kostenlos.'],
+ 'zahlung-aendern'=>['Zahlungsweise beim Rundfunkbeitrag ändern','Lastschrift, Überweisung oder anderer Rhythmus? Wir ändern die Zahlung Ihres Beitragskontos. Einmalig 39 €, offizielles Formular kostenlos.'],
+ 'zweitwohnung'=>['Nebenwohnung vom Rundfunkbeitrag befreien','Sie zahlen für Ihre Hauptwohnung? Wir melden die Nebenwohnung bei Bedarf an und beantragen die Befreiung. Einmalig 39 €.'],
+ 'weitere-wohnung-anmelden'=>['Weitere Wohnung beim Rundfunkbeitrag anmelden','Eine zusätzliche Wohnung? Wir zeigen, ob eine Befreiung möglich ist oder eine Anmeldung nötig ist, damit Sie nicht doppelt zahlen.'],
+];}
+function seo_static():array{return [
+ '/'=>['Rundfunkbeitrag anmelden, abmelden, ändern · Rundfunkbeitrag Support','Persönliche Unterstützung bei Rundfunkbeitrag-Anliegen: Abmeldung, Anmeldung, Änderung, Nebenwohnung. Unabhängiger Privatservice, einmalig 39 €. Offizielle Formulare sind kostenlos.'],
+ '/kontakt'=>['Kontakt · Rundfunkbeitrag Support','Fragen zu Ihrem Rundfunkbeitrag-Anliegen oder Ihrem Vorgang? Schreiben Sie uns.'],
+ '/impressum'=>['Impressum · Rundfunkbeitrag Support',null],'/datenschutz'=>['Datenschutz · Rundfunkbeitrag Support',null],'/agb'=>['AGB · Rundfunkbeitrag Support',null],'/widerruf'=>['Widerruf · Rundfunkbeitrag Support',null],
+ '/weitere-anliegen'=>['Weitere Rundfunkbeitrag-Anliegen · Rundfunkbeitrag Support',null],
+];}
+// Returns the article for /ratgeber/<slug> (de) or /guide/<slug> (en), or null.
+function seo_article(string $path):?array{if(!preg_match('#^/(ratgeber|guide)/([a-z0-9-]+)$#',$path,$m))return null;$lang=$m[1]==='guide'?'en':'de';foreach(seo_articles() as $a)if($a['slug']===$m[2]&&$a['lang']===$lang)return $a;return null;}
+function seo_article_url(array $a):string{return ($a['lang']==='en'?'/guide/':'/ratgeber/').$a['slug'];}
+function seo_known(string $path):bool{return $path==='/ratgeber'||$path==='/guide'||seo_article($path)!==null;}
+// Title, description, page language, server-rendered guide HTML and hreflang alternates for a path.
+function seo_meta(string $path):array{$base=config()['public_url'];$t='Rundfunkbeitrag Support';$m=['title'=>$t,'description'=>'Persönliche administrative Unterstützung für Rundfunkbeitrag-Anliegen. Unabhängiger Privatservice. Einmalig 39 €.','lang'=>null,'ssr'=>'','alternates'=>[]];
+ $s=seo_static()[$path]??null;if($s){$m['title']=$s[0];if($s[1])$m['description']=$s[1];return $m;}
+ if(preg_match('#^/leistungen/([a-z-]+)$#',$path,$x)&&isset(seo_services()[$x[1]])){[$m['title'],$m['description']]=seo_services()[$x[1]];$m['title'].=' · '.$t;return $m;}
+ if($path==='/ratgeber'||$path==='/guide'){$en=$path==='/guide';$m['lang']=$en?'en':'de';$m['title']=($en?'Guides: the German broadcasting fee explained':'Ratgeber zum Rundfunkbeitrag').' · '.$t;$m['description']=$en?'Plain-English guides to the Rundfunkbeitrag: leaving Germany, moving in together, second homes, first flat and deregistering after a death.':'Verständliche Ratgeber zum Rundfunkbeitrag: Abmeldung nach Todesfall, Umzug ins Ausland, Zusammenziehen, Nebenwohnung und erste Wohnung.';$m['alternates']=[['de',$base.'/ratgeber'],['en',$base.'/guide']];
+  $items='';foreach(seo_articles() as $a)if($a['lang']===$m['lang'])$items.='<li><a href="'.h(seo_article_url($a)).'">'.h($a['title']).'</a><p>'.h($a['description']).'</p></li>';
+  $m['ssr']='<article class="rb-article" lang="'.$m['lang'].'"><p class="eyebrow">'.($en?'Guides':'Ratgeber').'</p><h1>'.($en?'The German broadcasting fee, explained':'Rundfunkbeitrag verständlich erklärt').'</h1><p class="public-lead">'.($en?'What to do in common situations, and how to do it yourself for free with the official forms.':'Was in häufigen Situationen zu tun ist, und wie Sie es mit den offiziellen Formularen selbst kostenlos erledigen.').'</p><ul class="rb-article-list">'.$items.'</ul><p class="rb-article-alt"><a href="'.($en?'/ratgeber" hreflang="de">Ratgeber auf Deutsch':'/guide" hreflang="en">Guides in English').'</a></p>'.seo_disclaimer($m['lang']).'</article>';return $m;}
+ $a=seo_article($path);if(!$a)return $m;$en=$a['lang']==='en';$code=seo_codes()[$a['service']]??null;
+ $m['lang']=$a['lang'];$m['title']=$a['title'].' · '.$t;$m['description']=$a['description'];$alt=null;foreach(seo_articles() as $b)if($b['slug']===$a['alt']&&$b['lang']!==$a['lang'])$alt=$b;
+ if($alt)$m['alternates']=[[$a['lang'],$base.$path],[$alt['lang'],$base.seo_article_url($alt)]];
+ $cta='<aside class="rb-article-cta"><h2>'.($en?'Rather have it done for you?':'Lieber erledigen lassen?').'</h2><p>'.($en?'We check your details and documents, submit with your authorisation and keep you informed at every step. One-off €39, no subscription.':'Wir prüfen Ihre Angaben und Nachweise, reichen mit Ihrer Vollmacht ein und informieren Sie bei jedem Schritt. Einmalig 39 €, kein Abonnement.').'</p><p>'.($code?'<a class="public-button" href="/auftrag/'.strtolower($code).'">'.($en?'Start your request':'Anliegen starten').'</a> ':'').'<a href="/leistungen/'.h($a['service']).'">'.($en?'Documents and process':'Unterlagen und Ablauf').'</a></p></aside>';
+ $m['ssr']='<article class="rb-article" lang="'.$a['lang'].'"><p class="eyebrow"><a href="'.($en?'/guide">Guides':'/ratgeber">Ratgeber').'</a></p><h1>'.h($a['title']).'</h1>'.$a['body'].$cta.($alt?'<p class="rb-article-alt"><a href="'.h(seo_article_url($alt)).'" hreflang="'.$alt['lang'].'">'.($en?'Auf Deutsch lesen':'Read in English').'</a></p>':'').seo_disclaimer($a['lang']).'</article>';return $m;}
+function seo_disclaimer(string $lang):string{return '<p class="rb-article-note">'.($lang==='en'?'As of October 2026. General information, not legal advice. We are not affiliated with ARD, ZDF, Deutschlandradio or Beitragsservice. Beitragsservice alone makes the decision.':'Stand: Oktober 2026. Allgemeine Information, keine Rechtsberatung. Wir sind nicht mit ARD, ZDF, Deutschlandradio oder dem Beitragsservice verbunden. Die Entscheidung trifft ausschließlich der Beitragsservice.').'</p>';}
+function sitemap_xml():string{$base=config()['public_url'];$paths=['/','/ratgeber','/guide','/kontakt','/impressum','/datenschutz','/agb','/widerruf'];foreach(array_keys(seo_services()) as $s)$paths[]='/leistungen/'.$s;foreach(seo_articles() as $a)$paths[]=seo_article_url($a);
+ $x='<?xml version="1.0" encoding="UTF-8"?>'."\n".'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";foreach($paths as $p)$x.='<url><loc>'.h($base.$p).'</loc></url>'."\n";return $x.'</urlset>'."\n";}
