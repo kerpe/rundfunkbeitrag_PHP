@@ -1,4 +1,6 @@
-# Uploads the site to Hostinger over FTP whenever main changes.
+# Uploads the site to Hostinger over FTP whenever main changes, once for each
+# domain in the matrix below (rundfunkbeitrag.help and rundfunkbeitragsupport.de;
+# both live in the same Hostinger account, each with its own config and data).
 # public_html/ goes to the site's public_html; private/ goes next to it,
 # outside the web root. Files that are not in the repository (config.php,
 # installation-key.php, data/) are never touched.
@@ -8,8 +10,8 @@
 #   FTP_USERNAME  hPanel -> Files -> FTP Accounts
 #   FTP_PASSWORD
 # Optional repository variables (same page, "Variables" tab):
-#   FTP_PUBLIC_DIR   default: domains/rundfunkbeitrag.help/public_html/
-#   FTP_PRIVATE_DIR  default: domains/rundfunkbeitrag.help/private/
+#   FTP_PUBLIC_DIR   rundfunkbeitrag.help only, default: domains/rundfunkbeitrag.help/public_html/
+#   FTP_PRIVATE_DIR  rundfunkbeitrag.help only, default: domains/rundfunkbeitrag.help/private/
 #   FTP_PROTOCOL     default: ftps (use ftp only if ftps fails)
 name: Deploy to Hostinger
 
@@ -24,7 +26,22 @@ concurrency:
 
 jobs:
   deploy:
+    name: Deploy ${{ matrix.site }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - site: rundfunkbeitrag.help
+            public_dir: ${{ matrix.public_dir }}
+            private_dir: ${{ matrix.private_dir }}
+            require_config: true
+          # Moved here from OVH in 2026-10. Until its config.php has been copied
+          # over, the code is still uploaded (the folder created in hPanel must exist).
+          - site: rundfunkbeitragsupport.de
+            public_dir: domains/rundfunkbeitragsupport.de/public_html/
+            private_dir: domains/rundfunkbeitragsupport.de/private/
+            require_config: false
     env:
       HAS_FTP: ${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}
     steps:
@@ -43,9 +60,10 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          PUBLIC_DIR: ${{ vars.FTP_PUBLIC_DIR || 'domains/rundfunkbeitrag.help/public_html/' }}
-          PRIVATE_DIR: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
+          PUBLIC_DIR: ${{ matrix.public_dir }}
+          PRIVATE_DIR: ${{ matrix.private_dir }}
           PROTOCOL: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          REQUIRE_CONFIG: ${{ matrix.require_config }}
         run: |
           host="${FTP_SERVER#ftp://}"; host="${host%/}"
           tls=(); [ "$PROTOCOL" = ftps ] && tls=(--ssl-reqd --insecure)
@@ -53,7 +71,10 @@ jobs:
           ok=1
           # The public folder only has to exist: Hostinger's own Git deploy can leave it without index.php.
           ftp --list-only "ftp://$host/${PUBLIC_DIR}" >/dev/null || { echo "::error::${PUBLIC_DIR} not found on the server"; ok=0; }
-          ftp -I "ftp://$host/${PRIVATE_DIR}config.php" >/dev/null || { echo "::error::${PRIVATE_DIR}config.php not found on the server"; ok=0; }
+          if ! ftp -I "ftp://$host/${PRIVATE_DIR}config.php" >/dev/null; then
+            if [ "$REQUIRE_CONFIG" = true ]; then echo "::error::${PRIVATE_DIR}config.php not found on the server"; ok=0
+            else echo "::warning::${PRIVATE_DIR}config.php not found yet; uploading the code anyway"; fi
+          fi
           if [ $ok = 0 ]; then
             echo "Top-level folders visible over FTP:"; ftp --list-only "ftp://$host/" || true
             for d in $(ftp --list-only "ftp://$host/domains/" 2>/dev/null | grep -v '^\.'); do
@@ -71,7 +92,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
           local-dir: ./public_html/
-          server-dir: ${{ vars.FTP_PUBLIC_DIR || 'domains/rundfunkbeitrag.help/public_html/' }}
+          server-dir: ${{ matrix.public_dir }}
 
       # lftp instead of FTP-Deploy-Action here: on Hostinger the action's FTPS data
       # connection resets when it enters folders that already exist (private/app).
@@ -81,7 +102,7 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          PRIVATE_DIR: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
+          PRIVATE_DIR: ${{ matrix.private_dir }}
           PROTOCOL: ${{ vars.FTP_PROTOCOL || 'ftps' }}
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp >/dev/null
