@@ -33,8 +33,8 @@ jobs:
       matrix:
         include:
           - site: rundfunkbeitrag.help
-            public_dir: ${{ matrix.public_dir }}
-            private_dir: ${{ matrix.private_dir }}
+            public_dir: ${{ vars.FTP_PUBLIC_DIR || 'domains/rundfunkbeitrag.help/public_html/' }}
+            private_dir: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
             require_config: true
           # Moved here from OVH in 2026-10. Until its config.php has been copied
           # over, the code is still uploaded (the folder created in hPanel must exist).
