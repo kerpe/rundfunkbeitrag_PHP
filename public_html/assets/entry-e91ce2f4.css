@@ -45,7 +45,7 @@ a.check-button,a.check-button:hover,a.check-button:visited,a.public-button,a.pub
 .mj-pay-ref dd span{background:#fff1c7;border-radius:6px;padding:2px 8px}
 .mj-copy{border:1px solid var(--mj-line);color:var(--mj-green);cursor:pointer;background:#fff;border-radius:6px;flex-shrink:0;padding:4px 10px;font-size:.875rem;font-weight:600}
 .mj-copy:hover{border-color:var(--mj-green)}
-.mj-pay-note{color:#6b5a3a;margin:6px 0 0;font-size:14px}
+.mj-pay-note{color:#6b5a3a;margin:6px 0 0;font-size:14px}.mj-giro{background:#fff;border:1px solid #f1dfb4;border-radius:12px;align-items:center;gap:18px;margin:14px 0 10px;padding:14px;display:flex}.mj-giro img{flex:none;width:156px;height:156px;image-rendering:pixelated}.mj-giro h3{margin:0 0 6px;font-size:1.05rem}.mj-giro p{color:#6b5a3a;margin:0 0 6px;font-size:14px}.mj-giro p:last-child{margin:0}@media (max-width:560px){.mj-giro{text-align:center;flex-direction:column;gap:10px}}
 @media (max-width:560px){.mj-pay-grid>div{grid-template-columns:1fr;gap:4px}}
 p.landing-source{color:#6d6860;text-decoration:none}
 .landing-official-free{margin:0}
