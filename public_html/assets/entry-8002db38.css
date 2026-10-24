@@ -263,3 +263,52 @@ html body .mj-check [role=checkbox] svg{width:14px;height:14px}
 /* Back / continue: one row, same height */
 html body .mj-footer-actions{align-items:center}
 html body .mj-footer-actions>button{min-height:48px;height:48px;padding:0 24px;border-radius:999px;font-size:1rem;font-weight:700}
+/* Service pages (server-rendered, /leistungen/<slug> and /services/<slug>) */
+#root>.rb-service,#root>.rb-ssr-home{opacity:0;animation:rb-ssr-show 0s 1s forwards}
+@keyframes rb-ssr-show{to{opacity:1}}
+html body .rb-service{max-width:1000px;margin:0 auto}
+html body .rb-service a{color:var(--t-primary);text-underline-offset:3px;font-weight:600}
+html body .rb-crumbs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px;font-size:.875rem;color:var(--t-muted)}
+html body .rb-crumbs a{color:var(--t-muted);font-weight:500;text-decoration:none}
+html body .rb-crumbs a:hover{color:var(--t-primary);text-decoration:underline}
+html body .rb-svc-hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start;margin-bottom:44px}
+html body .rb-svc-icon{display:block;width:64px;height:64px;margin:0 0 14px;object-fit:contain}
+html body .rb-svc-hero h1{margin:0 0 14px}
+html body .rb-svc-facts{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0;padding:0;list-style:none}
+html body .rb-svc-facts li{margin:0;padding:7px 14px 7px 32px;border-radius:999px;background:var(--t-tag);color:var(--t-tag-ink);font-size:.875rem;font-weight:600;position:relative}
+html body .rb-svc-facts li:before{content:"✓";position:absolute;left:13px;font-weight:700}
+html body .rb-svc-price{padding:26px;border:1px solid var(--t-line);border-radius:20px;background:var(--t-surface);box-shadow:0 18px 40px -28px #0f2e2a40;position:sticky;top:24px}
+html body .rb-svc-price p{margin:0 0 12px}
+html body .rb-svc-price-label{font-size:.8125rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t-muted)}
+html body .rb-svc-amount{font-size:3rem;font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--t-ink);margin:4px 0 14px !important}
+html body .rb-svc-price .public-button{display:flex;justify-content:center;width:100%;margin:18px 0 12px;color:var(--t-on-primary) !important;text-decoration:none}
+html body .rb-svc-small{font-size:.8125rem;color:var(--t-muted);text-align:center;margin:0 !important}
+html body .rb-svc-fit{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 40px}
+html body .rb-svc-fit>div{padding:22px 24px;border-radius:16px;border:1px solid var(--t-line);background:var(--t-surface)}
+html body .rb-svc-fit h2{margin:0 0 12px;font-size:1.25rem}
+html body .rb-svc-fit ul{margin:0;padding:0;list-style:none}
+html body .rb-svc-fit li{position:relative;margin:10px 0;padding-left:30px;line-height:1.5}
+html body .rb-svc-fit li:before{position:absolute;left:0;top:1px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;font-size:.75rem;font-weight:800}
+html body .rb-fit-yes li:before{content:"✓";background:var(--t-tag);color:var(--t-tag-ink)}
+html body .rb-fit-no li:before{content:"✕";background:#f3e7e0;color:#9a4a2b}
+html body .rb-fit-no a{display:inline}
+html body .rb-svc-block{margin:0 0 40px}
+html body .rb-svc-block h2{margin:0 0 16px}
+html body .rb-svc-check{margin:0;padding:0 !important;list-style:none;display:grid;gap:10px}
+html body .rb-svc-check li{position:relative;margin:0;padding:14px 16px 14px 46px;border:1px solid var(--t-line);border-radius:12px;background:var(--t-surface)}
+html body .rb-svc-check li:before{content:"✓";position:absolute;left:16px;top:14px;color:var(--t-primary);font-weight:800}
+html body .rb-svc-note{margin:14px 0 0;color:var(--t-muted);font-size:.9375rem}
+html body .rb-svc-steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+html body .rb-svc-steps li{counter-increment:s;margin:0;padding:20px;border:1px solid var(--t-line);border-radius:16px;background:var(--t-surface);display:flex;flex-direction:column;gap:6px;line-height:1.5}
+html body .rb-svc-steps li:before{content:counter(s);display:grid;place-items:center;width:32px;height:32px;margin-bottom:6px;border-radius:50%;background:var(--t-primary);color:var(--t-on-primary);font-weight:700}
+html body .rb-svc-steps span{color:var(--t-muted);font-size:.9375rem}
+html body .rb-svc-block .rb-timing{margin:0}
+html body .rb-svc-faq details{border-bottom:1px solid var(--t-line);padding:4px 0}
+html body .rb-svc-faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;padding:14px 0;font-weight:650;color:var(--t-ink)}
+html body .rb-svc-faq summary::-webkit-details-marker{display:none}
+html body .rb-svc-faq summary:after{content:"+";flex:none;font-size:1.4rem;line-height:1;color:var(--t-primary)}
+html body .rb-svc-faq details[open] summary:after{content:"−"}
+html body .rb-svc-faq details p{margin:0 0 16px;color:var(--t-muted);max-width:720px}
+html body .rb-svc-guide{margin:0 0 8px}
+html body .rb-service .rb-article-cta{max-width:none}
+@media (max-width:860px){html body .rb-svc-hero{grid-template-columns:1fr;gap:24px}html body .rb-svc-price{position:static}html body .rb-svc-fit,html body .rb-svc-steps{grid-template-columns:1fr}}
