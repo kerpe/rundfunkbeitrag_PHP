@@ -243,3 +243,23 @@ html body .rb-timing-item p{margin:0;display:flex;flex-direction:column;gap:2px;
 html body .rb-timing-item strong{color:var(--t-ink);font-weight:650}
 @media (max-width:900px){html body .rb-timing{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:600px){html body .rb-timing{grid-template-columns:1fr;gap:8px}}
+/* One header line-up: journey header logo aligned with public pages */
+html body .mj-header{padding:18px max(20px,50vw - 600px)}
+html body .mj-header nav{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center}
+html body .mj-header nav a{color:var(--t-ink);font-weight:600;text-decoration:none}
+html body .mj-header nav a:hover{color:var(--t-primary);text-decoration:underline;text-underline-offset:4px}
+/* One footer: public pages already carry these links in their footer */
+html body:has(.public-footer) .journey-service-footer,html body:has(.landing-page) .journey-service-footer{display:none}
+html body .journey-service-footer{background:var(--t-surface);border-top:1px solid var(--t-line);padding:28px 20px 8px}
+html body:has(.journey-service-footer) .rb-legal-footer{background:var(--t-surface);border-top:0;margin-top:0;padding-top:4px;padding-bottom:28px;box-shadow:0 0 0 100vmax var(--t-surface);clip-path:inset(0 -100vmax)}
+/* Multi-choice options as tiles (e.g. "Was soll geändert werden?") */
+html body .mj-field [role=group]{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:4px}
+html body .mj-field [role=group] .mj-check{display:flex !important;flex-direction:row !important;margin:0;align-items:center;min-height:52px;padding:12px 16px;border:1px solid var(--t-line);border-radius:12px;background:var(--t-surface);font-size:.9688rem;font-weight:600;transition:border-color .15s,background .15s}
+html body .mj-field [role=group] .mj-check:hover{border-color:var(--t-primary)}
+html body .mj-field [role=group] .mj-check:has([data-state=checked]){border-color:var(--t-primary);background:var(--t-tag);box-shadow:inset 0 0 0 1px var(--t-primary)}
+html body .mj-check [role=checkbox]{flex:none;width:20px;height:20px;margin-top:0;border-radius:5px !important;border:1.5px solid var(--t-muted);background:#fff;display:grid;place-items:center;color:#fff}
+html body .mj-check [role=checkbox][data-state=checked]{background:var(--t-primary);border-color:var(--t-primary)}
+html body .mj-check [role=checkbox] svg{width:14px;height:14px}
+/* Back / continue: one row, same height */
+html body .mj-footer-actions{align-items:center}
+html body .mj-footer-actions>button{min-height:48px;height:48px;padding:0 24px;border-radius:999px;font-size:1rem;font-weight:700}
