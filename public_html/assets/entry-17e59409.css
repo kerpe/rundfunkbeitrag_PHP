@@ -200,3 +200,16 @@ html body .mj-route-badge{position:absolute;top:14px;right:14px;font-style:norma
 html body .mj-change-note{margin:18px 0 6px;padding:16px 18px;border-radius:14px;background:var(--t-accent-soft);color:var(--t-ink)}
 html body .mj-change-note p{margin:0 0 12px;font-size:.9375rem;line-height:1.55}
 @media (width<=600px){html body .mj-chosen{grid-template-columns:44px minmax(0,1fr);padding:12px 14px 12px 10px;margin-bottom:20px}html body .mj-chosen img.rb-icon-img{width:48px;height:48px}html body .mj-chosen-desc{display:none}html body .mj-chosen-change{grid-column:2;justify-self:start;padding:8px 14px}html body .mj-route.is-current{padding:19px}}
+html body .rb-review-card{border-color:var(--t-accent) !important;background:linear-gradient(180deg,var(--t-accent-soft),var(--t-surface) 140px)}
+html body .rb-review-card h2{margin-top:2px}
+html body .rb-review-card blockquote{margin:6px 0 10px;color:var(--t-ink);font-size:1rem;line-height:1.6}
+html body .rb-star-input{display:flex;gap:6px;margin:4px 0 18px}
+html body .rb-star-input button{width:48px;height:48px;border:1px solid var(--t-line);border-radius:12px;background:var(--t-surface);color:#cfc6b6;font-size:28px;line-height:1;cursor:pointer;transition:color .15s,border-color .15s,transform .1s}
+html body .rb-star-input button:hover{transform:scale(1.06);border-color:var(--t-accent)}
+html body .rb-star-input button.is-on{color:#e59a3c;border-color:var(--t-accent);background:#fff8ee}
+html body .rb-review-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+html body .rb-review-card .mj-check{margin:6px 0 18px}
+html body .rb-review-card .rb-stars{color:#e59a3c;font-size:1.3rem;margin:0}
+html body .rb-verified{margin:0;color:var(--t-primary);font-size:.8125rem;font-weight:600}
+@media (width<=600px){html body .rb-review-fields{grid-template-columns:1fr;gap:0}html body .rb-star-input button{width:44px;height:44px}}
+html body .rb-review-card .mj-field{margin-bottom:14px}
