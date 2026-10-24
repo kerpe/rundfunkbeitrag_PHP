@@ -167,3 +167,11 @@ html body .landing-hero h1{hyphens:manual !important;overflow-wrap:normal !impor
 @media (max-width:760px){html body .landing-hero h1{font-size:clamp(2rem,8.6vw,2.6rem) !important}html body .rb-quick-grid a{font-size:.8438rem;padding:8px}}
 html body .rb-404-list li{margin:0}
 @media (max-width:760px){html body .rb-quick-grid a{font-size:.8125rem;padding:8px 6px 8px 8px}}
+/* Timing facts under "So funktioniert der Service" */
+html body .rb-timing{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:34px 0 8px}
+html body .rb-timing-item{display:flex;gap:12px;align-items:flex-start;padding:16px;border:1px solid var(--t-line);border-radius:16px;background:var(--t-surface)}
+html body .rb-timing-dot{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--t-tag);color:var(--t-tag-ink);font-size:.8125rem;font-weight:700}
+html body .rb-timing-item p{margin:0;display:flex;flex-direction:column;gap:2px;font-size:.9375rem;line-height:1.45;color:var(--t-muted)}
+html body .rb-timing-item strong{color:var(--t-ink);font-weight:650}
+@media (max-width:900px){html body .rb-timing{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){html body .rb-timing{grid-template-columns:1fr;gap:8px}}
