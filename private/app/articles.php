@@ -9,7 +9,7 @@ return [
 'body'=><<<'HTML'
 <p class="public-lead">Nach dem Tod eines Angehörigen läuft das Beitragskonto weiter, bis es abgemeldet wird. Die Abmeldung ist einfach, wenn Sie die wichtigsten Angaben zur Hand haben.</p>
 <h2>Kurz erklärt</h2>
-<ul><li>Der Rundfunkbeitrag beträgt 18,36 € im Monat pro Wohnung.</li><li>Das Beitragskonto der verstorbenen Person wird abgemeldet. Die Beitragsnummer kann nicht auf eine andere Person übertragen werden.</li><li>Wohnt noch jemand in der Wohnung, muss diese Person prüfen, ob sie die Wohnung selbst anmelden muss.</li><li>Melden Sie das Konto möglichst bald ab, damit keine weiteren Beiträge abgebucht oder angefordert werden. Zu viel gezahlte Beiträge werden in der Regel erstattet.</li></ul>
+<ul><li>Der Rundfunkbeitrag beträgt 18,36 € im Monat pro Wohnung.</li><li>Das Beitragskonto der verstorbenen Person wird abgemeldet. Die Beitragsnummer kann nicht auf eine andere Person übertragen werden.</li><li>Wohnt noch jemand in der Wohnung, muss diese Person die Wohnung auf den eigenen Namen neu anmelden.</li><li>Melden Sie das Konto möglichst bald ab, damit keine weiteren Beiträge abgebucht oder angefordert werden. Zu viel gezahlte Beiträge werden in der Regel erstattet.</li></ul>
 <h2>Was Sie brauchen</h2>
 <ul><li>Name, Anschrift und Beitragsnummer der verstorbenen Person</li><li>Sterbedatum und eine Kopie der Sterbeurkunde</li><li>Ihre Kontaktdaten und Ihre Beziehung zur verstorbenen Person</li></ul>
 <h2>Kostenlos selbst erledigen</h2>
@@ -23,7 +23,7 @@ HTML],
 'body'=><<<'HTML'
 <p class="public-lead">After a relative dies, their contribution account keeps running until it is deregistered. Deregistering is simple once you have the key details at hand.</p>
 <h2>In short</h2>
-<ul><li>The Rundfunkbeitrag is €18.36 per month per home.</li><li>The deceased person's contribution account is deregistered. The contribution number cannot be transferred to anyone else.</li><li>If someone still lives in the home, that person needs to check whether they must register it themselves.</li><li>Deregister as soon as you can so that no further payments are collected or requested. Contributions paid for too long are usually refunded.</li></ul>
+<ul><li>The Rundfunkbeitrag is €18.36 per month per home.</li><li>The deceased person's contribution account is deregistered. The contribution number cannot be transferred to anyone else.</li><li>If someone still lives in the home, that person must register it again in their own name.</li><li>Deregister as soon as you can so that no further payments are collected or requested. Contributions paid for too long are usually refunded.</li></ul>
 <h2>What you need</h2>
 <ul><li>Name, address and contribution number of the deceased</li><li>Date of death and a copy of the death certificate</li><li>Your contact details and your relationship to the deceased</li></ul>
 <h2>Do it yourself for free</h2>
