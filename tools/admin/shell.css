@@ -1,0 +1,55 @@
+.rb-adm-page .journey-service-footer,.rb-adm-page .mj-staff-body>.mj-eyebrow{display:none!important}
+.rb-adm-page .mj-staff-body{max-width:1240px;margin:0 auto;padding:28px 24px 64px}.rb-adm-page .mj-staff-body>h1{margin:0 0 20px}
+.rb-adm-page body{background:var(--t-bg,#f7f4ee)}
+.rb-adm-top{position:sticky;top:0;z-index:20;background:var(--t-surface,#fffdf9);border-bottom:1px solid var(--t-line,#e4ddd0)}
+.rb-adm-top-in{display:flex;align-items:center;gap:28px;max-width:1240px;margin:0 auto;padding:0 24px;min-height:68px}
+.rb-adm-logo{display:flex;align-items:center;text-decoration:none;color:inherit;flex:none}
+.rb-adm-logo .brand-logo{margin:0;gap:8px}.rb-adm-logo .antenna-mark img{width:30px;height:35px}.rb-adm-logo .brand-name{font-size:15px}.rb-adm-logo .brand-support{font-size:13px}
+.rb-adm-tabs{display:flex;align-items:stretch;gap:4px;align-self:stretch;flex:1}
+.rb-adm-top .rb-adm-tab{text-decoration:none!important;display:flex;align-items:center;padding:0 14px;font-size:14px;font-weight:600;color:var(--t-muted,#5b625c);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-1px}
+.rb-adm-top .rb-adm-tab:hover{color:var(--t-ink,#14302b)}
+.rb-adm-top .rb-adm-tab.is-active{color:var(--t-primary,#0f6e62);border-bottom-color:var(--t-primary,#0f6e62)}
+.rb-adm-user{display:flex;align-items:center;gap:16px;font-size:13px;flex:none}
+.rb-adm-user form{margin:0}
+.rb-adm-top .rb-adm-me{display:flex;align-items:center;gap:8px;color:var(--t-ink,#14302b);text-decoration:none;padding:4px 10px 4px 4px;border-radius:999px;border:1px solid transparent}
+.rb-adm-me:hover,.rb-adm-me.is-active{border-color:var(--t-line,#e4ddd0);background:#fff}
+.rb-adm-avatar{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--t-tag,#dcefe9);color:var(--t-tag-ink,#0b5a50);font-weight:700;font-size:13px;flex:none}
+.rb-adm-top .rb-adm-site,.rb-adm-top .rb-adm-logout{color:var(--t-muted,#5b625c);text-decoration:none;font:inherit;font-size:13px;background:none;border:0;padding:0;cursor:pointer}
+.rb-adm-site:hover,.rb-adm-logout:hover{color:var(--t-ink,#14302b);text-decoration:underline}
+@media (max-width:900px){.rb-adm-page .mj-staff-body{padding:20px 16px 48px}.rb-adm-top-in{flex-wrap:wrap;gap:0 16px;padding:10px 16px 0}.rb-adm-tabs{order:3;flex-basis:100%;overflow-x:auto;min-height:44px;margin:0 -16px;padding:0 6px}.rb-adm-tab{white-space:nowrap;padding:0 10px}.rb-adm-user{margin-left:auto}.rb-adm-me-mail{display:none}.rb-adm-me{padding:0}}
+.rb-adm-server .rb-adm-body>h1{font-size:30px;letter-spacing:-.5px;margin:0 0 20px}
+.rb-adm-card{padding:22px 24px;margin:0 0 18px;max-width:880px}
+.rb-adm-card h2{font-size:18px;margin:0 0 14px}.rb-adm-card-head h2{margin:0}
+.rb-adm-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.rb-adm-card-head p{margin:0;flex-basis:100%}
+.rb-adm-muted{color:var(--t-muted,#5b625c);font-size:13px}
+.rb-adm-msg{max-width:880px;padding:12px 16px;border-radius:10px;margin:0 0 16px;font-size:14px;border:1px solid}
+.rb-adm-msg-ok{background:#e8f4ef;border-color:#bfe0d3;color:#0b5a50}
+.rb-adm-msg-err{background:#fdecea;border-color:#f3c3bd;color:#9b2c20}
+.rb-adm-msg-info{background:#fff8e8;border-color:#f0dfb2;color:#5a4510}.rb-adm-msg-info p{margin:0 0 8px}.rb-adm-msg-info input{width:100%;font:13px ui-monospace,monospace;padding:8px;border:1px solid #e4d6ad;border-radius:6px;background:#fff}
+.rb-adm-f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--t-ink,#14302b)}
+.rb-adm-f input{height:40px;padding:0 12px;border:1px solid var(--t-line,#e4ddd0);border-radius:8px;font:inherit;font-weight:400;font-size:14px;background:#fff;color:inherit}
+.rb-adm-f input:focus{outline:2px solid var(--t-primary,#0f6e62);outline-offset:-1px;border-color:transparent}
+.rb-adm-f small{font-weight:400;color:var(--t-muted,#5b625c);font-size:12px}
+.rb-adm-form{display:grid;gap:14px;max-width:420px}
+.rb-adm-form-actions{display:flex;gap:10px;max-width:880px}
+.rb-adm-inline{display:grid;grid-template-columns:1fr 1.4fr auto;gap:12px;align-items:end}
+@media (max-width:700px){.rb-adm-inline,.rb-adm-grid2{grid-template-columns:1fr!important}}
+.rb-adm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rb-btn,.rb-btn-ghost,.rb-btn-danger{height:40px;padding:0 18px;border-radius:8px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;white-space:nowrap}
+.rb-btn{background:var(--t-primary,#0f6e62);color:#fff}.rb-btn:hover{background:var(--t-primary-hover,#0a564c)}
+.rb-btn-ghost,.rb-btn-danger{height:32px;padding:0 12px;font-size:13px;background:#fff;border-color:var(--t-line,#e4ddd0);color:var(--t-ink,#14302b)}
+.rb-btn-ghost:hover{border-color:var(--t-ink,#14302b)}
+.rb-btn-danger{color:#9b2c20}.rb-btn-danger:hover{border-color:#9b2c20;background:#fdecea}
+.rb-adm-team td{vertical-align:middle}
+.rb-adm-person{display:flex;align-items:center;gap:10px}.rb-adm-person strong{font-weight:600}
+.rb-adm-you{font-size:11px;font-weight:600;color:var(--t-tag-ink,#0b5a50);background:var(--t-tag,#dcefe9);padding:1px 6px;border-radius:999px}
+.rb-adm-actions{text-align:right;white-space:nowrap}.rb-adm-actions form{display:inline-block;margin:0 0 0 6px}
+.rb-adm-table td.rb-adm-actions{white-space:nowrap}
+.rb-adm-pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.rb-adm-pill-ok{background:#e8f4ef;color:#0b5a50}.rb-adm-pill-wait{background:#fff3dc;color:#7a5306}
+.rb-adm-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px 24px;margin:0}
+.rb-adm-dl dt{font-size:12px;color:var(--t-muted,#5b625c);margin-bottom:2px}.rb-adm-dl dd{margin:0;font-size:14px;font-weight:600}
+.rb-adm-check{display:flex;gap:12px;align-items:flex-start;font-size:14px;cursor:pointer}.rb-adm-check input{width:18px;height:18px;margin-top:2px;accent-color:var(--t-primary,#0f6e62)}
+.rb-adm-card .rb-adm-muted+.rb-adm-grid2{margin-top:14px}
+.rb-adm-page [id^=grp-],.rb-adm-page [id^=setting-]{scroll-margin-top:96px}
