@@ -39,6 +39,7 @@ require __DIR__.'/validation.php';
 require __DIR__.'/girocode.php';
 require __DIR__.'/documents.php';
 require __DIR__.'/mail.php';
+require __DIR__.'/mailhtml.php';
 require __DIR__.'/operations.php';
 require __DIR__.'/api.php';
 

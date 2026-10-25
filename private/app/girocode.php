@@ -23,6 +23,12 @@ function girocode_svg(array $o):?string{$p=girocode_payload($o);if($p===null)ret
 
 function girocode_data_uri(array $o):?string{$svg=girocode_svg($o);return $svg===null?null:'data:image/svg+xml;base64,'.base64_encode($svg);}
 
+// PNG for the HTML email: mail clients do not show SVG or data: images, so it goes along as an inline (cid:) attachment.
+function girocode_png(array $o):?string{$p=girocode_payload($o);if($p===null||!function_exists('imagecreate'))return null;$m=qr_matrix($p);$q=4;$u=6;$w=(count($m)+2*$q)*$u;
+  $img=imagecreate($w,$w);imagecolorallocate($img,255,255,255);$black=imagecolorallocate($img,0,0,0);
+  foreach($m as $y=>$row)foreach($row as $x=>$dark)if($dark)imagefilledrectangle($img,($x+$q)*$u,($y+$q)*$u,($x+$q+1)*$u-1,($y+$q+1)*$u-1,$black);
+  ob_start();imagepng($img);imagedestroy($img);return ob_get_clean();}
+
 function qr_gf_mul(int $x,int $y):int{$z=0;for($i=7;$i>=0;$i--){$z=($z<<1)^(($z>>7)*0x11D);$z^=(($y>>$i)&1)*$x;}return $z&0xFF;}
 
 function qr_rs_remainder(array $data,int $degree):array{
