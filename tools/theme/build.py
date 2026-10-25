@@ -4,7 +4,7 @@ Usage: python3 tools/theme/build.py [theme]   (default: salvija)
 
 base-entry.css is the untouched CSS from the compiled frontend bundle. The
 script recolours its blue palette to the theme (hue/lightness mapping), raises
-any font size below 13px, appends <theme>.css and shared.css, writes the result
+any font size below 13px, appends <theme>.css, shared.css and the admin CSS (tools/admin), writes the result
 to public_html/assets/entry-<hash>.css and points .vite/manifest.json at it.
 """
 import colorsys, hashlib, json, os, re, sys
@@ -56,6 +56,9 @@ def min_size(m):
 css = re.sub(r'#[0-9a-fA-F]{3,8}\b', recolour, css)
 css = re.sub(r'font-size:(\d*\.?\d+(?:rem|px))', min_size, css)
 css += '\n' + open(os.path.join(HERE, theme + '.css')).read() + '\n' + open(os.path.join(HERE, 'shared.css')).read()
+# admin area styles (tools/admin): settings page, order table, top bar
+for f in ('settings.css', 'cases.css', 'shell.css'):
+    css += '\n' + open(os.path.join(ROOT, 'tools', 'admin', f)).read()
 
 name = 'assets/entry-%s.css' % hashlib.sha256(css.encode()).hexdigest()[:8]
 manifest_path = os.path.join(PUBLIC, '.vite', 'manifest.json')
