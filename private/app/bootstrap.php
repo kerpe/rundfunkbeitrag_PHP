@@ -16,6 +16,7 @@ function rules():array{static $r;return $r??=json_decode(file_get_contents(__DIR
 // AGB and Datenschutz (DE + EN in one field) run past 30 000 characters, so the three legal texts get a higher limit.
 function settings_max(string $key):int{return in_array($key,['termsText','withdrawalText','privacyText'],true)?100000:30000;}
 function settings():array{return record('settings:service')['value']??rules()['emptySettings'];}
+function support_email():string{try{$e=trim((string)(settings()['supportEmail']??''));}catch(Throwable){$e='';}return filter_var($e,FILTER_VALIDATE_EMAIL)?$e:'info@rundfunkbeitragsupport.de';}
 function text(mixed $v,int $min=1,int $max=4000):string{if(!is_string($v)||mb_strlen(trim($v))<$min||mb_strlen($v)>$max)fail('INVALID_FIELD');return trim($v);}
 function email(mixed $v):string{$v=strtolower(text($v,3,254));if(!filter_var($v,FILTER_VALIDATE_EMAIL))fail('INVALID_EMAIL');return $v;}
 function operation(array $b):string{$v=$b['operationId']??'';if(!is_string($v)||!preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i',$v))fail('INVALID_OPERATION');return $v;}
