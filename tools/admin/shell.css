@@ -53,3 +53,9 @@
 .rb-adm-check{display:flex;gap:12px;align-items:flex-start;font-size:14px;cursor:pointer}.rb-adm-check input{width:18px;height:18px;margin-top:2px;accent-color:var(--t-primary,#0f6e62)}
 .rb-adm-card .rb-adm-muted+.rb-adm-grid2{margin-top:14px}
 .rb-adm-page [id^=grp-],.rb-adm-page [id^=setting-]{scroll-margin-top:96px}
+/* team: action buttons wrap instead of overflowing; account: 2FA forms */
+.rb-adm-team .rb-adm-actions{white-space:normal}
+.rb-adm-team .rb-adm-actions form{display:block;margin:4px 0}
+.rb-adm-mfa-forms{margin-top:20px;padding-top:18px;border-top:1px solid var(--t-line,#e4ddd0)}
+.rb-adm-mfa-forms h3{font-size:16px;margin:0 0 2px}
+.rb-adm-mfa-forms .rb-adm-muted{margin:0 0 4px}
