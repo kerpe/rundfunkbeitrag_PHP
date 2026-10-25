@@ -1,5 +1,5 @@
 # Uploads the site to Hostinger over FTP whenever main changes, once for each
-# domain in the matrix below (rundfunkbeitrag.help and rundfunkbeitragsupport.de;
+# domain in the matrix below (currently only rundfunkbeitragsupport.de; rundfunkbeitrag.help is paused;
 # both live in the same Hostinger account, each with its own config and data).
 # public_html/ goes to the site's public_html; private/ goes next to it,
 # outside the web root. Files that are not in the repository (config.php,
@@ -34,10 +34,12 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          - site: rundfunkbeitrag.help
-            public_dir: ${{ vars.FTP_PUBLIC_DIR || 'domains/rundfunkbeitrag.help/public_html/' }}
-            private_dir: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
-            require_config: true
+          # rundfunkbeitrag.help is paused (Vilius, 2026-10-25): it keeps the
+          # version deployed so far. To deploy it again, put these lines back:
+          # - site: rundfunkbeitrag.help
+          #   public_dir: ${{ vars.FTP_PUBLIC_DIR || 'domains/rundfunkbeitrag.help/public_html/' }}
+          #   private_dir: ${{ vars.FTP_PRIVATE_DIR || 'domains/rundfunkbeitrag.help/private/' }}
+          #   require_config: true
           # Moved here from OVH in 2026-10. Until its config.php has been copied
           # over, the code is still uploaded (the folder created in hPanel must exist).
           - site: rundfunkbeitragsupport.de
