@@ -279,3 +279,34 @@ html body .rb-footer .rb-footer-note{max-width:none;margin:40px 0 0;padding-top:
 @media (max-width:600px){html body .public-footer.rb-footer{margin-top:48px;padding:40px 0 24px}html body .rb-footer .rb-footer-main{gap:28px 24px}}
 html body .rb-footer nav.rb-footer-col{display:block}
 html body .rb-footer a[translate=no]:not(.rb-footer-mail){color:#e8f0ec}
+/* Date fields: text entry with format mask + own calendar (RbDate) */
+html body .rb-date{position:relative}
+html body .mj .rb-date input{padding-right:52px;font-variant-numeric:tabular-nums}
+html body .rb-date-btn{position:absolute;right:6px;top:22px;transform:translateY(-50%);width:40px;height:36px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:var(--t-primary);cursor:pointer;transition:background .15s}
+html body .rb-date-btn:hover,html body .rb-date-btn[aria-expanded=true]{background:var(--t-tag)}
+html body .rb-cal{position:absolute;z-index:40;top:calc(100% + 8px);left:0;width:320px;max-width:calc(100vw - 32px);padding:14px;border:1px solid var(--t-line);border-radius:16px;background:var(--t-surface);box-shadow:0 18px 40px -12px rgba(18,58,52,.28),0 2px 6px rgba(18,58,52,.06);font-family:var(--t-body);color:var(--t-ink);animation:rb-cal-in .14s ease-out}
+@keyframes rb-cal-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+html body .rb-cal button{font:inherit;color:inherit;cursor:pointer;min-height:0}
+html body .rb-cal-head{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;gap:4px;margin-bottom:8px}
+html body .rb-cal-nav{width:40px;height:40px;border:0;border-radius:10px;background:transparent;font-size:24px !important;line-height:1;color:var(--t-primary) !important}
+html body .rb-cal-nav:hover:not(:disabled){background:var(--t-tag)}
+html body .rb-cal-nav:disabled{opacity:.3;cursor:default}
+html body .rb-cal-title{justify-self:center;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border:0;border-radius:10px;background:transparent;font-weight:600 !important;font-size:1rem}
+html body .rb-cal-title:hover{background:var(--t-tag)}
+html body .rb-cal-caret{font-size:11px;color:var(--t-primary)}
+html body .rb-cal-wd,html body .rb-cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+html body .rb-cal-wd span{text-align:center;font-size:13px;font-weight:600;color:var(--t-muted);padding:4px 0}
+html body .rb-cal-day{aspect-ratio:1;min-height:36px !important;border:0;border-radius:50%;background:transparent;font-size:.9375rem;font-variant-numeric:tabular-nums}
+html body .rb-cal-day:hover:not(:disabled){background:var(--t-tag)}
+html body .rb-cal-day.is-today{box-shadow:inset 0 0 0 1.5px var(--t-accent)}
+html body .rb-cal-day.is-sel,html body .rb-cal-month.is-sel,html body .rb-cal-year.is-sel{background:var(--t-primary) !important;color:var(--t-on-primary) !important;font-weight:600}
+html body .rb-cal-day:disabled,html body .rb-cal-month:disabled{color:#c3bcb0 !important;cursor:default}
+html body .rb-cal-months{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+html body .rb-cal-years{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:252px;overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+html body .rb-cal-month,html body .rb-cal-year{height:44px;border:1px solid var(--t-line);border-radius:12px;background:#fff;font-size:.9375rem}
+html body .rb-cal-month:hover:not(:disabled),html body .rb-cal-year:hover{border-color:var(--t-primary)}
+html body .rb-cal-foot{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--t-line)}
+html body .rb-cal-link{border:0;background:transparent;padding:6px 8px;border-radius:8px;font-weight:600 !important;font-size:.9375rem;color:var(--t-primary) !important}
+html body .rb-cal-link:hover{background:var(--t-tag)}
+html body .rb-cal :focus-visible{outline:3px solid var(--t-primary) !important;outline-offset:1px}
+@media (width<=600px){html body .rb-cal{width:100%;max-width:none}html body .rb-cal-day{min-height:40px !important}}
