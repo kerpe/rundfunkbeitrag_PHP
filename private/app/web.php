@@ -1,9 +1,10 @@
 <?php
 require __DIR__.'/staff.php';
+require __DIR__.'/mfa.php';
 function form_html(string $title,string $content,string $lang='de'):string{return '<!doctype html><html lang="'.$lang.'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>'.h($title).' · Rundfunkbeitrag Support</title><link rel="stylesheet" href="/admin-login.css?v='.@filemtime(dirname(private_root()).'/public_html/admin-login.css').'"><link rel="icon" href="/favicon.svg"></head><body><main><a class="brand" href="/"><img src="/brand/antenna.svg" width="48" height="48" alt=""><span>Rundfunkbeitrag<strong>Support <i class="black"></i><i class="red"></i><i class="gold"></i></strong></span></a><h1>'.h($title).'</h1>'.$content.''.($lang==='de'?'<footer>Wir sind nicht mit ARD, ZDF, Deutschlandradio oder Beitragsservice verbunden.</footer>':'').'</main></body></html>';}
 function login_page(string $error=''):never{header('Content-Type: text/html; charset=utf-8');header('Cache-Control: private, no-store');echo form_html('Administrator',($error?'<p class="error" role="alert">'.h($error).'</p>':'').'<form method="post" action="/api/admin/login"><input type="hidden" name="csrf" value="'.h($_SESSION['csrf']).'"><label>E-Mail<input name="email" type="email" autocomplete="username" required></label><label>Passwort<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label><button>Anmelden</button></form>');exit;}
 function auth_route(string $path,string $method):bool{
- if(staff_route($path,$method))return true;
+ if(staff_route($path,$method)||mfa_route($path,$method))return true;
  if($path==='/admin/settings-transfer'){
  // Copy the start settings between two installations (e.g. Hostinger -> OVH): export here, paste on the other site. Real orders stay off after an import; the Resend key is never shown.
  if(!admin()){header('Location: /admin/login',true,303);exit;}$error='';$done='';
@@ -23,7 +24,7 @@ function auth_route(string $path,string $method):bool{
 
  }
  if($path==='/admin/login'){if($method!=='GET')fail('METHOD_NOT_ALLOWED',405);login_page();}
- if($path==='/api/admin/login'){if($method!=='POST')fail('METHOD_NOT_ALLOWED',405);csrf();db()->beginTransaction();rate('admin-login:'.($_SERVER['REMOTE_ADDR']??''),15,900);db()->commit();if(!is_string($_POST['password']??null)||strlen($_POST['password'])>72||!is_string($_POST['email']??null)||!($hash=staff_hash(strtolower(trim($_POST['email']))))||!password_verify($_POST['password'],$hash)){http_response_code(401);login_page('E-Mail oder Passwort ist nicht korrekt.');}session_regenerate_id(true);$_SESSION['admin_until']=time()+28800;$_SESSION['admin_email']=strtolower(trim($_POST['email']));$_SESSION['admin_fingerprint']=secret_hash($hash);$_SESSION['csrf']=bin2hex(random_bytes(32));header('Location: /admin',true,303);exit;}
+ if($path==='/api/admin/login'){if($method!=='POST')fail('METHOD_NOT_ALLOWED',405);csrf();db()->beginTransaction();rate('admin-login:'.($_SERVER['REMOTE_ADDR']??''),15,900);db()->commit();if(!is_string($_POST['password']??null)||strlen($_POST['password'])>72||!is_string($_POST['email']??null)||!($hash=staff_hash(strtolower(trim($_POST['email']))))||!password_verify($_POST['password'],$hash)){http_response_code(401);login_page('E-Mail oder Passwort ist nicht korrekt.');}mfa_begin(strtolower(trim($_POST['email'])),$hash);}
  if($path==='/api/admin/logout'){if($method!=='POST')fail('METHOD_NOT_ALLOWED',405);csrf();unset($_SESSION['admin_until'],$_SESSION['admin_fingerprint'],$_SESSION['admin_email']);session_regenerate_id(true);$_SESSION['csrf']=bin2hex(random_bytes(32));header('Location: /admin/login',true,303);exit;}
  return false;
 }

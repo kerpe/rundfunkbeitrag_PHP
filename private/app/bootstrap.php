@@ -25,7 +25,7 @@ function owner():string{return secret_hash('customer:'.$_SESSION['owner']);}
 // Staff accounts: the owner from config.php plus colleagues stored as 'staff:<email>' records (added on /admin/team).
 function staff_hash(string $email):?string{$c=config();if($email===$c['admin_email'])return $c['admin_hash'];$h=record('staff:'.$email)['value']['hash']??null;return is_string($h)&&$h!==''?$h:null;}
 function admin_email():string{return $_SESSION['admin_email']??config()['admin_email'];}
-function admin():bool{static $ok=[];if(($_SESSION['admin_until']??0)<=time())return false;$e=admin_email();if(!isset($ok[$e])){$h=staff_hash($e);$ok[$e]=$h!==null&&hash_equals(secret_hash($h),$_SESSION['admin_fingerprint']??'');}return $ok[$e];}
+function admin():bool{static $ok=[];if(($_SESSION['admin_until']??0)<=time())return false;$e=admin_email();if(!isset($ok[$e])){$h=staff_hash($e);$ok[$e]=$h!==null&&hash_equals(secret_hash($h),$_SESSION['admin_fingerprint']??'')&&!empty($_SESSION['admin_mfa'])&&record('mfa:'.$e)!==null;}return $ok[$e];}
 function is_owner():bool{return admin()&&admin_email()===config()['admin_email'];}
 function actor_id(string $email):string{return 'admin:'.substr(hash('sha256',$email),0,24);}
 function actor():string{return actor_id(admin_email());}
