@@ -8,7 +8,7 @@ function girocode_payload(array $o):?string{
   $name=girocode_text((string)($o['beneficiary']??''));$ref=girocode_text((string)($o['reference']??''));
   if(!valid_iban($iban)||$name===''||$ref==='')return null;
   if(!preg_match('/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/',$bic))$bic='';
-  $cents=(int)($o['feeCents']??3900);if($cents<1||$cents>99999999999)return null;
+  $cents=(int)($o['feeCents']??4900);if($cents<1||$cents>99999999999)return null;
   return implode("\n",['BCD','002','1','SCT',$bic,mb_substr($name,0,70),$iban,'EUR'.number_format($cents/100,2,'.',''),'','',mb_substr($ref,0,140)]);
 }
 

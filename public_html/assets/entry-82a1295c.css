@@ -325,3 +325,4 @@ html body .rb-who-list h3{margin:2px 0 4px;font-size:1.0625rem}
 html body .rb-who-list p{margin:0;color:var(--t-muted);font-size:.9375rem;line-height:1.55}
 @media (max-width:860px){html body .rb-who-inner{grid-template-columns:1fr;gap:28px;padding:28px 22px}}
 @media (max-width:560px){html body .rb-who-list{grid-template-columns:1fr;gap:18px}}
+.mj pre.mj-poa{max-height:320px;overflow:auto;font-size:13px;line-height:1.6;margin:0 0 4px;border:1px solid #d5e4df}
