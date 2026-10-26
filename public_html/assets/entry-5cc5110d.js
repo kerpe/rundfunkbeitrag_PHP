@@ -487,7 +487,7 @@ Lokal validiert · Version|Locally validated · version
 Der fiktive Fall würde jetzt persönlich geprüft.|The fictional case would now be personally reviewed.
 Ihre Formulareingaben wurden nur in dieser Browseransicht geprüft. Es gibt keine Zahlung und sie werden nicht an den Server übertragen.|Your form entries were checked only in this browser view. There is no payment and they are not sent to the server.
 Optionaler Zahlungs- und Persistenztest|Optional payment and storage test
-Erzeugt ausschließlich feste synthetische 39-€-Zahlungs-, Bestell- und Fallreferenzen. Es gibt keinen Zahlungsanbieter, keinen Checkout und keinen Geldfluss. Ihre Eingaben werden weder gesendet noch gespeichert.|Creates only fixed fictional €49 payment, order and case references. There is no payment provider, checkout or money movement. Your entries are neither sent nor saved.
+Erzeugt ausschließlich feste synthetische 49-€-Zahlungs-, Bestell- und Fallreferenzen. Es gibt keinen Zahlungsanbieter, keinen Checkout und keinen Geldfluss. Ihre Eingaben werden weder gesendet noch gespeichert.|Creates only fixed fictional €49 payment, order and case references. There is no payment provider, checkout or money movement. Your entries are neither sent nor saved.
 Der sichere Persistenztest ist momentan nicht verfügbar. Ihre Formulareingaben wurden nicht übertragen.|The secure storage test is currently unavailable. Your form entries were not transmitted.
 Zahlungs- und Fallmuster gespeichert|Payment and case sample saved
 Wird sicher gespeichert …|Saving securely …
