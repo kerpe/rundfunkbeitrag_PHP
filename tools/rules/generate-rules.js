@@ -21,10 +21,10 @@ for(const r of routes){const qs=Dc[r];let combos=[[]];for(const q of qs){const n
  rules.decisions[r]={};for(const c of combos){const ans={};qs.forEach((q,i)=>{if(c[i])ans[q.key]=c[i]});const d=Oc(r,ans);const o={status:d.status,text:d.text};if(d.target!==undefined)o.target=d.target;o.source=d.source;rules.decisions[r][c.join('|')]=o}}
 const sets=[],idx=new Map();rules.variants={};
 const postTos=['','home','new','different','help','main'];
-// Death case with a remaining resident: extra key segment "<remainingWho>,<remainingRegistered>".
-const rxs=(r,rem)=>r==='death'&&rem==='yes'?['','self','other'].flatMap(w=>['','yes','no'].map(g=>w+','+g)):[''];
+// Extra key segment: death case with a remaining resident "<remainingWho>,<remainingRegistered>"; second home "<secondRegistered>".
+const rxs=(r,rem)=>r==='death'&&rem==='yes'?['','self','other'].flatMap(w=>['','yes','no'].map(g=>w+','+g)):r==='second'?['','yes','no']:[''];
 for(const r of routes)for(const fw of ['self','other'])for(const rem of ['','yes','no','unsure'])for(const rx of rxs(r,rem))for(let m=0;m<4;m++)for(const pt of postTos)for(const pc of ['','DE','other','intl']){
- const d=fw==='other'?{forWhom:fw}:{};if(rem)d.remaining=rem;if(rx){const [w,g]=rx.split(',');if(w)d.remainingWho=w;if(g)d.remainingRegistered=g}const ch=[];if(m&1)ch.push('name');if(m&2)ch.push('address');if(ch.length)d.changes=ch;if(pt)d.postTo=pt;if(pc)d.postCountry=pc==='intl'?'AT':pc;
+ const d=fw==='other'?{forWhom:fw}:{};if(rem)d.remaining=rem;if(rx&&r==='second')d.secondRegistered=rx;else if(rx){const [w,g]=rx.split(',');if(w)d.remainingWho=w;if(g)d.remainingRegistered=g}const ch=[];if(m&1)ch.push('name');if(m&2)ch.push('address');if(ch.length)d.changes=ch;if(pt)d.postTo=pt;if(pc)d.postCountry=pc==='intl'?'AT':pc;
  const set={fields:jc(r,d),documents:Pc(r,d)};const j=JSON.stringify(set);if(!idx.has(j)){idx.set(j,sets.length);sets.push(set)}
  rules.variants[[r,fw,rem,m,pt,pc,rx].join('|')]=idx.get(j)}
 rules.sets=sets;
