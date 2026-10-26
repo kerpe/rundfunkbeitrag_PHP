@@ -5,6 +5,9 @@ declare(strict_types=1);
 // a key missing in a language falls back to English, then German. Staff emails are not translated here.
 const RB_TEXT=[
 'de'=>[
+ 'inv.file'=>'Rechnung','inv.title'=>'Rechnung','inv.number'=>'Rechnungsnummer','inv.date'=>'Rechnungsdatum','inv.serviceDate'=>'Leistungsdatum','inv.billedTo'=>'Rechnungsempfänger/in',
+ 'inv.item'=>'Beschreibung','inv.qty'=>'Menge','inv.amount'=>'Betrag','inv.itemText'=>'Servicegebühr: {service}','inv.itemRef'=>'Auftrag {ref}','inv.net'=>'Nettobetrag','inv.vat'=>'Umsatzsteuer {rate} %','inv.total'=>'Gesamtbetrag',
+ 'inv.paid'=>'Bezahlt am {date} per Überweisung. Vielen Dank!','inv.paidNoDate'=>'Bezahlt per Überweisung. Vielen Dank!','inv.mail'=>'Ihre Rechnung finden Sie im Anhang (PDF).',
  'money'=>'{a} €','dec'=>',','thou'=>'.',
  'title.order'=>'Bestätigung Ihres Serviceauftrags','title.request-information'=>'Rückfrage','title.record-submission'=>'Einreichung dokumentiert','title.record-response'=>'Offizielle Antwort verfügbar','title.withdraw'=>'Widerruf eingegangen','title.payment-received'=>'Zahlung eingegangen','title.complaint'=>'Nachricht erhalten','title.privacy-request'=>'Datenschutzanfrage erhalten','title.update'=>'Aktualisierung',
  'step.payment-received'=>['Ihre Zahlung ist bei uns eingegangen. Vielen Dank! Den aktuellen Stand Ihres Auftrags sehen Sie jederzeit in Ihrem Vorgang.'],
@@ -27,6 +30,9 @@ const RB_TEXT=[
  'pdf.place'=>'Ort, Datum','pdf.signature'=>'Unterschrift','pdf.note'=>'Wir sind ein privater Dienstleister und nicht mit ARD, ZDF, Deutschlandradio oder dem Beitragsservice verbunden. Auftragseingang, Einreichung des Antrags und die behördliche Entscheidung sind getrennte Schritte.',
 ],
 'en'=>[
+ 'inv.file'=>'invoice','inv.title'=>'Invoice','inv.number'=>'Invoice number','inv.date'=>'Invoice date','inv.serviceDate'=>'Service date','inv.billedTo'=>'Billed to',
+ 'inv.item'=>'Description','inv.qty'=>'Qty','inv.amount'=>'Amount','inv.itemText'=>'Service fee: {service}','inv.itemRef'=>'Order {ref}','inv.net'=>'Net amount','inv.vat'=>'VAT {rate} %','inv.total'=>'Total',
+ 'inv.paid'=>'Paid on {date} by bank transfer. Thank you!','inv.paidNoDate'=>'Paid by bank transfer. Thank you!','inv.mail'=>'Your invoice is attached (PDF).',
  'money'=>'€{a}','dec'=>'.','thou'=>',',
  'title.order'=>'Your service order confirmation','title.request-information'=>'More information needed','title.record-submission'=>'Submission recorded','title.record-response'=>'Official response available','title.withdraw'=>'Withdrawal received','title.payment-received'=>'Payment received','title.complaint'=>'Message received','title.privacy-request'=>'Data protection request received','title.update'=>'Case update',
  'step.payment-received'=>['We have received your payment. Thank you! You can see the current status of your order at any time in your case.'],
