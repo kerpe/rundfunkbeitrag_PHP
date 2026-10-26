@@ -328,3 +328,4 @@ html body .mj-main>a[href="/kontakt"]{padding-left:0;padding-right:0}
 html body .mj-summary-section:last-child{border-bottom:0;padding-bottom:0}
 @media (max-width:480px){html body .mj-sidebar li[aria-current=step]>button{font-size:0 !important;gap:0 !important}html body .mj-card-heading{flex-wrap:wrap;gap:4px 12px}html body .mj-card-heading>button{padding-left:0;padding-right:0}html body .mj-header nav>a:last-child{display:inline-flex}}
 @media (max-width:760px){html body .rb-adm-badge{justify-self:start;width:max-content}}
+html body .public-price+h2{margin-top:36px}
