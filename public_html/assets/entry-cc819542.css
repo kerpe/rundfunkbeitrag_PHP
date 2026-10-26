@@ -459,3 +459,4 @@ html body .rb-cal :focus-visible{outline:3px solid var(--t-primary) !important;o
 .rb-adm-mfa-forms{margin-top:20px;padding-top:18px;border-top:1px solid var(--t-line,#e4ddd0)}
 .rb-adm-mfa-forms h3{font-size:16px;margin:0 0 2px}
 .rb-adm-mfa-forms .rb-adm-muted{margin:0 0 4px}
+.mj-pay-line{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:#6d6860;font-size:14px}.mj-pay-done{color:#1d6b45;font-weight:600}
