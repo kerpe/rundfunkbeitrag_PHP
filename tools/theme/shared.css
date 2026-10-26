@@ -318,3 +318,13 @@ html body label.mj-field{display:block}
 html body label.mj-field+button,html body textarea+button{margin-top:14px}
 /* case page payment line (PR #73) */
 .mj-pay-line{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:#6d6860;font-size:14px}.mj-pay-done{color:#1d6b45;font-weight:600}
+html body main.landing-page{overflow-x:clip}
+/* QA 2026-10-26: spacing and wrapping fixes found in the full site check */
+html body main.landing-page>section.landing-preparation{margin-bottom:24px}
+html body #fragen .section-heading h2+p{margin-top:14px}
+html body .rb-footer li a.rb-footer-withdraw{display:inline-block;padding:8px 0;min-height:0}
+html body .rb-footer li a.rb-footer-withdraw::after{content:"\00a0→";display:inline}
+html body .mj-main>a[href="/kontakt"]{padding-left:0;padding-right:0}
+html body .mj-summary-section:last-child{border-bottom:0;padding-bottom:0}
+@media (max-width:480px){html body .mj-sidebar li[aria-current=step]>button{font-size:0 !important;gap:0 !important}html body .mj-card-heading{flex-wrap:wrap;gap:4px 12px}html body .mj-card-heading>button{padding-left:0;padding-right:0}html body .mj-header nav>a:last-child{display:inline-flex}}
+@media (max-width:760px){html body .rb-adm-badge{justify-self:start;width:max-content}}
