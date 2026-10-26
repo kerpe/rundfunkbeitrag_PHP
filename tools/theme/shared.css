@@ -314,3 +314,5 @@ html body .rb-cal :focus-visible{outline:3px solid var(--t-primary) !important;o
 /* space between a text field and the button right below it (case page message, admin forms) */
 html body label.mj-field{display:block}
 html body label.mj-field+button,html body textarea+button{margin-top:14px}
+/* case page payment line (PR #73) */
+.mj-pay-line{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:#6d6860;font-size:14px}.mj-pay-done{color:#1d6b45;font-weight:600}
