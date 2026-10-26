@@ -1,27 +1,165 @@
 <?php
+
 declare(strict_types=1);
 umask(0077);
-ini_set('display_errors','0');
-header('X-Content-Type-Options: nosniff');header('X-Frame-Options: DENY');header('Referrer-Policy: strict-origin-when-cross-origin');header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-require dirname(__DIR__).'/private/app/bootstrap.php';require dirname(__DIR__).'/private/app/web.php';require dirname(__DIR__).'/private/app/seo.php';
-$path=parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH)??'/';$method=$_SERVER['REQUEST_METHOD']??'GET';
-try{
- if($path==='/install')installer();
- if(!is_file(private_root().'/config.php')){http_response_code(503);echo form_html('Vorbereitung','<p>Die Website wird vorbereitet. / The website is being prepared.</p>');exit;}
- $canonical=parse_url(config()['public_url'],PHP_URL_HOST);$host=strtolower(explode(':',$_SERVER['HTTP_HOST']??'')[0]);if($canonical&&$host!==$canonical&&($host==='www.'.$canonical||'www.'.$host===$canonical)){header('Location: '.config()['public_url'].($_SERVER['REQUEST_URI']??'/'),true,301);exit;}
- if(str_starts_with(config()['public_url'],'https://'))header('Strict-Transport-Security: max-age=31536000');
- safe_session();auth_route($path,$method);
- if($path==='/healthz'){sql('SELECT 1');response_json(['ok'=>true]);}
- if(str_starts_with($path,'/api/')){
- if($path==='/api/postcodes'){$p=$_GET['postcode']??'';if(!preg_match('/^\d{5}$/',$p))fail('INVALID_POSTCODE_FORMAT');$data=json_decode(file_get_contents(__DIR__.'/../private/app/postcodes.json'),true);response_json(['postcode'=>$p,'places'=>$data[$p]??[],'sourceDate'=>'2026-10-08']);}
- if($path==='/api/reviews')response_json(['reviews'=>public_reviews()]);
- if($path==='/api/address-suggestions'){require __DIR__.'/../private/app/address.php';address_api();}
- if(!str_starts_with($path,'/api/journey/'))fail('NOT_FOUND',404);
- if(!in_array($method,['GET','HEAD'],true))csrf();db()->beginTransaction();$result=api(array_values(array_filter(explode('/',substr($path,13)))), $method);if(db()->inTransaction())db()->commit();foreach($GLOBALS['unlink_after_commit']??[] as $file)if(is_file($file))unlink($file);$GLOBALS['uploads_rollback']=[];if(!in_array($method,['GET','HEAD'],true)||isset($result['dispatchAfterCommit'])){$sent=dispatch_mail(1);unset($result['dispatchAfterCommit']);$result+=$sent;}response_json($result,http_response_code()?:200);
- }
- if($path==='/sitemap.xml'){if(!config()['indexing'])fail('NOT_FOUND',404);header('Content-Type: application/xml; charset=utf-8');echo sitemap_xml();exit;}
- if($path==='/robots.txt'){header('Content-Type: text/plain');echo config()['indexing']?"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /antrag\nDisallow: /auftrag/\nDisallow: /case-access\nDisallow: /verify-contact\nDisallow: /recover-access\nDisallow: /withdrawal\nDisallow: /fortsetzen\nSitemap: ".config()['public_url']."/sitemap.xml\n":"User-agent: *\nDisallow: /\n";exit;}
- if($path==='/weitere-anliegen'){header('Location: /#leistungen',true,301);exit;}
- $public=['/','/antrag','/flow/reason','/case-access','/fortsetzen','/recover-access','/verify-contact','/withdrawal','/impressum','/datenschutz','/agb','/widerruf','/rechtliches','/kontakt','/weitere-anliegen','/admin','/staff'];$routeAllowed=in_array($path,$public,true)||preg_match('#^/auftrag/p-0[1-8]$#i',$path)||seo_known($path);if(str_starts_with($path,'/leistungen/'))$routeAllowed=preg_match('#^/leistungen/([a-z-]+)$#',$path,$slug)&&in_array($slug[1],json_decode(file_get_contents(private_root().'/app/service-slugs.json'),true,512,JSON_THROW_ON_ERROR),true);$notFound=!$routeAllowed;if($notFound&&(!in_array($method,['GET','HEAD'],true)||preg_match('/\.[a-z0-9]{2,5}$/i',$path)))fail('NOT_FOUND',404);if($notFound)http_response_code(404);if(in_array($path,['/admin','/staff'],true)&&!admin()){header('Location: /admin/login',true,303);exit;}if(!in_array($method,['GET','HEAD'],true))fail('METHOD_NOT_ALLOWED',405);
- $manifest=json_decode(file_get_contents(__DIR__.'/.vite/manifest.json'),true);$asset=$manifest['entry.tsx'];$seo=seo_meta($path);if($notFound)$seo=['title'=>'Seite nicht gefunden · Rundfunkbeitrag Support','description'=>'Diese Seite gibt es nicht.','ssr'=>'','alternates'=>[]]+$seo;$cl=$_COOKIE['site-language']??null;if(!$notFound&&$seo['lang']&&in_array($cl,['de','en'],true)&&$cl!==$seo['lang'])foreach($seo['alternates'] as [$hl,$href])if($hl===$cl){header('Location: '.$href,true,302);exit;}$lang=$seo['lang']??(($_COOKIE['site-language']??'de')==='en'?'en':'de');$boot=['language'=>$lang,'csrf'=>$_SESSION['csrf']]+(admin()?['email'=>admin_email(),'owner'=>is_owner()]:[]);$boot['supportEmail']=support_email();$private=in_array($path,['/admin','/staff','/antrag','/case-access','/verify-contact','/recover-access','/withdrawal','/fortsetzen'],true)||str_starts_with($path,'/auftrag/');$nonce=base64_encode(random_bytes(16));header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-$nonce'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");header('Content-Type: text/html; charset=utf-8');header('Cache-Control: private, no-store');echo '<!doctype html><html lang="'.$lang.'"'.($seo['lang']&&$seo['alternates']?' data-page-lang="'.$seo['lang'].'"':'').'><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="'.h($seo['description']).'"><meta name="robots" content="'.($private||$notFound||!config()['indexing']?'noindex,nofollow':'index,follow').'"><link rel="canonical" href="'.h(config()['public_url'].$path).'"><link rel="icon" href="/favicon.svg"><title>'.h($seo['title']).'</title>'.($private||$notFound?'':seo_head($path,$seo));foreach($seo['alternates'] as [$hl,$href])echo '<link rel="alternate" hreflang="'.h($hl).'" href="'.h($href).'">';foreach($asset['css']??[] as $css)echo '<link rel="stylesheet" href="/'.h($css).'">';echo '<style>.rb-legal-footer{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 24px;max-width:1200px;margin:0 auto;padding:24px 20px 32px;border-top:1px solid #e4ddd0;font-size:.875rem;font-weight:500;line-height:1.4}.rb-legal-footer a{color:#5b625c;text-decoration:none}.rb-legal-footer a:hover{text-decoration:underline}</style></head><body><div id="root">'.$seo['ssr'].'</div>'.($private&&!in_array($path,['/admin','/staff'],true)?($lang==='en'?'<footer class="rb-legal-footer" aria-label="Legal information"><a href="/impressum">Provider information</a><a href="/datenschutz">Privacy</a><a href="/agb">Terms</a><a href="/widerruf">Withdrawal</a></footer>':'<footer class="rb-legal-footer" aria-label="Rechtliche Informationen"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a><a href="/agb">AGB</a><a href="/widerruf">Widerruf</a></footer>'):'').'<noscript><h1>Rundfunkbeitrag Support</h1><p>Bitte aktivieren Sie JavaScript, um die Formulare zu nutzen. Please enable JavaScript to use the forms. Kontakt / Contact: '.h(support_email()).'</p><p>Wir sind nicht mit ARD, ZDF, Deutschlandradio oder Beitragsservice verbunden.</p></noscript><script nonce="'.$nonce.'">window.PHPBOOT='.json_encode($boot,JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT).';</script><script type="module" nonce="'.$nonce.'" src="/'.h($asset['file']).'"></script></body></html>';
-}catch(Throwable $e){if(is_file(private_root().'/config.php')){try{if(db()->inTransaction())db()->rollBack();}catch(Throwable){}}foreach($GLOBALS['uploads_rollback']??[] as $file)if(is_file($file))unlink($file);if($e instanceof AppError)response_json(['error'=>$e->reason,'details'=>$e->details],$e->status);error_log('Application error: '.get_class($e));response_json(['error'=>'SERVICE_UNAVAILABLE'],503);}
+ini_set('display_errors', '0');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+require dirname(__DIR__).'/private/app/bootstrap.php';
+require dirname(__DIR__).'/private/app/web.php';
+require dirname(__DIR__).'/private/app/seo.php';
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+try {
+    if ($path === '/install') {
+        installer();
+    }
+    if (!is_file(private_root().'/config.php')) {
+        http_response_code(503);
+        echo form_html('Vorbereitung', '<p>Die Website wird vorbereitet. / The website is being prepared.</p>');
+        exit;
+    }
+    $canonical = parse_url(config()['public_url'], PHP_URL_HOST);
+    $host = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
+    if ($canonical && $host !== $canonical && ($host === 'www.'.$canonical || 'www.'.$host === $canonical)) {
+        header('Location: '.config()['public_url'].($_SERVER['REQUEST_URI'] ?? '/'), true, 301);
+        exit;
+    }
+    if (str_starts_with(config()['public_url'], 'https://')) {
+        header('Strict-Transport-Security: max-age=31536000');
+    }
+    safe_session();
+    auth_route($path, $method);
+    if ($path === '/healthz') {
+        sql('SELECT 1');
+        response_json(['ok' => true]);
+    }
+    if (str_starts_with($path, '/api/')) {
+        if ($path === '/api/postcodes') {
+            $p = $_GET['postcode'] ?? '';
+            if (!preg_match('/^\d{5}$/', $p)) {
+                fail('INVALID_POSTCODE_FORMAT');
+            }
+            $data = json_decode(file_get_contents(__DIR__.'/../private/app/postcodes.json'), true);
+            response_json(['postcode' => $p, 'places' => $data[$p] ?? [], 'sourceDate' => '2026-10-08']);
+        }
+        if ($path === '/api/reviews') {
+            response_json(['reviews' => public_reviews()]);
+        }
+        if ($path === '/api/address-suggestions') {
+            require __DIR__.'/../private/app/address.php';
+            address_api();
+        }
+        if (!str_starts_with($path, '/api/journey/')) {
+            fail('NOT_FOUND', 404);
+        }
+        if (!in_array($method, ['GET', 'HEAD'], true)) {
+            csrf();
+        }
+        db()->beginTransaction();
+        $result = api(array_values(array_filter(explode('/', substr($path, 13)))), $method);
+        if (db()->inTransaction()) {
+            db()->commit();
+        }
+        foreach ($GLOBALS['unlink_after_commit'] ?? [] as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+        $GLOBALS['uploads_rollback'] = [];
+        if (!in_array($method, ['GET', 'HEAD'], true) || isset($result['dispatchAfterCommit'])) {
+            $sent = dispatch_mail(1);
+            unset($result['dispatchAfterCommit']);
+            $result += $sent;
+        }
+        response_json($result, http_response_code() ?: 200);
+    }
+    if ($path === '/sitemap.xml') {
+        if (!config()['indexing']) {
+            fail('NOT_FOUND', 404);
+        }
+        header('Content-Type: application/xml; charset=utf-8');
+        echo sitemap_xml();
+        exit;
+    }
+    if ($path === '/robots.txt') {
+        header('Content-Type: text/plain');
+        echo config()['indexing'] ? "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /antrag\nDisallow: /auftrag/\nDisallow: /case-access\nDisallow: /verify-contact\nDisallow: /recover-access\nDisallow: /withdrawal\nDisallow: /fortsetzen\nSitemap: ".config()['public_url']."/sitemap.xml\n" : "User-agent: *\nDisallow: /\n";
+        exit;
+    }
+    if ($path === '/weitere-anliegen') {
+        header('Location: /#leistungen', true, 301);
+        exit;
+    }
+    $public = ['/', '/antrag', '/flow/reason', '/case-access', '/fortsetzen', '/recover-access', '/verify-contact', '/withdrawal', '/impressum', '/datenschutz', '/agb', '/widerruf', '/rechtliches', '/kontakt', '/weitere-anliegen', '/admin', '/staff'];
+    $routeAllowed = in_array($path, $public, true) || preg_match('#^/auftrag/p-0[1-8]$#i', $path) || seo_known($path);
+    if (str_starts_with($path, '/leistungen/')) {
+        $routeAllowed = preg_match('#^/leistungen/([a-z-]+)$#', $path, $slug) && in_array($slug[1], json_decode(file_get_contents(private_root().'/app/service-slugs.json'), true, 512, JSON_THROW_ON_ERROR), true);
+    }
+    $notFound = !$routeAllowed;
+    if ($notFound && (!in_array($method, ['GET', 'HEAD'], true) || preg_match('/\.[a-z0-9]{2,5}$/i', $path))) {
+        fail('NOT_FOUND', 404);
+    }
+    if ($notFound) {
+        http_response_code(404);
+    }
+    if (in_array($path, ['/admin', '/staff'], true) && !admin()) {
+        header('Location: /admin/login', true, 303);
+        exit;
+    }
+    if (!in_array($method, ['GET', 'HEAD'], true)) {
+        fail('METHOD_NOT_ALLOWED', 405);
+    }
+    $manifest = json_decode(file_get_contents(__DIR__.'/.vite/manifest.json'), true);
+    $asset = $manifest['entry.tsx'];
+    $seo = seo_meta($path);
+    if ($notFound) {
+        $seo = ['title' => 'Seite nicht gefunden · Rundfunkbeitrag Support', 'description' => 'Diese Seite gibt es nicht.', 'ssr' => '', 'alternates' => []] + $seo;
+    }
+    $cl = $_COOKIE['site-language'] ?? null;
+    if (!$notFound && $seo['lang'] && in_array($cl, ['de', 'en'], true) && $cl !== $seo['lang']) {
+        foreach ($seo['alternates'] as [$hl,$href]) {
+            if ($hl === $cl) {
+                header('Location: '.$href, true, 302);
+                exit;
+            }
+        }
+    }
+    $lang = $seo['lang'] ?? (($_COOKIE['site-language'] ?? 'de') === 'en' ? 'en' : 'de');
+    $boot = ['language' => $lang, 'csrf' => $_SESSION['csrf']] + (admin() ? ['email' => admin_email(), 'owner' => is_owner()] : []);
+    $boot['supportEmail'] = support_email();
+    $private = in_array($path, ['/admin', '/staff', '/antrag', '/case-access', '/verify-contact', '/recover-access', '/withdrawal', '/fortsetzen'], true) || str_starts_with($path, '/auftrag/');
+    $nonce = base64_encode(random_bytes(16));
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-$nonce'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
+    header('Content-Type: text/html; charset=utf-8');
+    header('Cache-Control: private, no-store');
+    echo '<!doctype html><html lang="'.$lang.'"'.($seo['lang'] && $seo['alternates'] ? ' data-page-lang="'.$seo['lang'].'"' : '').'><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="'.h($seo['description']).'"><meta name="robots" content="'.($private || $notFound || !config()['indexing'] ? 'noindex,nofollow' : 'index,follow').'"><link rel="canonical" href="'.h(config()['public_url'].$path).'"><link rel="icon" href="/favicon.svg"><title>'.h($seo['title']).'</title>'.($private || $notFound ? '' : seo_head($path, $seo));
+    foreach ($seo['alternates'] as [$hl,$href]) {
+        echo '<link rel="alternate" hreflang="'.h($hl).'" href="'.h($href).'">';
+    }
+    foreach ($asset['css'] ?? [] as $css) {
+        echo '<link rel="stylesheet" href="/'.h($css).'">';
+    }
+    echo '<style>.rb-legal-footer{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 24px;max-width:1200px;margin:0 auto;padding:24px 20px 32px;border-top:1px solid #e4ddd0;font-size:.875rem;font-weight:500;line-height:1.4}.rb-legal-footer a{color:#5b625c;text-decoration:none}.rb-legal-footer a:hover{text-decoration:underline}</style></head><body><div id="root">'.$seo['ssr'].'</div>'.($private && !in_array($path, ['/admin', '/staff'], true) ? ($lang === 'en' ? '<footer class="rb-legal-footer" aria-label="Legal information"><a href="/impressum">Provider information</a><a href="/datenschutz">Privacy</a><a href="/agb">Terms</a><a href="/widerruf">Withdrawal</a></footer>' : '<footer class="rb-legal-footer" aria-label="Rechtliche Informationen"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a><a href="/agb">AGB</a><a href="/widerruf">Widerruf</a></footer>') : '').'<noscript><h1>Rundfunkbeitrag Support</h1><p>Bitte aktivieren Sie JavaScript, um die Formulare zu nutzen. Please enable JavaScript to use the forms. Kontakt / Contact: '.h(support_email()).'</p><p>Wir sind nicht mit ARD, ZDF, Deutschlandradio oder Beitragsservice verbunden.</p></noscript><script nonce="'.$nonce.'">window.PHPBOOT='.json_encode($boot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT).';</script><script type="module" nonce="'.$nonce.'" src="/'.h($asset['file']).'"></script></body></html>';
+} catch (Throwable $e) {
+    if (is_file(private_root().'/config.php')) {
+        try {
+            if (db()->inTransaction()) {
+                db()->rollBack();
+            }
+        } catch (Throwable) {
+        }
+    }
+    foreach ($GLOBALS['uploads_rollback'] ?? [] as $file) {
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+    if ($e instanceof AppError) {
+        response_json(['error' => $e->reason, 'details' => $e->details], $e->status);
+    }
+    error_log('Application error: '.get_class($e));
+    response_json(['error' => 'SERVICE_UNAVAILABLE'], 503);
+}

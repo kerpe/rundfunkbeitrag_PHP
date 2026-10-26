@@ -1,66 +1,289 @@
 <?php
+
 // Admin team: the owner (config.php) adds colleagues by email; each colleague sets a password through a one-time link.
-const STAFF_LINK_HOURS=72;
-function staff_page(string $title,string $content):never{header('Content-Type: text/html; charset=utf-8');header('Cache-Control: private, no-store');echo str_replace('<main>','<main class="wide">',form_html($title,$content,'lt'));exit;}
+const STAFF_LINK_HOURS = 72;
+function staff_page(string $title, string $content): never
+{
+    header('Content-Type: text/html; charset=utf-8');
+    header('Cache-Control: private, no-store');
+    echo str_replace('<main>', '<main class="wide">', form_html($title, $content, 'lt'));
+    exit;
+}
 // Server-rendered admin pages (team, account, system) share the order screen's header and stylesheet.
-function admin_page(string $active,string $title,string $body):never{header('Content-Type: text/html; charset=utf-8');header('Cache-Control: private, no-store');$css=json_decode(file_get_contents(dirname(private_root()).'/public_html/.vite/manifest.json'),true)['entry.tsx']['css'][0]??'';$me=admin_email();
- $tab=fn(string $id,string $label,string $href)=>'<a class="rb-adm-tab'.($active===$id?' is-active" aria-current="page':'').'" href="'.$href.'">'.$label.'</a>';
- echo '<!doctype html><html lang="lt" class="rb-adm-page"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>'.h($title).' · Administravimas</title><link rel="stylesheet" href="/'.h($css).'"><link rel="icon" href="/favicon.svg"></head><body><main class="mj mj-staff rb-adm-server">'
- .'<header class="rb-adm-top"><div class="rb-adm-top-in"><a class="rb-adm-logo" href="/admin"><span class="brand-logo" translate="no"><span class="antenna-mark" aria-hidden="true"><img src="/brand/antenna.svg" width="48" height="56" alt=""></span><span class="brand-wordmark"><span class="brand-name">Rundfunkbeitrag</span><span class="brand-support-line"><span class="brand-support">Support</span><span class="brand-colours" aria-hidden="true"><i></i><i></i><i></i></span></span></span></span></a>'
- .'<nav class="rb-adm-tabs" aria-label="Administravimas">'.$tab('orders','Užsakymai','/admin').$tab('settings','Nustatymai','/admin#nustatymai').$tab('team','Komanda','/admin/team').$tab('system','Sistema','/admin/configuration').'</nav>'
- .'<div class="rb-adm-user"><a class="rb-adm-me'.($active==='account'?' is-active':'').'" href="/admin/account" title="Mano paskyra"><span class="rb-adm-avatar" aria-hidden="true">'.h(mb_strtoupper(mb_substr($me,0,1))).'</span><span class="rb-adm-me-mail">'.h($me).'</span></a><a class="rb-adm-site" href="/" target="_blank" rel="noopener">Svetainė ↗</a><form method="post" action="/api/admin/logout"><input type="hidden" name="csrf" value="'.h($_SESSION['csrf']).'"><button type="submit" class="rb-adm-logout">Atsijungti</button></form></div></div></header>'
- .'<div class="mj-staff-body rb-adm-body"><h1>'.h($title).'</h1>'.$body.'</div></main></body></html>';exit;}
-function admin_msg(string $error,string $done):string{return ($error?'<p class="rb-adm-msg rb-adm-msg-err" role="alert">'.h($error).'</p>':'').($done?'<p class="rb-adm-msg rb-adm-msg-ok" role="status">'.h($done).'</p>':'');}
-function admin_csrf():string{return '<input type="hidden" name="csrf" value="'.h($_SESSION['csrf']).'">';}
-function staff_link(string $email):string{sql("DELETE FROM rb_records WHERE kind='token' AND parent_id=?",['staff:'.$email]);$raw=bin2hex(random_bytes(32));$exp=time()+STAFF_LINK_HOURS*3600;put('token:'.secret_hash($raw),'token',['kind'=>'staff-password','email'=>$email,'expires'=>$exp],'staff:'.$email,'',$exp);return config()['public_url'].'/admin/password?t='.$raw;}
-function staff_invite_mail(array $s,string $url,bool $reset):void{$who=config()['admin_email'];$text="Sveiki".($s['name']!==''?', '.$s['name']:'')."!\n\n".($reset?"Gavote naują nuorodą slaptažodžiui nustatyti":"{$who} pakvietė jus į Rundfunkbeitrag Support administravimą")." (".parse_url(config()['public_url'],PHP_URL_HOST).").\n\nAtidarykite nuorodą ir susikurkite slaptažodį:\n{$url}\n\nNuoroda galioja ".STAFF_LINK_HOURS." valandas ir tinka vieną kartą. Prisijungsite su šiuo el. pašto adresu: {$s['email']}\nJei šio laiško nelaukėte, tiesiog jį ištrinkite.";queue_mail(uuid(),['id'=>'staff'],'staff-invite',$s['email'],['subject'=>$reset?'Naujas slaptažodis administravimui':'Kvietimas į administravimą','text'=>$text]);}
-function staff_save_owner_hash(string $hash):void{$c=config();$c['admin_hash']=$hash;$tmp=tempnam(private_root(),'.config-');chmod($tmp,0600);file_put_contents($tmp,"<?php\n// Private configuration. Never commit or expose this file.\nreturn ".var_export($c,true).";\n",LOCK_EX);if(!rename($tmp,private_root().'/config.php'))fail('CONFIG_WRITE_FAILED',503);if(function_exists('opcache_invalidate'))opcache_invalidate(private_root().'/config.php',true);}
-function staff_new_password():string{$p=$_POST['password']??null;if(!is_string($p)||mb_strlen($p)<14)fail('Slaptažodis turi būti bent 14 simbolių.');if(strlen($p)>72)fail('Slaptažodis per ilgas (daugiausia 72 baitai).');if(!hash_equals($p,(string)($_POST['password2']??'')))fail('Slaptažodžiai nesutampa.');return password_hash($p,PASSWORD_DEFAULT);}
-function staff_error(Throwable $e):string{if(!$e instanceof AppError)return 'Nepavyko. Bandykite dar kartą.';return ['INVALID_EMAIL'=>'Neteisingas el. pašto adresas.','INVALID_FIELD'=>'Patikrinkite laukelius.','RATE_LIMITED'=>'Per daug bandymų. Palaukite valandą.','CSRF_REQUIRED'=>'Puslapis paseno. Atnaujinkite jį ir bandykite dar kartą.','SAME_ORIGIN_REQUIRED'=>'Puslapis paseno. Atnaujinkite jį ir bandykite dar kartą.','CONFIG_WRITE_FAILED'=>'Nepavyko įrašyti nustatymų failo serveryje.'][$e->reason]??$e->reason;}
-function staff_route(string $path,string $method):bool{
- if($path==='/admin/password'){
- // One-time link from the invitation email: the colleague chooses a password and is signed in.
- $raw=is_string($_GET['t']??null)&&preg_match('/^[a-f0-9]{64}$/',$_GET['t'])?$_GET['t']:'';$r=$raw?record('token:'.secret_hash($raw)):null;$email=$r&&($r['value']['kind']??'')==='staff-password'&&$r['expires_at']>time()?$r['value']['email']:null;$s=$email?record('staff:'.$email)['value']??null:null;
- if(!$s)staff_page('Nuoroda nebegalioja','<p>Ši nuoroda jau panaudota arba nebegalioja. Paprašykite administratoriaus atsiųsti naują.</p><p><a href="/admin/login">Prisijungti</a></p>');
- $error='';if($method==='POST'){try{csrf();db()->beginTransaction();rate('staff-password:'.($_SERVER['REMOTE_ADDR']??''),20,3600);$hash=staff_new_password();$s['hash']=$hash;$s['passwordSetAt']=now();put('staff:'.$email,'staff',$s);sql('DELETE FROM rb_records WHERE id=?',['token:'.secret_hash($raw)]);db()->commit();mfa_begin($email,$hash);}catch(Throwable $e){if(db()->inTransaction())db()->rollBack();$error=staff_error($e);}}
- staff_page('Susikurkite slaptažodį',($error?'<p class="error" role="alert">'.h($error).'</p>':'').'<p>Prisijungsite su el. paštu <strong>'.h($email).'</strong>.</p><form method="post"><input type="hidden" name="csrf" value="'.h($_SESSION['csrf']).'"><input type="email" name="email" value="'.h($email).'" autocomplete="username" hidden><label>Naujas slaptažodis (bent 14 simbolių)<input name="password" type="password" autocomplete="new-password" minlength="14" maxlength="72" required></label><label>Pakartokite slaptažodį<input name="password2" type="password" autocomplete="new-password" minlength="14" maxlength="72" required></label><button>Išsaugoti ir prisijungti</button></form>');
- }
- if($path==='/admin/account'){
- // Own account: who is signed in and their password.
- if(!admin()){header('Location: /admin/login',true,303);exit;}
- $me=admin_email();$c=config();$error='';$done='';$s=$me===$c['admin_email']?null:(record('staff:'.$me)['value']??null);
- $codes=[];
- if($method==='POST'&&in_array($_POST['do']??'',['mfa-codes','mfa-move'],true)){try{csrf();db()->beginTransaction();rate('admin-mfa:'.$me,10,900);db()->commit();db()->beginTransaction();if(!mfa_check($me,is_string($_POST['code']??null)?substr($_POST['code'],0,40):''))fail('Kodas neteisingas arba jau panaudotas.');
-  if($_POST['do']==='mfa-codes'){$codes=mfa_renew_codes($me);db()->commit();$done='Sukurti nauji atsarginiai kodai. Senieji nebegalioja.';}
-  else{sql('DELETE FROM rb_records WHERE id=?',['mfa:'.$me]);db()->commit();mfa_begin($me,staff_hash($me));}}catch(Throwable $e){if(db()->inTransaction())db()->rollBack();$error=mfa_error($e);}}
- elseif($method==='POST'){try{csrf();db()->beginTransaction();$hash=staff_hash($me);if(!is_string($_POST['current']??null)||!$hash||!password_verify($_POST['current'],$hash))fail('Dabartinis slaptažodis neteisingas.');$new=staff_new_password();if($s===null)staff_save_owner_hash($new);else{$s['hash']=$new;$s['passwordSetAt']=now();put('staff:'.$me,'staff',$s);}db()->commit();$_SESSION['admin_fingerprint']=secret_hash($new);$done='Slaptažodis pakeistas.';}catch(Throwable $e){if(db()->inTransaction())db()->rollBack();$error=staff_error($e);}}
- $since=$s&&$s['passwordSetAt']?substr($s['passwordSetAt'],0,10):'';$m=mfa($me);$left=count($m['recovery']??[]);if(!empty($_SESSION['mfa_used_recovery'])){unset($_SESSION['mfa_used_recovery']);if(!$done&&!$error)$error='Prisijungėte su atsarginiu kodu. Liko kodų: '.$left.'. Jei pametėte telefoną, žemiau perkelkite 2FA į naują telefoną.';}
- $codeField=fn(string $label)=>'<label class="rb-adm-f">'.$label.'<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="9" required></label>';
- admin_page('account','Mano paskyra',admin_msg($error,$done)
- .($codes?'<section class="mj-card rb-adm-card rb-adm-mfa-new"><h2>Nauji atsarginiai kodai</h2><p class="rb-adm-muted">Išsisaugokite juos saugioje vietoje. Kiekvienas kodas tinka vieną kartą. Daugiau jų nerodysime.</p>'.mfa_codes_html($codes).'</section>':'')
- .'<section class="mj-card rb-adm-card"><h2>Prisijungimas</h2><dl class="rb-adm-dl"><div><dt>El. paštas</dt><dd>'.h($me).'</dd></div><div><dt>Vardas</dt><dd>'.h(($s['name']??'')!==''?$s['name']:'–').'</dd></div><div><dt>Rolė</dt><dd>'.($s===null?'Pagrindinis administratorius':'Administratorius').'</dd></div>'.($since?'<div><dt>Slaptažodis nustatytas</dt><dd>'.h($since).'</dd></div>':'').'</dl></section>'
- .'<section class="mj-card rb-adm-card"><div class="rb-adm-card-head"><h2>Dviejų žingsnių prisijungimas (2FA)</h2><span class="rb-adm-pill rb-adm-pill-ok">Įjungta</span></div><dl class="rb-adm-dl"><div><dt>Įjungta</dt><dd>'.h(substr($m['enabledAt']??'',0,10)).'</dd></div><div><dt>Atsarginių kodų liko</dt><dd>'.$left.' iš '.MFA_RECOVERY_CODES.'</dd></div></dl>'
- .'<div class="rb-adm-grid2 rb-adm-mfa-forms"><form method="post" class="rb-adm-form">'.admin_csrf().'<input type="hidden" name="do" value="mfa-codes"><h3>Nauji atsarginiai kodai</h3><p class="rb-adm-muted">Senieji kodai nustos galioti.</p>'.$codeField('Kodas iš programėlės').'<div class="rb-adm-form-actions"><button class="rb-btn-ghost">Sukurti naujus kodus</button></div></form>'
- .'<form method="post" class="rb-adm-form">'.admin_csrf().'<input type="hidden" name="do" value="mfa-move"><h3>Naujas telefonas</h3><p class="rb-adm-muted">Iškart nuskenuosite naują QR kodą. Tinka ir atsarginis kodas.</p>'.$codeField('Kodas iš programėlės arba atsarginis').'<div class="rb-adm-form-actions"><button class="rb-btn-ghost">Perkelti į naują telefoną</button></div></form></div>'
- .'<p class="rb-adm-muted">'.($s===null?'Jei pamestumėte ir telefoną, ir atsarginius kodus, 2FA galės atstatyti tik techninis prižiūrėtojas duomenų bazėje.':'Jei pamestumėte ir telefoną, ir atsarginius kodus, pagrindinis administratorius gali atstatyti jūsų 2FA skiltyje „Komanda“.').'</p></section>'
- .'<section class="mj-card rb-adm-card"><h2>Pakeisti slaptažodį</h2><form method="post" class="rb-adm-form">'.admin_csrf().'<input type="email" name="email" value="'.h($me).'" autocomplete="username" hidden><label class="rb-adm-f">Dabartinis slaptažodis<input name="current" type="password" autocomplete="current-password" required maxlength="72"></label><label class="rb-adm-f">Naujas slaptažodis<input name="password" type="password" autocomplete="new-password" minlength="14" maxlength="72" required><small>Bent 14 simbolių.</small></label><label class="rb-adm-f">Pakartokite naują slaptažodį<input name="password2" type="password" autocomplete="new-password" minlength="14" maxlength="72" required></label><div class="rb-adm-form-actions"><button class="rb-btn">Pakeisti slaptažodį</button></div></form></section>');
- }
- if($path!=='/admin/team')return false;
- if(!admin()){header('Location: /admin/login',true,303);exit;}
- $owner=is_owner();$me=admin_email();$c=config();$error='';$done='';$link='';
- if($method==='POST'){try{csrf();$do=$_POST['do']??'';db()->beginTransaction();
-  if(!$owner)fail('Kolegas pridėti ir šalinti gali tik pagrindinis administratorius.');
-  elseif($do==='add'){$email=email($_POST['email']??null);$name=text($_POST['name']??'',0,60);if($email===$c['admin_email']||record('staff:'.$email))fail('Toks naudotojas jau yra.');$s=['email'=>$email,'name'=>$name,'hash'=>null,'addedAt'=>now(),'addedBy'=>$me,'passwordSetAt'=>null];put('staff:'.$email,'staff',$s);$link=staff_link($email);staff_invite_mail($s,$link,false);$done='Pakviesta. Laiškas išsiųstas adresu '.$email.'.';}
-  elseif($do==='mfa-reset'){$email=email($_POST['email']??null);if(!record('staff:'.$email))fail('Naudotojas nerastas.');sql('DELETE FROM rb_records WHERE id=?',['mfa:'.$email]);$done=$email.' 2FA atstatytas. Kitą kartą prisijungęs jis nuskenuos naują QR kodą.';}
-  elseif($do==='resend'||$do==='remove'){$email=email($_POST['email']??null);$r=record('staff:'.$email,true);if(!$r)fail('Naudotojas nerastas.');if($do==='remove'){if(($_POST['confirm']??'')!=='1')fail('Pašalinimas nepatvirtintas.');sql("DELETE FROM rb_records WHERE id IN (?,?) OR (kind='token' AND parent_id=?)",['staff:'.$email,'mfa:'.$email,'staff:'.$email]);$done=$email.' pašalintas. Jo prisijungimas nebegalioja.';}else{$link=staff_link($email);staff_invite_mail($r['value'],$link,$r['value']['hash']!==null);$done='Nauja nuoroda išsiųsta adresu '.$email.'.';}}
-  else fail('INVALID_ACTION');
-  db()->commit();if($link)dispatch_mail(3);}catch(Throwable $e){if(db()->inTransaction())db()->rollBack();$error=staff_error($e);$link='';$done='';}}
- $act=fn(string $do,string $email,string $label,string $cls,string $confirm='')=>'<form method="post"'.($confirm?' onsubmit="return window.confirm(\''.h($confirm).'\')"':'').'>'.admin_csrf().'<input type="hidden" name="do" value="'.$do.'"><input type="hidden" name="email" value="'.h($email).'">'.($do==='remove'?'<input type="hidden" name="confirm" value="1">':'').'<button class="'.$cls.'">'.h($label).'</button></form>';
- $row=fn(string $name,string $email,string $role,string $status,bool $ok,string $tools,bool $mfa)=>'<tr><td><div class="rb-adm-person"><span class="rb-adm-avatar" aria-hidden="true">'.h(mb_strtoupper(mb_substr($name!==''?$name:$email,0,1))).'</span><span><strong>'.h($name!==''?$name:$email).'</strong>'.($email===$me?' <span class="rb-adm-you">jūs</span>':'').($name!==''?'<br><span class="rb-adm-muted">'.h($email).'</span>':'').'</span></div></td><td>'.h($role).'</td><td><span class="rb-adm-pill '.($ok?'rb-adm-pill-ok':'rb-adm-pill-wait').'">'.h($status).'</span></td><td><span class="rb-adm-pill '.($mfa?'rb-adm-pill-ok">Įjungta':'rb-adm-pill-wait">Dar neįjungta').'</span></td><td class="rb-adm-actions">'.$tools.'</td></tr>';
- $rows=$row('',$c['admin_email'],'Pagrindinis administratorius','Aktyvus',true,'',mfa($c['admin_email'])!==null);
- foreach(records('staff') as $s){$m=mfa($s['email'])!==null;$rows.=$row($s['name'],$s['email'],'Administratorius',$s['hash']?'Aktyvus':'Kvietimas išsiųstas',(bool)$s['hash'],$owner?$act('resend',$s['email'],$s['hash']?'Siųsti slaptažodžio nuorodą':'Siųsti kvietimą dar kartą','rb-btn-ghost').($m?$act('mfa-reset',$s['email'],'Atstatyti 2FA','rb-btn-ghost','Atstatyti '.$s['email'].' 2FA? Jis bus atjungtas ir prisijungdamas nuskenuos naują QR kodą.'):'').$act('remove',$s['email'],'Pašalinti','rb-btn-danger','Pašalinti '.$s['email'].'? Jis nebegalės prisijungti.'):'',$m);}
- admin_page('team','Komanda',admin_msg($error,$done)
- .($link?'<div class="rb-adm-msg rb-adm-msg-info"><p>Jei laiškas neateitų, nusiųskite šią nuorodą kolegai patys. Ji galioja '.STAFF_LINK_HOURS.' val. ir tinka vieną kartą.</p><input readonly value="'.h($link).'" onclick="this.select()"></div>':'')
- .'<section class="mj-card rb-adm-card"><div class="rb-adm-card-head"><h2>Komandos nariai</h2><p class="rb-adm-muted">Visi nariai mato visus užsakymus ir gali keisti nustatymus. Prisijungiant visiems privalomas 2FA.</p></div><div class="rb-adm-table-wrap"><table class="rb-adm-table rb-adm-team"><thead><tr><th>Narys</th><th>Rolė</th><th>Būsena</th><th>2FA</th><th></th></tr></thead><tbody>'.$rows.'</tbody></table></div></section>'
- .($owner?'<section class="mj-card rb-adm-card"><div class="rb-adm-card-head"><h2>Pakviesti kolegą</h2><p class="rb-adm-muted">Išsiųsime laišką su nuoroda. Kolega joje susikurs slaptažodį ir prisijungs savo el. paštu.</p></div><form method="post" class="rb-adm-inline">'.admin_csrf().'<input type="hidden" name="do" value="add"><label class="rb-adm-f">Vardas<input name="name" maxlength="60" autocomplete="off"></label><label class="rb-adm-f">El. paštas<input name="email" type="email" required autocomplete="off"></label><button class="rb-btn">Siųsti kvietimą</button></form></section>':'<p class="rb-adm-muted">Kolegas kviesti ir šalinti gali tik pagrindinis administratorius.</p>'));
+function admin_page(string $active, string $title, string $body): never
+{
+    header('Content-Type: text/html; charset=utf-8');
+    header('Cache-Control: private, no-store');
+    $css = json_decode(file_get_contents(dirname(private_root()).'/public_html/.vite/manifest.json'), true)['entry.tsx']['css'][0] ?? '';
+    $me = admin_email();
+    $tab = fn (string $id, string $label, string $href) => '<a class="rb-adm-tab'.($active === $id ? ' is-active" aria-current="page' : '').'" href="'.$href.'">'.$label.'</a>';
+    echo '<!doctype html><html lang="lt" class="rb-adm-page"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>'.h($title).' · Administravimas</title><link rel="stylesheet" href="/'.h($css).'"><link rel="icon" href="/favicon.svg"></head><body><main class="mj mj-staff rb-adm-server">'
+    .'<header class="rb-adm-top"><div class="rb-adm-top-in"><a class="rb-adm-logo" href="/admin"><span class="brand-logo" translate="no"><span class="antenna-mark" aria-hidden="true"><img src="/brand/antenna.svg" width="48" height="56" alt=""></span><span class="brand-wordmark"><span class="brand-name">Rundfunkbeitrag</span><span class="brand-support-line"><span class="brand-support">Support</span><span class="brand-colours" aria-hidden="true"><i></i><i></i><i></i></span></span></span></span></a>'
+    .'<nav class="rb-adm-tabs" aria-label="Administravimas">'.$tab('orders', 'Užsakymai', '/admin').$tab('settings', 'Nustatymai', '/admin#nustatymai').$tab('team', 'Komanda', '/admin/team').$tab('system', 'Sistema', '/admin/configuration').'</nav>'
+    .'<div class="rb-adm-user"><a class="rb-adm-me'.($active === 'account' ? ' is-active' : '').'" href="/admin/account" title="Mano paskyra"><span class="rb-adm-avatar" aria-hidden="true">'.h(mb_strtoupper(mb_substr($me, 0, 1))).'</span><span class="rb-adm-me-mail">'.h($me).'</span></a><a class="rb-adm-site" href="/" target="_blank" rel="noopener">Svetainė ↗</a><form method="post" action="/api/admin/logout"><input type="hidden" name="csrf" value="'.h($_SESSION['csrf']).'"><button type="submit" class="rb-adm-logout">Atsijungti</button></form></div></div></header>'
+    .'<div class="mj-staff-body rb-adm-body"><h1>'.h($title).'</h1>'.$body.'</div></main></body></html>';
+    exit;
+}
+
+function admin_msg(string $error, string $done): string
+{
+    return ($error ? '<p class="rb-adm-msg rb-adm-msg-err" role="alert">'.h($error).'</p>' : '').($done ? '<p class="rb-adm-msg rb-adm-msg-ok" role="status">'.h($done).'</p>' : '');
+}
+
+function admin_csrf(): string
+{
+    return '<input type="hidden" name="csrf" value="'.h($_SESSION['csrf']).'">';
+}
+
+function staff_link(string $email): string
+{
+    sql("DELETE FROM rb_records WHERE kind='token' AND parent_id=?", ['staff:'.$email]);
+    $raw = bin2hex(random_bytes(32));
+    $exp = time() + STAFF_LINK_HOURS * 3600;
+    put('token:'.secret_hash($raw), 'token', ['kind' => 'staff-password', 'email' => $email, 'expires' => $exp], 'staff:'.$email, '', $exp);
+    return config()['public_url'].'/admin/password?t='.$raw;
+}
+
+function staff_invite_mail(array $s, string $url, bool $reset): void
+{
+    $who = config()['admin_email'];
+    $text = "Sveiki".($s['name'] !== '' ? ', '.$s['name'] : '')."!\n\n".($reset ? "Gavote naują nuorodą slaptažodžiui nustatyti" : "{$who} pakvietė jus į Rundfunkbeitrag Support administravimą")." (".parse_url(config()['public_url'], PHP_URL_HOST).").\n\nAtidarykite nuorodą ir susikurkite slaptažodį:\n{$url}\n\nNuoroda galioja ".STAFF_LINK_HOURS." valandas ir tinka vieną kartą. Prisijungsite su šiuo el. pašto adresu: {$s['email']}\nJei šio laiško nelaukėte, tiesiog jį ištrinkite.";
+    queue_mail(uuid(), ['id' => 'staff'], 'staff-invite', $s['email'], ['subject' => $reset ? 'Naujas slaptažodis administravimui' : 'Kvietimas į administravimą', 'text' => $text]);
+}
+
+function staff_save_owner_hash(string $hash): void
+{
+    $c = config();
+    $c['admin_hash'] = $hash;
+    $tmp = tempnam(private_root(), '.config-');
+    chmod($tmp, 0600);
+    file_put_contents($tmp, "<?php\n// Private configuration. Never commit or expose this file.\nreturn ".var_export($c, true).";\n", LOCK_EX);
+    if (!rename($tmp, private_root().'/config.php')) {
+        fail('CONFIG_WRITE_FAILED', 503);
+    }
+    if (function_exists('opcache_invalidate')) {
+        opcache_invalidate(private_root().'/config.php', true);
+    }
+}
+
+function staff_new_password(): string
+{
+    $p = $_POST['password'] ?? null;
+    if (!is_string($p) || mb_strlen($p) < 14) {
+        fail('Slaptažodis turi būti bent 14 simbolių.');
+    }
+    if (strlen($p) > 72) {
+        fail('Slaptažodis per ilgas (daugiausia 72 baitai).');
+    }
+    if (!hash_equals($p, (string)($_POST['password2'] ?? ''))) {
+        fail('Slaptažodžiai nesutampa.');
+    }
+    return password_hash($p, PASSWORD_DEFAULT);
+}
+
+function staff_error(Throwable $e): string
+{
+    if (!$e instanceof AppError) {
+        return 'Nepavyko. Bandykite dar kartą.';
+    }
+    return ['INVALID_EMAIL' => 'Neteisingas el. pašto adresas.', 'INVALID_FIELD' => 'Patikrinkite laukelius.', 'RATE_LIMITED' => 'Per daug bandymų. Palaukite valandą.', 'CSRF_REQUIRED' => 'Puslapis paseno. Atnaujinkite jį ir bandykite dar kartą.', 'SAME_ORIGIN_REQUIRED' => 'Puslapis paseno. Atnaujinkite jį ir bandykite dar kartą.', 'CONFIG_WRITE_FAILED' => 'Nepavyko įrašyti nustatymų failo serveryje.'][$e->reason] ?? $e->reason;
+}
+
+function staff_route(string $path, string $method): bool
+{
+    if ($path === '/admin/password') {
+        // One-time link from the invitation email: the colleague chooses a password and is signed in.
+        $raw = is_string($_GET['t'] ?? null) && preg_match('/^[a-f0-9]{64}$/', $_GET['t']) ? $_GET['t'] : '';
+        $r = $raw ? record('token:'.secret_hash($raw)) : null;
+        $email = $r && ($r['value']['kind'] ?? '') === 'staff-password' && $r['expires_at'] > time() ? $r['value']['email'] : null;
+        $s = $email ? record('staff:'.$email)['value'] ?? null : null;
+        if (!$s) {
+            staff_page('Nuoroda nebegalioja', '<p>Ši nuoroda jau panaudota arba nebegalioja. Paprašykite administratoriaus atsiųsti naują.</p><p><a href="/admin/login">Prisijungti</a></p>');
+        }
+        $error = '';
+        if ($method === 'POST') {
+            try {
+                csrf();
+                db()->beginTransaction();
+                rate('staff-password:'.($_SERVER['REMOTE_ADDR'] ?? ''), 20, 3600);
+                $hash = staff_new_password();
+                $s['hash'] = $hash;
+                $s['passwordSetAt'] = now();
+                put('staff:'.$email, 'staff', $s);
+                sql('DELETE FROM rb_records WHERE id=?', ['token:'.secret_hash($raw)]);
+                db()->commit();
+                mfa_begin($email, $hash);
+            } catch (Throwable $e) {
+                if (db()->inTransaction()) {
+                    db()->rollBack();
+                }
+                $error = staff_error($e);
+            }
+        }
+        staff_page('Susikurkite slaptažodį', ($error ? '<p class="error" role="alert">'.h($error).'</p>' : '').'<p>Prisijungsite su el. paštu <strong>'.h($email).'</strong>.</p><form method="post"><input type="hidden" name="csrf" value="'.h($_SESSION['csrf']).'"><input type="email" name="email" value="'.h($email).'" autocomplete="username" hidden><label>Naujas slaptažodis (bent 14 simbolių)<input name="password" type="password" autocomplete="new-password" minlength="14" maxlength="72" required></label><label>Pakartokite slaptažodį<input name="password2" type="password" autocomplete="new-password" minlength="14" maxlength="72" required></label><button>Išsaugoti ir prisijungti</button></form>');
+    }
+    if ($path === '/admin/account') {
+        // Own account: who is signed in and their password.
+        if (!admin()) {
+            header('Location: /admin/login', true, 303);
+            exit;
+        }
+        $me = admin_email();
+        $c = config();
+        $error = '';
+        $done = '';
+        $s = $me === $c['admin_email'] ? null : (record('staff:'.$me)['value'] ?? null);
+        $codes = [];
+        if ($method === 'POST' && in_array($_POST['do'] ?? '', ['mfa-codes', 'mfa-move'], true)) {
+            try {
+                csrf();
+                db()->beginTransaction();
+                rate('admin-mfa:'.$me, 10, 900);
+                db()->commit();
+                db()->beginTransaction();
+                if (!mfa_check($me, is_string($_POST['code'] ?? null) ? substr($_POST['code'], 0, 40) : '')) {
+                    fail('Kodas neteisingas arba jau panaudotas.');
+                }
+                if ($_POST['do'] === 'mfa-codes') {
+                    $codes = mfa_renew_codes($me);
+                    db()->commit();
+                    $done = 'Sukurti nauji atsarginiai kodai. Senieji nebegalioja.';
+                } else {
+                    sql('DELETE FROM rb_records WHERE id=?', ['mfa:'.$me]);
+                    db()->commit();
+                    mfa_begin($me, staff_hash($me));
+                }
+            } catch (Throwable $e) {
+                if (db()->inTransaction()) {
+                    db()->rollBack();
+                }
+                $error = mfa_error($e);
+            }
+        } elseif ($method === 'POST') {
+            try {
+                csrf();
+                db()->beginTransaction();
+                $hash = staff_hash($me);
+                if (!is_string($_POST['current'] ?? null) || !$hash || !password_verify($_POST['current'], $hash)) {
+                    fail('Dabartinis slaptažodis neteisingas.');
+                }
+                $new = staff_new_password();
+                if ($s === null) {
+                    staff_save_owner_hash($new);
+                } else {
+                    $s['hash'] = $new;
+                    $s['passwordSetAt'] = now();
+                    put('staff:'.$me, 'staff', $s);
+                }
+                db()->commit();
+                $_SESSION['admin_fingerprint'] = secret_hash($new);
+                $done = 'Slaptažodis pakeistas.';
+            } catch (Throwable $e) {
+                if (db()->inTransaction()) {
+                    db()->rollBack();
+                }
+                $error = staff_error($e);
+            }
+        }
+        $since = $s && $s['passwordSetAt'] ? substr($s['passwordSetAt'], 0, 10) : '';
+        $m = mfa($me);
+        $left = count($m['recovery'] ?? []);
+        if (!empty($_SESSION['mfa_used_recovery'])) {
+            unset($_SESSION['mfa_used_recovery']);
+            if (!$done && !$error) {
+                $error = 'Prisijungėte su atsarginiu kodu. Liko kodų: '.$left.'. Jei pametėte telefoną, žemiau perkelkite 2FA į naują telefoną.';
+            }
+        }
+        $codeField = fn (string $label) => '<label class="rb-adm-f">'.$label.'<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="9" required></label>';
+        admin_page('account', 'Mano paskyra', admin_msg($error, $done)
+        .($codes ? '<section class="mj-card rb-adm-card rb-adm-mfa-new"><h2>Nauji atsarginiai kodai</h2><p class="rb-adm-muted">Išsisaugokite juos saugioje vietoje. Kiekvienas kodas tinka vieną kartą. Daugiau jų nerodysime.</p>'.mfa_codes_html($codes).'</section>' : '')
+        .'<section class="mj-card rb-adm-card"><h2>Prisijungimas</h2><dl class="rb-adm-dl"><div><dt>El. paštas</dt><dd>'.h($me).'</dd></div><div><dt>Vardas</dt><dd>'.h(($s['name'] ?? '') !== '' ? $s['name'] : '–').'</dd></div><div><dt>Rolė</dt><dd>'.($s === null ? 'Pagrindinis administratorius' : 'Administratorius').'</dd></div>'.($since ? '<div><dt>Slaptažodis nustatytas</dt><dd>'.h($since).'</dd></div>' : '').'</dl></section>'
+        .'<section class="mj-card rb-adm-card"><div class="rb-adm-card-head"><h2>Dviejų žingsnių prisijungimas (2FA)</h2><span class="rb-adm-pill rb-adm-pill-ok">Įjungta</span></div><dl class="rb-adm-dl"><div><dt>Įjungta</dt><dd>'.h(substr($m['enabledAt'] ?? '', 0, 10)).'</dd></div><div><dt>Atsarginių kodų liko</dt><dd>'.$left.' iš '.MFA_RECOVERY_CODES.'</dd></div></dl>'
+        .'<div class="rb-adm-grid2 rb-adm-mfa-forms"><form method="post" class="rb-adm-form">'.admin_csrf().'<input type="hidden" name="do" value="mfa-codes"><h3>Nauji atsarginiai kodai</h3><p class="rb-adm-muted">Senieji kodai nustos galioti.</p>'.$codeField('Kodas iš programėlės').'<div class="rb-adm-form-actions"><button class="rb-btn-ghost">Sukurti naujus kodus</button></div></form>'
+        .'<form method="post" class="rb-adm-form">'.admin_csrf().'<input type="hidden" name="do" value="mfa-move"><h3>Naujas telefonas</h3><p class="rb-adm-muted">Iškart nuskenuosite naują QR kodą. Tinka ir atsarginis kodas.</p>'.$codeField('Kodas iš programėlės arba atsarginis').'<div class="rb-adm-form-actions"><button class="rb-btn-ghost">Perkelti į naują telefoną</button></div></form></div>'
+        .'<p class="rb-adm-muted">'.($s === null ? 'Jei pamestumėte ir telefoną, ir atsarginius kodus, 2FA galės atstatyti tik techninis prižiūrėtojas duomenų bazėje.' : 'Jei pamestumėte ir telefoną, ir atsarginius kodus, pagrindinis administratorius gali atstatyti jūsų 2FA skiltyje „Komanda“.').'</p></section>'
+        .'<section class="mj-card rb-adm-card"><h2>Pakeisti slaptažodį</h2><form method="post" class="rb-adm-form">'.admin_csrf().'<input type="email" name="email" value="'.h($me).'" autocomplete="username" hidden><label class="rb-adm-f">Dabartinis slaptažodis<input name="current" type="password" autocomplete="current-password" required maxlength="72"></label><label class="rb-adm-f">Naujas slaptažodis<input name="password" type="password" autocomplete="new-password" minlength="14" maxlength="72" required><small>Bent 14 simbolių.</small></label><label class="rb-adm-f">Pakartokite naują slaptažodį<input name="password2" type="password" autocomplete="new-password" minlength="14" maxlength="72" required></label><div class="rb-adm-form-actions"><button class="rb-btn">Pakeisti slaptažodį</button></div></form></section>');
+    }
+    if ($path !== '/admin/team') {
+        return false;
+    }
+    if (!admin()) {
+        header('Location: /admin/login', true, 303);
+        exit;
+    }
+    $owner = is_owner();
+    $me = admin_email();
+    $c = config();
+    $error = '';
+    $done = '';
+    $link = '';
+    if ($method === 'POST') {
+        try {
+            csrf();
+            $do = $_POST['do'] ?? '';
+            db()->beginTransaction();
+            if (!$owner) {
+                fail('Kolegas pridėti ir šalinti gali tik pagrindinis administratorius.');
+            } elseif ($do === 'add') {
+                $email = email($_POST['email'] ?? null);
+                $name = text($_POST['name'] ?? '', 0, 60);
+                if ($email === $c['admin_email'] || record('staff:'.$email)) {
+                    fail('Toks naudotojas jau yra.');
+                }
+                $s = ['email' => $email, 'name' => $name, 'hash' => null, 'addedAt' => now(), 'addedBy' => $me, 'passwordSetAt' => null];
+                put('staff:'.$email, 'staff', $s);
+                $link = staff_link($email);
+                staff_invite_mail($s, $link, false);
+                $done = 'Pakviesta. Laiškas išsiųstas adresu '.$email.'.';
+            } elseif ($do === 'mfa-reset') {
+                $email = email($_POST['email'] ?? null);
+                if (!record('staff:'.$email)) {
+                    fail('Naudotojas nerastas.');
+                }
+                sql('DELETE FROM rb_records WHERE id=?', ['mfa:'.$email]);
+                $done = $email.' 2FA atstatytas. Kitą kartą prisijungęs jis nuskenuos naują QR kodą.';
+            } elseif ($do === 'resend' || $do === 'remove') {
+                $email = email($_POST['email'] ?? null);
+                $r = record('staff:'.$email, true);
+                if (!$r) {
+                    fail('Naudotojas nerastas.');
+                }
+                if ($do === 'remove') {
+                    if (($_POST['confirm'] ?? '') !== '1') {
+                        fail('Pašalinimas nepatvirtintas.');
+                    }
+                    sql("DELETE FROM rb_records WHERE id IN (?,?) OR (kind='token' AND parent_id=?)", ['staff:'.$email, 'mfa:'.$email, 'staff:'.$email]);
+                    $done = $email.' pašalintas. Jo prisijungimas nebegalioja.';
+                } else {
+                    $link = staff_link($email);
+                    staff_invite_mail($r['value'], $link, $r['value']['hash'] !== null);
+                    $done = 'Nauja nuoroda išsiųsta adresu '.$email.'.';
+                }
+            } else {
+                fail('INVALID_ACTION');
+            }
+            db()->commit();
+            if ($link) {
+                dispatch_mail(3);
+            }
+        } catch (Throwable $e) {
+            if (db()->inTransaction()) {
+                db()->rollBack();
+            }
+            $error = staff_error($e);
+            $link = '';
+            $done = '';
+        }
+    }
+    $act = fn (string $do, string $email, string $label, string $cls, string $confirm = '') => '<form method="post"'.($confirm ? ' onsubmit="return window.confirm(\''.h($confirm).'\')"' : '').'>'.admin_csrf().'<input type="hidden" name="do" value="'.$do.'"><input type="hidden" name="email" value="'.h($email).'">'.($do === 'remove' ? '<input type="hidden" name="confirm" value="1">' : '').'<button class="'.$cls.'">'.h($label).'</button></form>';
+    $row = fn (string $name, string $email, string $role, string $status, bool $ok, string $tools, bool $mfa) => '<tr><td><div class="rb-adm-person"><span class="rb-adm-avatar" aria-hidden="true">'.h(mb_strtoupper(mb_substr($name !== '' ? $name : $email, 0, 1))).'</span><span><strong>'.h($name !== '' ? $name : $email).'</strong>'.($email === $me ? ' <span class="rb-adm-you">jūs</span>' : '').($name !== '' ? '<br><span class="rb-adm-muted">'.h($email).'</span>' : '').'</span></div></td><td>'.h($role).'</td><td><span class="rb-adm-pill '.($ok ? 'rb-adm-pill-ok' : 'rb-adm-pill-wait').'">'.h($status).'</span></td><td><span class="rb-adm-pill '.($mfa ? 'rb-adm-pill-ok">Įjungta' : 'rb-adm-pill-wait">Dar neįjungta').'</span></td><td class="rb-adm-actions">'.$tools.'</td></tr>';
+    $rows = $row('', $c['admin_email'], 'Pagrindinis administratorius', 'Aktyvus', true, '', mfa($c['admin_email']) !== null);
+    foreach (records('staff') as $s) {
+        $m = mfa($s['email']) !== null;
+        $rows .= $row($s['name'], $s['email'], 'Administratorius', $s['hash'] ? 'Aktyvus' : 'Kvietimas išsiųstas', (bool)$s['hash'], $owner ? $act('resend', $s['email'], $s['hash'] ? 'Siųsti slaptažodžio nuorodą' : 'Siųsti kvietimą dar kartą', 'rb-btn-ghost').($m ? $act('mfa-reset', $s['email'], 'Atstatyti 2FA', 'rb-btn-ghost', 'Atstatyti '.$s['email'].' 2FA? Jis bus atjungtas ir prisijungdamas nuskenuos naują QR kodą.') : '').$act('remove', $s['email'], 'Pašalinti', 'rb-btn-danger', 'Pašalinti '.$s['email'].'? Jis nebegalės prisijungti.') : '', $m);
+    }
+    admin_page('team', 'Komanda', admin_msg($error, $done)
+    .($link ? '<div class="rb-adm-msg rb-adm-msg-info"><p>Jei laiškas neateitų, nusiųskite šią nuorodą kolegai patys. Ji galioja '.STAFF_LINK_HOURS.' val. ir tinka vieną kartą.</p><input readonly value="'.h($link).'" onclick="this.select()"></div>' : '')
+    .'<section class="mj-card rb-adm-card"><div class="rb-adm-card-head"><h2>Komandos nariai</h2><p class="rb-adm-muted">Visi nariai mato visus užsakymus ir gali keisti nustatymus. Prisijungiant visiems privalomas 2FA.</p></div><div class="rb-adm-table-wrap"><table class="rb-adm-table rb-adm-team"><thead><tr><th>Narys</th><th>Rolė</th><th>Būsena</th><th>2FA</th><th></th></tr></thead><tbody>'.$rows.'</tbody></table></div></section>'
+    .($owner ? '<section class="mj-card rb-adm-card"><div class="rb-adm-card-head"><h2>Pakviesti kolegą</h2><p class="rb-adm-muted">Išsiųsime laišką su nuoroda. Kolega joje susikurs slaptažodį ir prisijungs savo el. paštu.</p></div><form method="post" class="rb-adm-inline">'.admin_csrf().'<input type="hidden" name="do" value="add"><label class="rb-adm-f">Vardas<input name="name" maxlength="60" autocomplete="off"></label><label class="rb-adm-f">El. paštas<input name="email" type="email" required autocomplete="off"></label><button class="rb-btn">Siųsti kvietimą</button></form></section>' : '<p class="rb-adm-muted">Kolegas kviesti ir šalinti gali tik pagrindinis administratorius.</p>'));
 }

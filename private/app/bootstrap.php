@@ -1,58 +1,473 @@
 <?php
+
 declare(strict_types=1);
-final class AppError extends RuntimeException {public function __construct(public string $reason,public int $status=400,public mixed $details=null){parent::__construct($reason);}}
-function fail(string $code,int $status=400,mixed $details=null):never{throw new AppError($code,$status,$details);}
-function private_root():string{return dirname(__DIR__);}
-function config():array{static $c;if(!$c){$file=private_root().'/config.php';if(!is_file($file))fail('INSTALLATION_REQUIRED',503);$c=require $file;}return $c;}
-function now():string{return gmdate('Y-m-d\TH:i:s.000\Z');}
-function uuid():string{$b=random_bytes(16);$b[6]=chr((ord($b[6])&15)|64);$b[8]=chr((ord($b[8])&63)|128);$h=bin2hex($b);return substr($h,0,8).'-'.substr($h,8,4).'-'.substr($h,12,4).'-'.substr($h,16,4).'-'.substr($h,20);}
-function secret_hash(string $v):string{return hash_hmac('sha256',$v,config()['app_secret']);}
-function db():PDO{static $db;if(!$db){$c=config();$db=new PDO($c['db_dsn'],$c['db_user'],$c['db_password'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);}return $db;}
-function sql(string $q,array $args=[]):PDOStatement{$s=db()->prepare($q);$s->execute($args);return $s;}
-function record(string $id,bool $lock=false):?array{$r=sql('SELECT * FROM rb_records WHERE id=?'.($lock?' FOR UPDATE':''),[$id])->fetch();if(!$r)return null;$r['value']=json_decode($r['data_json'],true,512,JSON_THROW_ON_ERROR);return $r;}
-function put(string $id,string $kind,array $value,string $parent='',string $owner='',?int $expires=null):void{$t=time();sql('INSERT INTO rb_records(id,kind,parent_id,owner_hash,data_json,version,created_at,updated_at,expires_at) VALUES (?,?,?,?,?,1,?,?,?) ON DUPLICATE KEY UPDATE data_json=VALUES(data_json),version=version+1,owner_hash=VALUES(owner_hash),updated_at=VALUES(updated_at),expires_at=VALUES(expires_at)',[$id,$kind,$parent,$owner,json_encode($value,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),$t,$t,$expires]);}
-function records(string $kind,?string $parent=null,bool $newestFirst=false):array{$q='SELECT * FROM rb_records WHERE kind=?';$a=[$kind];if($parent!==null){$q.=' AND parent_id=?';$a[]=$parent;}$q.=$newestFirst?' ORDER BY created_at DESC,id DESC LIMIT 200':' ORDER BY created_at,id LIMIT 200';return array_map(fn($r)=>json_decode($r['data_json'],true,512,JSON_THROW_ON_ERROR),sql($q,$a)->fetchAll());}
-function rules():array{static $r;return $r??=json_decode(file_get_contents(__DIR__.'/rules.json'),true,512,JSON_THROW_ON_ERROR);}
+final class AppError extends RuntimeException
+{
+    public function __construct(public string $reason, public int $status = 400, public mixed $details = null)
+    {
+        parent::__construct($reason);
+    }
+}
+
+function fail(string $code, int $status = 400, mixed $details = null): never
+{
+    throw new AppError($code, $status, $details);
+}
+
+function private_root(): string
+{
+    return dirname(__DIR__);
+}
+
+function config(): array
+{
+    static $c;
+    if (!$c) {
+        $file = private_root().'/config.php';
+        if (!is_file($file)) {
+            fail('INSTALLATION_REQUIRED', 503);
+        }
+        $c = require $file;
+    }
+    return $c;
+}
+
+function now(): string
+{
+    return gmdate('Y-m-d\TH:i:s.000\Z');
+}
+
+function uuid(): string
+{
+    $b = random_bytes(16);
+    $b[6] = chr((ord($b[6]) & 15) | 64);
+    $b[8] = chr((ord($b[8]) & 63) | 128);
+    $h = bin2hex($b);
+    return substr($h, 0, 8).'-'.substr($h, 8, 4).'-'.substr($h, 12, 4).'-'.substr($h, 16, 4).'-'.substr($h, 20);
+}
+
+function secret_hash(string $v): string
+{
+    return hash_hmac('sha256', $v, config()['app_secret']);
+}
+
+function db(): PDO
+{
+    static $db;
+    if (!$db) {
+        $c = config();
+        $db = new PDO($c['db_dsn'], $c['db_user'], $c['db_password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+    }
+    return $db;
+}
+
+function sql(string $q, array $args = []): PDOStatement
+{
+    $s = db()->prepare($q);
+    $s->execute($args);
+    return $s;
+}
+
+function record(string $id, bool $lock = false): ?array
+{
+    $r = sql('SELECT * FROM rb_records WHERE id=?'.($lock ? ' FOR UPDATE' : ''), [$id])->fetch();
+    if (!$r) {
+        return null;
+    }
+    $r['value'] = json_decode($r['data_json'], true, 512, JSON_THROW_ON_ERROR);
+    return $r;
+}
+
+function put(string $id, string $kind, array $value, string $parent = '', string $owner = '', ?int $expires = null): void
+{
+    $t = time();
+    sql('INSERT INTO rb_records(id,kind,parent_id,owner_hash,data_json,version,created_at,updated_at,expires_at) VALUES (?,?,?,?,?,1,?,?,?) ON DUPLICATE KEY UPDATE data_json=VALUES(data_json),version=version+1,owner_hash=VALUES(owner_hash),updated_at=VALUES(updated_at),expires_at=VALUES(expires_at)', [$id, $kind, $parent, $owner, json_encode($value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $t, $t, $expires]);
+}
+
+function records(string $kind, ?string $parent = null, bool $newestFirst = false): array
+{
+    $q = 'SELECT * FROM rb_records WHERE kind=?';
+    $a = [$kind];
+    if ($parent !== null) {
+        $q .= ' AND parent_id=?';
+        $a[] = $parent;
+    }
+    $q .= $newestFirst ? ' ORDER BY created_at DESC,id DESC LIMIT 200' : ' ORDER BY created_at,id LIMIT 200';
+    return array_map(fn ($r) => json_decode($r['data_json'], true, 512, JSON_THROW_ON_ERROR), sql($q, $a)->fetchAll());
+}
+
+function rules(): array
+{
+    static $r;
+    return $r ??= json_decode(file_get_contents(__DIR__.'/rules.json'), true, 512, JSON_THROW_ON_ERROR);
+}
 // AGB and Datenschutz (DE + EN in one field) run past 30 000 characters, so the three legal texts get a higher limit.
-function settings_max(string $key):int{return in_array($key,['termsText','withdrawalText','privacyText'],true)?100000:30000;}
-function settings():array{return record('settings:service')['value']??rules()['emptySettings'];}
-function support_email():string{try{$e=trim((string)(settings()['supportEmail']??''));}catch(Throwable){$e='';}return filter_var($e,FILTER_VALIDATE_EMAIL)?$e:'info@rundfunkbeitragsupport.de';}
-function text(mixed $v,int $min=1,int $max=4000):string{if(!is_string($v)||mb_strlen(trim($v))<$min||mb_strlen($v)>$max)fail('INVALID_FIELD');return trim($v);}
-function email(mixed $v):string{$v=strtolower(text($v,3,254));if(!filter_var($v,FILTER_VALIDATE_EMAIL))fail('INVALID_EMAIL');return $v;}
-function operation(array $b):string{$v=$b['operationId']??'';if(!is_string($v)||!preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i',$v))fail('INVALID_OPERATION');return $v;}
-function body():array{$raw=file_get_contents('php://input',false,null,0,600001);if(strlen($raw)>600000)fail('BODY_TOO_LARGE',413);if(strtolower(explode(';',$_SERVER['CONTENT_TYPE']??'')[0])!=='application/json')fail('JSON_REQUIRED',415);try{$b=json_decode($raw,true,512,JSON_THROW_ON_ERROR);}catch(Throwable){fail('INVALID_JSON');}if(!is_array($b)||!str_starts_with(ltrim($raw),'{'))fail('INVALID_JSON');return $b;}
-function safe_session():void{if(session_status()===PHP_SESSION_ACTIVE)return;$dir=private_root().'/data/sessions';if(!is_dir($dir))mkdir($dir,0700,true);session_save_path($dir);ini_set('session.use_strict_mode','1');ini_set('session.use_only_cookies','1');$life=1209600;ini_set('session.gc_maxlifetime',(string)$life);$secure=str_starts_with(config()['public_url'],'https://');session_name($secure?'__Host-rb-session':'rb-session-local');$cookie=['path'=>'/','secure'=>$secure,'httponly'=>true,'samesite'=>'Lax'];session_set_cookie_params(['lifetime'=>$life]+$cookie);$returning=isset($_COOKIE[session_name()]);session_start();if($returning)setcookie(session_name(),session_id(),['expires'=>time()+$life]+$cookie);$_SESSION['csrf']??=bin2hex(random_bytes(32));$_SESSION['owner']??=bin2hex(random_bytes(32));}
-function owner():string{return secret_hash('customer:'.$_SESSION['owner']);}
+function settings_max(string $key): int
+{
+    return in_array($key, ['termsText', 'withdrawalText', 'privacyText'], true) ? 100000 : 30000;
+}
+
+function settings(): array
+{
+    return record('settings:service')['value'] ?? rules()['emptySettings'];
+}
+
+function support_email(): string
+{
+    try {
+        $e = trim((string)(settings()['supportEmail'] ?? ''));
+    } catch (Throwable) {
+        $e = '';
+    }
+    return filter_var($e, FILTER_VALIDATE_EMAIL) ? $e : 'info@rundfunkbeitragsupport.de';
+}
+
+function text(mixed $v, int $min = 1, int $max = 4000): string
+{
+    if (!is_string($v) || mb_strlen(trim($v)) < $min || mb_strlen($v) > $max) {
+        fail('INVALID_FIELD');
+    }
+    return trim($v);
+}
+
+function email(mixed $v): string
+{
+    $v = strtolower(text($v, 3, 254));
+    if (!filter_var($v, FILTER_VALIDATE_EMAIL)) {
+        fail('INVALID_EMAIL');
+    }
+    return $v;
+}
+
+function operation(array $b): string
+{
+    $v = $b['operationId'] ?? '';
+    if (!is_string($v) || !preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i', $v)) {
+        fail('INVALID_OPERATION');
+    }
+    return $v;
+}
+
+function body(): array
+{
+    $raw = file_get_contents('php://input', false, null, 0, 600001);
+    if (strlen($raw) > 600000) {
+        fail('BODY_TOO_LARGE', 413);
+    }
+    if (strtolower(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]) !== 'application/json') {
+        fail('JSON_REQUIRED', 415);
+    }
+    try {
+        $b = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+    } catch (Throwable) {
+        fail('INVALID_JSON');
+    }
+    if (!is_array($b) || !str_starts_with(ltrim($raw), '{')) {
+        fail('INVALID_JSON');
+    }
+    return $b;
+}
+
+function safe_session(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return;
+    }
+    $dir = private_root().'/data/sessions';
+    if (!is_dir($dir)) {
+        mkdir($dir, 0700, true);
+    }
+    session_save_path($dir);
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    $life = 1209600;
+    ini_set('session.gc_maxlifetime', (string)$life);
+    $secure = str_starts_with(config()['public_url'], 'https://');
+    session_name($secure ? '__Host-rb-session' : 'rb-session-local');
+    $cookie = ['path' => '/', 'secure' => $secure, 'httponly' => true, 'samesite' => 'Lax'];
+    session_set_cookie_params(['lifetime' => $life] + $cookie);
+    $returning = isset($_COOKIE[session_name()]);
+    session_start();
+    if ($returning) {
+        setcookie(session_name(), session_id(), ['expires' => time() + $life] + $cookie);
+    }
+    $_SESSION['csrf'] ??= bin2hex(random_bytes(32));
+    $_SESSION['owner'] ??= bin2hex(random_bytes(32));
+}
+
+function owner(): string
+{
+    return secret_hash('customer:'.$_SESSION['owner']);
+}
 // Staff accounts: the owner from config.php plus colleagues stored as 'staff:<email>' records (added on /admin/team).
-function staff_hash(string $email):?string{$c=config();if($email===$c['admin_email'])return $c['admin_hash'];$h=record('staff:'.$email)['value']['hash']??null;return is_string($h)&&$h!==''?$h:null;}
-function admin_email():string{return $_SESSION['admin_email']??config()['admin_email'];}
-function admin():bool{static $ok=[];if(($_SESSION['admin_until']??0)<=time())return false;$e=admin_email();if(!isset($ok[$e])){$h=staff_hash($e);$ok[$e]=$h!==null&&hash_equals(secret_hash($h),$_SESSION['admin_fingerprint']??'')&&!empty($_SESSION['admin_mfa'])&&record('mfa:'.$e)!==null;}return $ok[$e];}
-function is_owner():bool{return admin()&&admin_email()===config()['admin_email'];}
-function actor_id(string $email):string{return 'admin:'.substr(hash('sha256',$email),0,24);}
-function actor():string{return actor_id(admin_email());}
-function staff_names():array{$c=config();$out=[actor_id($c['admin_email'])=>$c['admin_email']];foreach(records('staff') as $s)$out[actor_id($s['email'])]=$s['name']!==''?$s['name'].' ('.$s['email'].')':$s['email'];return $out;}
-function require_admin():void{if(!admin())fail('STAFF_ACCESS_REQUIRED',401);}
-function csrf():void{if(($_SERVER['HTTP_ORIGIN']??'')!==config()['public_url'])fail('SAME_ORIGIN_REQUIRED',403);$supplied=$_SERVER['HTTP_X_CSRF_TOKEN']??$_POST['csrf']??'';if(!is_string($supplied)||!hash_equals($_SESSION['csrf'],$supplied))fail('CSRF_REQUIRED',403);}
-function rate(string $key,int $limit,int $seconds):void{$id='rate:'.secret_hash($key);$r=record($id,true);$v=$r['value']??['count'=>0,'end'=>0];if($v['end']<time())$v=['count'=>0,'end'=>time()+$seconds];if(++$v['count']>$limit)fail('RATE_LIMITED',429);put($id,'rate',$v,'','',$v['end']);}
-function current_case(string $id,bool $staff=false):array{$r=record('case:'.$id,true);if(!$r||$r['owner_hash']==='erasing'||(!$staff&&!hash_equals($r['owner_hash'],owner())))fail('CASE_NOT_FOUND',404);return $r['value'];}
-function expected(array $b,array $c):void{if(($b['expectedVersion']??null)!==$c['version'])fail('VERSION_CONFLICT',409);}
-function canonical(mixed $v):mixed{if(is_array($v)){if(!array_is_list($v))ksort($v);foreach($v as &$i)$i=canonical($i);}return $v;}
-function request_hash(string $id,string $actor,string $action,array $b):string{return hash('sha256',json_encode(canonical([$id,$actor,$action,$b]),JSON_UNESCAPED_UNICODE));}
-function replay(string $id,string $op,string $by,string $action,array $b):?array{$event=record('event:'.$op);if(!$event)return null;$v=$event['value'];if($v['caseId']!==$id||$v['requestHash']!==request_hash($id,$by,$action,$b))fail('OPERATION_CONFLICT',409);return current_case($id,$by!=='customer');}
-function save_case(array $before,array $next,string $op,string $by,string $action,array $body):array{$r=record('case:'.$before['id'],true);if(!$r||$r['value']['version']!==$before['version'])fail('VERSION_CONFLICT',409);$next['version']=$before['version']+1;$next['updatedAt']=now();put('case:'.$before['id'],'case',$next,'',$r['owner_hash']);put('event:'.$op,'event',['id'=>$op,'caseId'=>$before['id'],'action'=>$action,'actor'=>$by,'at'=>now(),'created_at'=>now(),'detail_json'=>json_encode(['action'=>$action,'state'=>$next['state']]),'detail'=>['action'=>$action,'state'=>$next['state']],'requestHash'=>request_hash($before['id'],$by,$action,$body)],$before['id']);if($action==='order'){put('package:'.$op,'package',['id'=>$op,'sequence'=>count(records('package',$before['id']))+1,'created_at'=>now(),'snapshot'=>$next],$before['id']);queue_notice($next,$action,$op);}elseif($action==='payment'&&empty($before['checks']['paid'])&&!empty($next['checks']['paid']))queue_notice($next,'payment-received',$op);elseif(in_array($action,['request-information','record-submission','record-response','withdraw','review-withdrawal','plan-refund','record-refund','official-follow-up','complaint','privacy-request','resolve-privacy'],true))queue_notice($next,$action,$op);if($action==='complaint'&&$by==='customer')staff_message_notice($next,$op);if($action==='review'&&$by==='customer')staff_review_notice($next,$op);return $next;}
-function public_case(array $c):array{foreach($c['documents'] as &$d)unset($d['objectKey']);unset($d);if(empty($GLOBALS['rb_staff_view'])){foreach(['paymentReference','authorityReference','roleReference','deliveryReference','withdrawalPeriodReference','dateReason'] as $k)if(!empty($c['checks'][$k]))$c['checks'][$k]='recorded';if(!empty($c['assignedTo']))$c['assignedTo']='staff';}if(!empty($c['order'])&&empty($c['checks']['paid']))$c['order']['girocode']=girocode_data_uri($c['order']);foreach(['data','answers','checks'] as $k)if(empty($c[$k]))$c[$k]=(object)[];return $c;}
-function public_settings():array{$s=settings();unset($s['authorityAcceptanceReference'],$s['retentionPolicyReference'],$s['launchApprovalReference']);$s['launchReady']=$s['liveEnabled']&&!settings_missing(settings())&&mail_ready();$s['liveEnabled']=$s['launchReady'];return $s;}
-function h(string $v):string{return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
-function response_json(array $value,int $status=200):never{http_response_code($status);header('Content-Type: application/json; charset=utf-8');header('Cache-Control: private, no-store');header('Vary: Cookie');echo json_encode($value,JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_THROW_ON_ERROR);exit;}
+function staff_hash(string $email): ?string
+{
+    $c = config();
+    if ($email === $c['admin_email']) {
+        return $c['admin_hash'];
+    }
+    $h = record('staff:'.$email)['value']['hash'] ?? null;
+    return is_string($h) && $h !== '' ? $h : null;
+}
+
+function admin_email(): string
+{
+    return $_SESSION['admin_email'] ?? config()['admin_email'];
+}
+
+function admin(): bool
+{
+    static $ok = [];
+    if (($_SESSION['admin_until'] ?? 0) <= time()) {
+        return false;
+    }
+    $e = admin_email();
+    if (!isset($ok[$e])) {
+        $h = staff_hash($e);
+        $ok[$e] = $h !== null && hash_equals(secret_hash($h), $_SESSION['admin_fingerprint'] ?? '') && !empty($_SESSION['admin_mfa']) && record('mfa:'.$e) !== null;
+    }
+    return $ok[$e];
+}
+
+function is_owner(): bool
+{
+    return admin() && admin_email() === config()['admin_email'];
+}
+
+function actor_id(string $email): string
+{
+    return 'admin:'.substr(hash('sha256', $email), 0, 24);
+}
+
+function actor(): string
+{
+    return actor_id(admin_email());
+}
+
+function staff_names(): array
+{
+    $c = config();
+    $out = [actor_id($c['admin_email']) => $c['admin_email']];
+    foreach (records('staff') as $s) {
+        $out[actor_id($s['email'])] = $s['name'] !== '' ? $s['name'].' ('.$s['email'].')' : $s['email'];
+    }
+    return $out;
+}
+
+function require_admin(): void
+{
+    if (!admin()) {
+        fail('STAFF_ACCESS_REQUIRED', 401);
+    }
+}
+
+function csrf(): void
+{
+    if (($_SERVER['HTTP_ORIGIN'] ?? '') !== config()['public_url']) {
+        fail('SAME_ORIGIN_REQUIRED', 403);
+    }
+    $supplied = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf'] ?? '';
+    if (!is_string($supplied) || !hash_equals($_SESSION['csrf'], $supplied)) {
+        fail('CSRF_REQUIRED', 403);
+    }
+}
+
+function rate(string $key, int $limit, int $seconds): void
+{
+    $id = 'rate:'.secret_hash($key);
+    $r = record($id, true);
+    $v = $r['value'] ?? ['count' => 0, 'end' => 0];
+    if ($v['end'] < time()) {
+        $v = ['count' => 0, 'end' => time() + $seconds];
+    }
+    if (++$v['count'] > $limit) {
+        fail('RATE_LIMITED', 429);
+    }
+    put($id, 'rate', $v, '', '', $v['end']);
+}
+
+function current_case(string $id, bool $staff = false): array
+{
+    $r = record('case:'.$id, true);
+    if (!$r || $r['owner_hash'] === 'erasing' || (!$staff && !hash_equals($r['owner_hash'], owner()))) {
+        fail('CASE_NOT_FOUND', 404);
+    }
+    return $r['value'];
+}
+
+function expected(array $b, array $c): void
+{
+    if (($b['expectedVersion'] ?? null) !== $c['version']) {
+        fail('VERSION_CONFLICT', 409);
+    }
+}
+
+function canonical(mixed $v): mixed
+{
+    if (is_array($v)) {
+        if (!array_is_list($v)) {
+            ksort($v);
+        }
+        foreach ($v as &$i) {
+            $i = canonical($i);
+        }
+    }
+    return $v;
+}
+
+function request_hash(string $id, string $actor, string $action, array $b): string
+{
+    return hash('sha256', json_encode(canonical([$id, $actor, $action, $b]), JSON_UNESCAPED_UNICODE));
+}
+
+function replay(string $id, string $op, string $by, string $action, array $b): ?array
+{
+    $event = record('event:'.$op);
+    if (!$event) {
+        return null;
+    }
+    $v = $event['value'];
+    if ($v['caseId'] !== $id || $v['requestHash'] !== request_hash($id, $by, $action, $b)) {
+        fail('OPERATION_CONFLICT', 409);
+    }
+    return current_case($id, $by !== 'customer');
+}
+
+function save_case(array $before, array $next, string $op, string $by, string $action, array $body): array
+{
+    $r = record('case:'.$before['id'], true);
+    if (!$r || $r['value']['version'] !== $before['version']) {
+        fail('VERSION_CONFLICT', 409);
+    }
+    $next['version'] = $before['version'] + 1;
+    $next['updatedAt'] = now();
+    put('case:'.$before['id'], 'case', $next, '', $r['owner_hash']);
+    put('event:'.$op, 'event', ['id' => $op, 'caseId' => $before['id'], 'action' => $action, 'actor' => $by, 'at' => now(), 'created_at' => now(), 'detail_json' => json_encode(['action' => $action, 'state' => $next['state']]), 'detail' => ['action' => $action, 'state' => $next['state']], 'requestHash' => request_hash($before['id'], $by, $action, $body)], $before['id']);
+    if ($action === 'order') {
+        put('package:'.$op, 'package', ['id' => $op, 'sequence' => count(records('package', $before['id'])) + 1, 'created_at' => now(), 'snapshot' => $next], $before['id']);
+        queue_notice($next, $action, $op);
+    } elseif ($action === 'payment' && empty($before['checks']['paid']) && !empty($next['checks']['paid'])) {
+        queue_notice($next, 'payment-received', $op);
+    } elseif (in_array($action, ['request-information', 'record-submission', 'record-response', 'withdraw', 'review-withdrawal', 'plan-refund', 'record-refund', 'official-follow-up', 'complaint', 'privacy-request', 'resolve-privacy'], true)) {
+        queue_notice($next, $action, $op);
+    }
+    if ($action === 'complaint' && $by === 'customer') {
+        staff_message_notice($next, $op);
+    }
+    if ($action === 'review' && $by === 'customer') {
+        staff_review_notice($next, $op);
+    }
+    return $next;
+}
+
+function public_case(array $c): array
+{
+    foreach ($c['documents'] as &$d) {
+        unset($d['objectKey']);
+    }
+    unset($d);
+    if (empty($GLOBALS['rb_staff_view'])) {
+        foreach (['paymentReference', 'authorityReference', 'roleReference', 'deliveryReference', 'withdrawalPeriodReference', 'dateReason'] as $k) {
+            if (!empty($c['checks'][$k])) {
+                $c['checks'][$k] = 'recorded';
+            }
+        }
+        if (!empty($c['assignedTo'])) {
+            $c['assignedTo'] = 'staff';
+        }
+    }
+    if (!empty($c['order']) && empty($c['checks']['paid'])) {
+        $c['order']['girocode'] = girocode_data_uri($c['order']);
+    }
+    foreach (['data', 'answers', 'checks'] as $k) {
+        if (empty($c[$k])) {
+            $c[$k] = (object)[];
+        }
+    }
+    return $c;
+}
+
+function public_settings(): array
+{
+    $s = settings();
+    unset($s['authorityAcceptanceReference'],$s['retentionPolicyReference'],$s['launchApprovalReference']);
+    $s['launchReady'] = $s['liveEnabled'] && !settings_missing(settings()) && mail_ready();
+    $s['liveEnabled'] = $s['launchReady'];
+    return $s;
+}
+
+function h(string $v): string
+{
+    return htmlspecialchars($v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function response_json(array $value, int $status = 200): never
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: private, no-store');
+    header('Vary: Cookie');
+    echo json_encode($value, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_THROW_ON_ERROR);
+    exit;
+}
 require __DIR__.'/validation.php';
 require __DIR__.'/girocode.php';
 require __DIR__.'/documents.php';
-require __DIR__.'/mailtext.php';require __DIR__.'/mail.php';
+require __DIR__.'/mailtext.php';
+require __DIR__.'/mail.php';
 require __DIR__.'/mailhtml.php';
 require __DIR__.'/operations.php';
 require __DIR__.'/api.php';
 
 // Customer reviews: one per case, only after we submitted it; published only after staff approval.
-function review_input(array $c,array $b):array{if(!in_array($c['state'],['submitted','closed'],true)||empty($c['submission']))fail('INVALID_STATE',409);if(isset($c['operations']['review']))fail('REVIEW_EXISTS',409);$rating=$b['rating']??null;if(!is_int($rating)||$rating<1||$rating>5)fail('INVALID_FIELD');if(($b['consent']??false)!==true)fail('CONSENT_REQUIRED');return ['rating'=>$rating,'text'=>text($b['text']??null,10,1200),'name'=>text($b['name']??null,2,40),'place'=>text($b['place']??'',0,40),'consent'=>true,'status'=>'pending','at'=>now()];}
-function public_reviews():array{$out=[];$f=private_root().'/app/reviews.json';$list=is_file($f)?json_decode((string)file_get_contents($f),true):[];foreach(is_array($list)?$list:[] as $r){if(!is_array($r)||!is_string($r['text']??null)||trim($r['text'])===''||!is_string($r['name']??null))continue;$x=['text'=>mb_substr(trim($r['text']),0,1200),'name'=>mb_substr(trim($r['name']),0,80)];foreach(['place','date'] as $k)if(is_string($r[$k]??null)&&trim($r[$k])!=='')$x[$k]=mb_substr(trim($r[$k]),0,40);if(is_int($r['rating']??null)&&$r['rating']>=1&&$r['rating']<=5)$x['rating']=$r['rating'];$out[]=$x;}
- foreach(sql("SELECT data_json FROM rb_records WHERE kind='case' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.operations.review.status'))='approved' ORDER BY updated_at DESC LIMIT 30")->fetchAll() as $row){$r=json_decode($row['data_json'],true)['operations']['review']??null;if(!$r)continue;$x=['text'=>$r['text'],'name'=>$r['name'],'rating'=>$r['rating'],'verified'=>true,'date'=>gmdate('m/Y',strtotime($r['decidedAt']??$r['at']))];if(($r['place']??'')!=='')$x['place']=$r['place'];$out[]=$x;}return $out;}
+function review_input(array $c, array $b): array
+{
+    if (!in_array($c['state'], ['submitted', 'closed'], true) || empty($c['submission'])) {
+        fail('INVALID_STATE', 409);
+    }
+    if (isset($c['operations']['review'])) {
+        fail('REVIEW_EXISTS', 409);
+    }
+    $rating = $b['rating'] ?? null;
+    if (!is_int($rating) || $rating < 1 || $rating > 5) {
+        fail('INVALID_FIELD');
+    }
+    if (($b['consent'] ?? false) !== true) {
+        fail('CONSENT_REQUIRED');
+    }
+    return ['rating' => $rating, 'text' => text($b['text'] ?? null, 10, 1200), 'name' => text($b['name'] ?? null, 2, 40), 'place' => text($b['place'] ?? '', 0, 40), 'consent' => true, 'status' => 'pending', 'at' => now()];
+}
+
+function public_reviews(): array
+{
+    $out = [];
+    $f = private_root().'/app/reviews.json';
+    $list = is_file($f) ? json_decode((string)file_get_contents($f), true) : [];
+    foreach (is_array($list) ? $list : [] as $r) {
+        if (!is_array($r) || !is_string($r['text'] ?? null) || trim($r['text']) === '' || !is_string($r['name'] ?? null)) {
+            continue;
+        }
+        $x = ['text' => mb_substr(trim($r['text']), 0, 1200), 'name' => mb_substr(trim($r['name']), 0, 80)];
+        foreach (['place', 'date'] as $k) {
+            if (is_string($r[$k] ?? null) && trim($r[$k]) !== '') {
+                $x[$k] = mb_substr(trim($r[$k]), 0, 40);
+            }
+        }
+        if (is_int($r['rating'] ?? null) && $r['rating'] >= 1 && $r['rating'] <= 5) {
+            $x['rating'] = $r['rating'];
+        }
+        $out[] = $x;
+    }
+    foreach (sql("SELECT data_json FROM rb_records WHERE kind='case' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.operations.review.status'))='approved' ORDER BY updated_at DESC LIMIT 30")->fetchAll() as $row) {
+        $r = json_decode($row['data_json'], true)['operations']['review'] ?? null;
+        if (!$r) {
+            continue;
+        }
+        $x = ['text' => $r['text'], 'name' => $r['name'], 'rating' => $r['rating'], 'verified' => true, 'date' => gmdate('m/Y', strtotime($r['decidedAt'] ?? $r['at']))];
+        if (($r['place'] ?? '') !== '') {
+            $x['place'] = $r['place'];
+        }
+        $out[] = $x;
+    }
+    return $out;
+}

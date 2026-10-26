@@ -1,30 +1,286 @@
 <?php
-function withdraw_case(array $c,array $b):array{if(!$c['order']||($b['confirm']??false)!==true)fail('WITHDRAWAL_CONFIRMATION_REQUIRED');if(isset($c['operations']['withdrawal']))return $c;$e=email($b['email']??null);if($e!==strtolower(trim($c['data']['email'])))fail('USE_CASE_EMAIL');$c['operations']['hold']=['reason'=>'Customer requested withdrawal','at'=>now(),'by'=>'customer'];$c['operations']['withdrawal']=['at'=>now(),'name'=>text($b['name']??null,3,200),'email'=>$e,'reference'=>$c['order']['reference'],'declaration'=>$c['order']['language']==='en'?'I withdraw from the paid assistance service contract identified above.':'Hiermit widerrufe ich den oben bezeichneten Vertrag über den kostenpflichtigen Assistenzservice.'];return $c;}
-function staff_action(array $c,array $b):array{$action=$b['action']??'';$n=$c;$a=actor();$n['operations']??=[];$o=&$n['operations'];if($action==='claim'){if($c['state']==='draft'||$c['state']==='submitting'||($c['assignedTo']&&$c['assignedTo']!==$a))fail('CASE_ALREADY_CLAIMED',409);$n['assignedTo']=$a;if($c['state']==='ordered')$n['state']='in_review';if(empty($n['reviewStartedAt']))$n['reviewStartedAt']=now();return $n;}if($action==='reassign'){if($c['state']==='submitting'||($o['transmission']['status']??'')==='uncertain')fail('RESOLVE_TRANSMISSION_FIRST',409);text($b['reason']??null,3);$n['assignedTo']=null;return $n;}if($action==='issue-invoice'){if(empty($c['checks']['paid']))fail('PAYMENT_REQUIRED');if(!$c['order']||!valid_date($b['serviceDate']??null)||$b['serviceDate']>gmdate('Y-m-d'))fail('INVALID_DATE');issue_invoice($c,$b['serviceDate'],text($b['billingAddress']??null,5,600));return $n;}if($action==='payment'){if(!$c['order']||$c['state']==='draft')fail('INVALID_STATE',409);if(($b['paid']??null)===true){$n['checks']['paid']=true;$n['checks']['paymentReference']=text($b['reference']??null,3,200);$n['checks']['paidAt']=$c['checks']['paidAt']??now();if(empty($c['checks']['paid']))issue_invoice($n,invoice_service_date($n),billing_address($n));}elseif(($b['paid']??null)===false)unset($n['checks']['paid'],$n['checks']['paymentReference'],$n['checks']['paidAt']);else fail('INVALID_FIELD');return $n;}if($action==='review-decision'){if(!isset($o['review'])||!in_array($b['decision']??'',['approved','hidden'],true))fail('INVALID_STATE',409);$o['review']['status']=$b['decision'];$o['review']['decidedAt']=now();return $n;}if($c['assignedTo']!==$a)fail('CLAIM_CASE_FIRST',409);
- if($action==='checks'){if(!in_array($c['state'],['in_review','needs_information'],true)||!is_array($b['checks']??null))fail('INVALID_STATE',409);$v=$b['checks'];$checks=array_intersect_key($c['checks'],array_flip(['paid','paymentReference','paidAt']));foreach(['authorityVerified','roleVerified','circumstancesVerified'] as $k)$checks[$k]=($v[$k]??false)===true;foreach(['authorityVerified'=>'authorityReference','roleVerified'=>'roleReference'] as $flag=>$key)if($checks[$flag])$checks[$key]=text($v[$key]??null,3,500);if(!empty($v['officialDate'])){if(!valid_date($v['officialDate']))fail('INVALID_DATE');$checks['officialDate']=$v['officialDate'];}if(!empty($v['dateReason']))$checks['dateReason']=text($v['dateReason'],3,500);foreach(['contractDeliveredAt','withdrawalEndsAt'] as $key)if(!empty($v[$key]))$checks[$key]=instant($v[$key]);foreach(['deliveryReference','withdrawalPeriodReference'] as $key)if(!empty($v[$key]))$checks[$key]=text($v[$key],3,500);if(!empty($checks['contractDeliveredAt'])&&strtotime($checks['contractDeliveredAt'])>time())fail('INVALID_DATE');if(!empty($checks['withdrawalEndsAt'])&&(!isset($checks['contractDeliveredAt'])||strtotime($checks['withdrawalEndsAt'])<=strtotime($checks['contractDeliveredAt'])))fail('INVALID_DATE');$n['checks']=$checks;
- }elseif($action==='verify-document'){if(!in_array($c['state'],['in_review','needs_information'],true))fail('INVALID_STATE',409);$found=false;foreach($n['documents'] as &$doc)if($doc['id']===($b['documentId']??'')){$doc['status']='verified';$doc['verifiedAt']=now();$doc['verifiedBy']=$a;$found=true;}if(!$found)fail('DOCUMENT_MISSING');
- }elseif($action==='request-information'){if(!in_array($c['state'],['in_review','needs_information'],true))fail('INVALID_STATE',409);$n['question']=text($b['question']??null,3,2000);$n['state']='needs_information';
- }elseif($action==='begin-submission'){if($c['state']!=='in_review'||readiness($c))fail('NOT_READY',409,readiness($c));if(!settings()['liveEnabled'])fail('LIVE_ORDERS_DISABLED',423);$n['state']='submitting';
- }elseif($action==='record-submission'){if($c['state']!=='submitting'||$c['submission'])fail('INVALID_STATE',409);$docs=array_values(array_filter($c['documents'],fn($d)=>$d['id']===($b['receiptDocumentId']??'')&&$d['kind']==='submissionReceipt'));if(!$docs)fail('RECEIPT_REQUIRED');$n['submission']=['at'=>now(),'reference'=>text($b['reference']??null,3,300),'receiptDocumentId'=>$docs[0]['id']];$n['state']='submitted';if(($o['transmission']['status']??'')==='uncertain'){unset($o['transmission']);if(!isset($o['withdrawal']))unset($o['hold']);}
- }elseif($action==='record-response'){if($c['state']!=='submitted'||!in_array($b['outcome']??'',['confirmed','rejected'],true))fail('INVALID_STATE',409);$docs=array_values(array_filter($c['documents'],fn($d)=>$d['id']===($b['documentId']??'')&&$d['kind']==='officialResponse'));if(!$docs)fail('RESPONSE_DOCUMENT_REQUIRED');$n['response']=['at'=>now(),'outcome'=>$b['outcome'],'message'=>text($b['message']??null,3,2000),'documentId'=>$docs[0]['id']];$n['state']='closed';
- }elseif($action==='pause')$o['hold']=['reason'=>text($b['reason']??null,3),'at'=>now(),'by'=>$a];
- elseif($action==='resume-work'){if(isset($o['withdrawal'])||($o['transmission']['status']??'')==='uncertain')fail('CASE_ON_HOLD',409);text($b['reason']??null,3);unset($o['hold']);}
- elseif($action==='submission-uncertain'){if($c['state']!=='submitting')fail('INVALID_STATE',409);$o['transmission']=['status'=>'uncertain','reason'=>text($b['reason']??null,3),'at'=>now()];$o['hold']=['reason'=>'Transmission outcome requires reconciliation','at'=>now(),'by'=>$a];}
- elseif($action==='submission-not-sent'){if($c['state']!=='submitting'||$c['submission'])fail('INVALID_STATE',409);$o['transmission']=['status'=>'not_sent','reason'=>text($b['reason']??null,3),'at'=>now()];$n['state']='in_review';if(!isset($o['withdrawal']))unset($o['hold']);}
- elseif($action==='official-follow-up'){if($c['state']!=='submitted')fail('INVALID_STATE',409);$o['followUp']=['message'=>text($b['message']??null,3),'due'=>instant($b['due']??null)];}
- elseif($action==='resolve-follow-up'){if(!isset($o['followUp']))fail('INVALID_STATE',409);$o['followUp']['resolved']=text($b['reason']??null,3);}
- elseif($action==='complaint')$o['complaint']=['message'=>text($b['message']??null,3),'at'=>now()];
- elseif($action==='resolve-complaint'){if(!isset($o['complaint']))fail('INVALID_STATE',409);$o['complaint']['resolution']=text($b['reason']??null,3);}
- elseif($action==='review-withdrawal'){if(!isset($o['withdrawal'])||!in_array($b['decision']??'',['accepted','reviewed'],true))fail('INVALID_STATE',409);$o['withdrawal']['decision']=$b['decision'];$o['withdrawal']['reason']=text($b['reason']??null,3);}
- elseif($action==='plan-refund'){if(!isset($o['withdrawal'])||isset($o['refund']['paidAt'])||!is_int($b['dueCents']??null)||$b['dueCents']<0||$b['dueCents']>$c['order']['feeCents']||(!($c['checks']['paid']??false)&&$b['dueCents']!==0))fail('INVALID_REFUND');$o['refund']=['dueCents'=>$b['dueCents'],'reason'=>text($b['reason']??null,3),'at'=>now()];}
- elseif($action==='record-refund'){if(!isset($o['refund'])||isset($o['refund']['paidAt'])||$o['refund']['dueCents']<=0)fail('INVALID_STATE',409);$o['refund']['paidAt']=now();$o['refund']['reference']=text($b['reference']??null,3,300);}
- elseif($action==='close-withdrawal'){if(($o['withdrawal']['decision']??'')!=='accepted'||!isset($o['refund'])||($o['refund']['dueCents']>0&&!isset($o['refund']['paidAt']))||$c['state']==='submitting'||($c['submission']&&!$c['response']))fail('INVALID_STATE',409);text($b['reason']??null,3);$o['withdrawal']['completedAt']=now();unset($o['hold']);$n['state']='closed';}
- elseif($action==='resolve-privacy'){if(!isset($o['privacy'])||!in_array($b['status']??'',['completed','retained'],true))fail('INVALID_STATE',409);$o['privacy']['status']=$b['status'];$o['privacy']['reference']=text($b['reference']??null,3);}
- else fail('INVALID_ACTION');return $n;}
+
+function withdraw_case(array $c, array $b): array
+{
+    if (!$c['order'] || ($b['confirm'] ?? false) !== true) {
+        fail('WITHDRAWAL_CONFIRMATION_REQUIRED');
+    }
+    if (isset($c['operations']['withdrawal'])) {
+        return $c;
+    }
+    $e = email($b['email'] ?? null);
+    if ($e !== strtolower(trim($c['data']['email']))) {
+        fail('USE_CASE_EMAIL');
+    }
+    $c['operations']['hold'] = ['reason' => 'Customer requested withdrawal', 'at' => now(), 'by' => 'customer'];
+    $c['operations']['withdrawal'] = ['at' => now(), 'name' => text($b['name'] ?? null, 3, 200), 'email' => $e, 'reference' => $c['order']['reference'], 'declaration' => $c['order']['language'] === 'en' ? 'I withdraw from the paid assistance service contract identified above.' : 'Hiermit widerrufe ich den oben bezeichneten Vertrag über den kostenpflichtigen Assistenzservice.'];
+    return $c;
+}
+
+function staff_action(array $c, array $b): array
+{
+    $action = $b['action'] ?? '';
+    $n = $c;
+    $a = actor();
+    $n['operations'] ??= [];
+    $o = &$n['operations'];
+    if ($action === 'claim') {
+        if ($c['state'] === 'draft' || $c['state'] === 'submitting' || ($c['assignedTo'] && $c['assignedTo'] !== $a)) {
+            fail('CASE_ALREADY_CLAIMED', 409);
+        }
+        $n['assignedTo'] = $a;
+        if ($c['state'] === 'ordered') {
+            $n['state'] = 'in_review';
+        }
+        if (empty($n['reviewStartedAt'])) {
+            $n['reviewStartedAt'] = now();
+        }
+        return $n;
+    }
+    if ($action === 'reassign') {
+        if ($c['state'] === 'submitting' || ($o['transmission']['status'] ?? '') === 'uncertain') {
+            fail('RESOLVE_TRANSMISSION_FIRST', 409);
+        }
+        text($b['reason'] ?? null, 3);
+        $n['assignedTo'] = null;
+        return $n;
+    }
+    if ($action === 'issue-invoice') {
+        if (empty($c['checks']['paid'])) {
+            fail('PAYMENT_REQUIRED');
+        }
+        if (!$c['order'] || !valid_date($b['serviceDate'] ?? null) || $b['serviceDate'] > gmdate('Y-m-d')) {
+            fail('INVALID_DATE');
+        }
+        issue_invoice($c, $b['serviceDate'], text($b['billingAddress'] ?? null, 5, 600));
+        return $n;
+    }
+    if ($action === 'payment') {
+        if (!$c['order'] || $c['state'] === 'draft') {
+            fail('INVALID_STATE', 409);
+        }
+        if (($b['paid'] ?? null) === true) {
+            $n['checks']['paid'] = true;
+            $n['checks']['paymentReference'] = text($b['reference'] ?? null, 3, 200);
+            $n['checks']['paidAt'] = $c['checks']['paidAt'] ?? now();
+            if (empty($c['checks']['paid'])) {
+                issue_invoice($n, invoice_service_date($n), billing_address($n));
+            }
+        } elseif (($b['paid'] ?? null) === false) {
+            unset($n['checks']['paid'],$n['checks']['paymentReference'],$n['checks']['paidAt']);
+        } else {
+            fail('INVALID_FIELD');
+        }
+        return $n;
+    }
+    if ($action === 'review-decision') {
+        if (!isset($o['review']) || !in_array($b['decision'] ?? '', ['approved', 'hidden'], true)) {
+            fail('INVALID_STATE', 409);
+        }
+        $o['review']['status'] = $b['decision'];
+        $o['review']['decidedAt'] = now();
+        return $n;
+    }
+    if ($c['assignedTo'] !== $a) {
+        fail('CLAIM_CASE_FIRST', 409);
+    }
+    if ($action === 'checks') {
+        if (!in_array($c['state'], ['in_review', 'needs_information'], true) || !is_array($b['checks'] ?? null)) {
+            fail('INVALID_STATE', 409);
+        }
+        $v = $b['checks'];
+        $checks = array_intersect_key($c['checks'], array_flip(['paid', 'paymentReference', 'paidAt']));
+        foreach (['authorityVerified', 'roleVerified', 'circumstancesVerified'] as $k) {
+            $checks[$k] = ($v[$k] ?? false) === true;
+        }
+        foreach (['authorityVerified' => 'authorityReference', 'roleVerified' => 'roleReference'] as $flag => $key) {
+            if ($checks[$flag]) {
+                $checks[$key] = text($v[$key] ?? null, 3, 500);
+            }
+        }
+        if (!empty($v['officialDate'])) {
+            if (!valid_date($v['officialDate'])) {
+                fail('INVALID_DATE');
+            }
+            $checks['officialDate'] = $v['officialDate'];
+        }
+        if (!empty($v['dateReason'])) {
+            $checks['dateReason'] = text($v['dateReason'], 3, 500);
+        }
+        foreach (['contractDeliveredAt', 'withdrawalEndsAt'] as $key) {
+            if (!empty($v[$key])) {
+                $checks[$key] = instant($v[$key]);
+            }
+        }
+        foreach (['deliveryReference', 'withdrawalPeriodReference'] as $key) {
+            if (!empty($v[$key])) {
+                $checks[$key] = text($v[$key], 3, 500);
+            }
+        }
+        if (!empty($checks['contractDeliveredAt']) && strtotime($checks['contractDeliveredAt']) > time()) {
+            fail('INVALID_DATE');
+        }
+        if (!empty($checks['withdrawalEndsAt']) && (!isset($checks['contractDeliveredAt']) || strtotime($checks['withdrawalEndsAt']) <= strtotime($checks['contractDeliveredAt']))) {
+            fail('INVALID_DATE');
+        }
+        $n['checks'] = $checks;
+    } elseif ($action === 'verify-document') {
+        if (!in_array($c['state'], ['in_review', 'needs_information'], true)) {
+            fail('INVALID_STATE', 409);
+        }
+        $found = false;
+        foreach ($n['documents'] as &$doc) {
+            if ($doc['id'] === ($b['documentId'] ?? '')) {
+                $doc['status'] = 'verified';
+                $doc['verifiedAt'] = now();
+                $doc['verifiedBy'] = $a;
+                $found = true;
+            }
+        }
+        if (!$found) {
+            fail('DOCUMENT_MISSING');
+        }
+    } elseif ($action === 'request-information') {
+        if (!in_array($c['state'], ['in_review', 'needs_information'], true)) {
+            fail('INVALID_STATE', 409);
+        }
+        $n['question'] = text($b['question'] ?? null, 3, 2000);
+        $n['state'] = 'needs_information';
+    } elseif ($action === 'begin-submission') {
+        if ($c['state'] !== 'in_review' || readiness($c)) {
+            fail('NOT_READY', 409, readiness($c));
+        }
+        if (!settings()['liveEnabled']) {
+            fail('LIVE_ORDERS_DISABLED', 423);
+        }
+        $n['state'] = 'submitting';
+    } elseif ($action === 'record-submission') {
+        if ($c['state'] !== 'submitting' || $c['submission']) {
+            fail('INVALID_STATE', 409);
+        }
+        $docs = array_values(array_filter($c['documents'], fn ($d) => $d['id'] === ($b['receiptDocumentId'] ?? '') && $d['kind'] === 'submissionReceipt'));
+        if (!$docs) {
+            fail('RECEIPT_REQUIRED');
+        }
+        $n['submission'] = ['at' => now(), 'reference' => text($b['reference'] ?? null, 3, 300), 'receiptDocumentId' => $docs[0]['id']];
+        $n['state'] = 'submitted';
+        if (($o['transmission']['status'] ?? '') === 'uncertain') {
+            unset($o['transmission']);
+            if (!isset($o['withdrawal'])) {
+                unset($o['hold']);
+            }
+        }
+    } elseif ($action === 'record-response') {
+        if ($c['state'] !== 'submitted' || !in_array($b['outcome'] ?? '', ['confirmed', 'rejected'], true)) {
+            fail('INVALID_STATE', 409);
+        }
+        $docs = array_values(array_filter($c['documents'], fn ($d) => $d['id'] === ($b['documentId'] ?? '') && $d['kind'] === 'officialResponse'));
+        if (!$docs) {
+            fail('RESPONSE_DOCUMENT_REQUIRED');
+        }
+        $n['response'] = ['at' => now(), 'outcome' => $b['outcome'], 'message' => text($b['message'] ?? null, 3, 2000), 'documentId' => $docs[0]['id']];
+        $n['state'] = 'closed';
+    } elseif ($action === 'pause') {
+        $o['hold'] = ['reason' => text($b['reason'] ?? null, 3), 'at' => now(), 'by' => $a];
+    } elseif ($action === 'resume-work') {
+        if (isset($o['withdrawal']) || ($o['transmission']['status'] ?? '') === 'uncertain') {
+            fail('CASE_ON_HOLD', 409);
+        }
+        text($b['reason'] ?? null, 3);
+        unset($o['hold']);
+    } elseif ($action === 'submission-uncertain') {
+        if ($c['state'] !== 'submitting') {
+            fail('INVALID_STATE', 409);
+        }
+        $o['transmission'] = ['status' => 'uncertain', 'reason' => text($b['reason'] ?? null, 3), 'at' => now()];
+        $o['hold'] = ['reason' => 'Transmission outcome requires reconciliation', 'at' => now(), 'by' => $a];
+    } elseif ($action === 'submission-not-sent') {
+        if ($c['state'] !== 'submitting' || $c['submission']) {
+            fail('INVALID_STATE', 409);
+        }
+        $o['transmission'] = ['status' => 'not_sent', 'reason' => text($b['reason'] ?? null, 3), 'at' => now()];
+        $n['state'] = 'in_review';
+        if (!isset($o['withdrawal'])) {
+            unset($o['hold']);
+        }
+    } elseif ($action === 'official-follow-up') {
+        if ($c['state'] !== 'submitted') {
+            fail('INVALID_STATE', 409);
+        }
+        $o['followUp'] = ['message' => text($b['message'] ?? null, 3), 'due' => instant($b['due'] ?? null)];
+    } elseif ($action === 'resolve-follow-up') {
+        if (!isset($o['followUp'])) {
+            fail('INVALID_STATE', 409);
+        }
+        $o['followUp']['resolved'] = text($b['reason'] ?? null, 3);
+    } elseif ($action === 'complaint') {
+        $o['complaint'] = ['message' => text($b['message'] ?? null, 3), 'at' => now()];
+    } elseif ($action === 'resolve-complaint') {
+        if (!isset($o['complaint'])) {
+            fail('INVALID_STATE', 409);
+        }
+        $o['complaint']['resolution'] = text($b['reason'] ?? null, 3);
+    } elseif ($action === 'review-withdrawal') {
+        if (!isset($o['withdrawal']) || !in_array($b['decision'] ?? '', ['accepted', 'reviewed'], true)) {
+            fail('INVALID_STATE', 409);
+        }
+        $o['withdrawal']['decision'] = $b['decision'];
+        $o['withdrawal']['reason'] = text($b['reason'] ?? null, 3);
+    } elseif ($action === 'plan-refund') {
+        if (!isset($o['withdrawal']) || isset($o['refund']['paidAt']) || !is_int($b['dueCents'] ?? null) || $b['dueCents'] < 0 || $b['dueCents'] > $c['order']['feeCents'] || (!($c['checks']['paid'] ?? false) && $b['dueCents'] !== 0)) {
+            fail('INVALID_REFUND');
+        }
+        $o['refund'] = ['dueCents' => $b['dueCents'], 'reason' => text($b['reason'] ?? null, 3), 'at' => now()];
+    } elseif ($action === 'record-refund') {
+        if (!isset($o['refund']) || isset($o['refund']['paidAt']) || $o['refund']['dueCents'] <= 0) {
+            fail('INVALID_STATE', 409);
+        }
+        $o['refund']['paidAt'] = now();
+        $o['refund']['reference'] = text($b['reference'] ?? null, 3, 300);
+    } elseif ($action === 'close-withdrawal') {
+        if (($o['withdrawal']['decision'] ?? '') !== 'accepted' || !isset($o['refund']) || ($o['refund']['dueCents'] > 0 && !isset($o['refund']['paidAt'])) || $c['state'] === 'submitting' || ($c['submission'] && !$c['response'])) {
+            fail('INVALID_STATE', 409);
+        }
+        text($b['reason'] ?? null, 3);
+        $o['withdrawal']['completedAt'] = now();
+        unset($o['hold']);
+        $n['state'] = 'closed';
+    } elseif ($action === 'resolve-privacy') {
+        if (!isset($o['privacy']) || !in_array($b['status'] ?? '', ['completed', 'retained'], true)) {
+            fail('INVALID_STATE', 409);
+        }
+        $o['privacy']['status'] = $b['status'];
+        $o['privacy']['reference'] = text($b['reference'] ?? null, 3);
+    } else {
+        fail('INVALID_ACTION');
+    }
+    return $n;
+}
 // One invoice per order, numbered from counter:invoice. It is issued when payment is first marked as received and
 // attached to the "payment received" email. Undoing the payment mark keeps it: issued numbers must stay continuous.
-function issue_invoice(array $c,string $serviceDate,string $billingAddress):array{if($r=record('invoice:'.$c['id']))return $r['value'];$counter=record('counter:invoice',true);$sequence=$counter['value']['value']+1;put('counter:invoice','counter',['value'=>$sequence]);$i=['sequence'=>$sequence,'created_at'=>now(),'snapshot'=>['order'=>$c['order'],'route'=>$c['route'],'serviceDate'=>$serviceDate,'paidAt'=>$c['checks']['paidAt']??null,'billingAddress'=>$billingAddress,'settings'=>settings()]];put('invoice:'.$c['id'],'invoice',$i,$c['id']);return $i;}
+function issue_invoice(array $c, string $serviceDate, string $billingAddress): array
+{
+    if ($r = record('invoice:'.$c['id'])) {
+        return $r['value'];
+    }
+    $counter = record('counter:invoice', true);
+    $sequence = $counter['value']['value'] + 1;
+    put('counter:invoice', 'counter', ['value' => $sequence]);
+    $i = ['sequence' => $sequence, 'created_at' => now(), 'snapshot' => ['order' => $c['order'], 'route' => $c['route'], 'serviceDate' => $serviceDate, 'paidAt' => $c['checks']['paidAt'] ?? null, 'billingAddress' => $billingAddress, 'settings' => settings()]];
+    put('invoice:'.$c['id'], 'invoice', $i, $c['id']);
+    return $i;
+}
 // Service date = submission date when already submitted, otherwise the day payment is recorded (Berlin time).
-function invoice_service_date(array $c):string{$at=$c['submission']['at']??null;return (new DateTimeImmutable($at?:'now'))->setTimezone(new DateTimeZone('Europe/Berlin'))->format('Y-m-d');}
+function invoice_service_date(array $c): string
+{
+    $at = $c['submission']['at'] ?? null;
+    return (new DateTimeImmutable($at ?: 'now'))->setTimezone(new DateTimeZone('Europe/Berlin'))->format('Y-m-d');
+}
 // The person who placed the order and the postal address given in the order (as in the power of attorney).
-function billing_address(array $c):string{$d=$c['data'];$name=($c['route']==='death'||($d['forWhom']??'')==='other')?trim(($d['applicantFirst']??'').' '.($d['applicantLast']??'')):trim(($d['firstName']??'').' '.($d['lastName']??''));$post=['different'=>'post','new'=>'new','main'=>'main'][$d['postTo']??'']??'home';return trim($name."\n".str_replace(', ',"\n",poa_address($d,$post)));}
+function billing_address(array $c): string
+{
+    $d = $c['data'];
+    $name = ($c['route'] === 'death' || ($d['forWhom'] ?? '') === 'other') ? trim(($d['applicantFirst'] ?? '').' '.($d['applicantLast'] ?? '')) : trim(($d['firstName'] ?? '').' '.($d['lastName'] ?? ''));
+    $post = ['different' => 'post', 'new' => 'new', 'main' => 'main'][$d['postTo'] ?? ''] ?? 'home';
+    return trim($name."\n".str_replace(', ', "\n", poa_address($d, $post)));
+}
