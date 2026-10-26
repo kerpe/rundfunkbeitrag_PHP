@@ -141,6 +141,8 @@ html body .rb-sticky-cta{display:none}
  html body .rb-sticky-cta span{font-size:.9375rem;color:var(--t-muted)}
  html body .rb-sticky-cta strong{color:var(--t-ink);font-size:1.125rem;margin-right:4px}
  html body .rb-sticky-cta a{display:inline-flex;align-items:center;min-height:46px;padding:0 22px;border-radius:999px;background:var(--t-primary);color:var(--t-on-primary) !important;font-weight:700;text-decoration:none !important}
+ /* Keep the footer's last lines clear of the sticky bar */
+ html body:has(.rb-sticky-cta) .public-footer.rb-footer{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
 }
 @media (prefers-reduced-motion:reduce){html body .rb-sticky-cta,html body .public-service-card{transition:none}}
 /* FAQ groups */
