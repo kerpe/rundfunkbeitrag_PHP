@@ -1,6 +1,6 @@
 {
     "noto sans": {
-        "normal": "\/home\/user\/rundfunkbeitrag_php\/private\/vendor\/dompdf\/dompdf\/lib\/fonts\/noto_sans_normal_83e01852111939bfeddc4144a9570cf5",
-        "bold": "noto_sans_bold_e838d848bcf051319aec6311a9a62078"
+        "normal": "\/workspace\/scratch\/267129c59a73\/php-hostinger\/private\/vendor\/dompdf\/dompdf\/lib\/fonts\/noto_sans_normal_89ea0ff236adc09cece3af988ca43e87",
+        "bold": "noto_sans_bold_89ea0ff236adc09cece3af988ca43e87"
     }
 }
