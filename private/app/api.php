@@ -147,7 +147,7 @@ function api(array $p, string $method): array
             fail('WITHDRAWAL_CONFIRMATION_REQUIRED');
         }
         $op = operation($b);
-        $ack = ['name' => text($b['name'] ?? null, 3, 200), 'email' => $e, 'reference' => $ref, 'at' => now(), 'declaration' => 'Hiermit widerrufe ich den bezeichneten Assistenzvertrag. / I withdraw from the identified assistance service contract.', 'mode' => 'live'];
+        $ack = ['name' => text($b['name'] ?? null, 3, 200), 'email' => $e, 'reference' => $ref, 'at' => now(), 'declaration' => 'Hiermit widerrufe ich den bezeichneten Vertrag. / I hereby withdraw from the identified contract.', 'mode' => 'live'];
         $old = record('inbox:'.$op, true);
         if ($old) {
             foreach (['name', 'email', 'reference'] as $k) {
