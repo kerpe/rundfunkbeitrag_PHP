@@ -1,15 +1,36 @@
-# Rundfunkbeitrag Support — PHP / MySQL deployment
+# Rundfunkbeitrag Support (PHP / MySQL)
 
-Hostinger deployment branch: **hostinger-php-2026-10-12**. This branch contains PHP application files, bundled PHP PDF dependencies and precompiled browser JavaScript/CSS. There are no npm manifests, Vite configuration files or Node server/test programs in this branch. No hosting build or start command is required.
+Live site: https://rundfunkbeitragsupport.de (Hostinger). Plain PHP 8.3 + MySQL, no build step on the server.
 
-The editable React/Vite client sources and development tests are preserved on [php-source-2026-10-12](https://github.com/evaldas0905/business-mvp/tree/php-source-2026-10-12). The existing default `main` branch still contains the older Node application. Always select the PHP deployment branch explicitly in Hostinger.
+## Layout
 
-Use Hostinger's PHP/HTML Git integration: **Websites → your website → Dashboard → Advanced → Git**. Select repository `evaldas0905/business-mvp` and branch `hostinger-php-2026-10-12`. Do not use the Node Web App import workflow for this PHP application.
+| Path | What it is |
+|---|---|
+| `public_html/` | Web root: `index.php` (router), compiled frontend in `assets/`, `.vite/manifest.json` (names the current bundle files), fonts, icons, brand images. |
+| `private/app/` | Server code: `api.php` (customer API), `staff.php` (admin), `web.php` (installer, login, server pages), `validation.php`, `mail*.php`, `documents.php` (PDF), `seo.php`, `services.php` and `articles.php` (server-rendered service pages and guides), `rules.json` (form rules). |
+| `private/cron.php` | Hourly job (mail retries, clean-up). |
+| `private/vendor/` | Bundled dompdf. |
+| `tools/` | Scripts that change the compiled frontend (see below). |
 
-The repository contains sibling directories `public_html` and `private`. The server document root must point to the repository's `public_html`; `private` must remain outside the public web root. Hostinger's “Root directory” in Git settings is a deployment destination, not a source subfolder selector. Deploy to the domain directory one level above its public_html if your account allows this. If it only allows cloning inside public_html, clone to a non-live temporary directory, then use Hostinger File Manager to move the repository's public_html contents into the real public_html and move private alongside it, outside the web root. Confirm the actual destination with your Hostinger account; do not blindly overwrite existing files or enable automatic deployment while using a manual move workflow.
+`private/config.php`, `private/installation-key.php` and `private/data/` exist only on the server and are never committed.
 
-Read [the Lithuanian Hostinger installation guide](README_HOSTINGER_PHP_LT.md) and [validation results](VALIDATION.md).
+## Deploy
 
-GitHub intentionally contains no installation secret or production configuration. Copy `private/installation-key.example.php` to `private/installation-key.php` in Hostinger File Manager and replace its placeholder with at least 24 cryptographically random characters retained privately. Then open `https://YOUR_DOMAIN/install`. The key file is deleted after successful installation.
+Every push to `main` is uploaded by `.github/workflows/deploy.yml` over FTP (about 10 minutes). It never touches `config.php` or `data/`, and it does not delete files on the server. Hostinger's own Git deployment must stay **off**: it once copied the repository into `public_html` and broke the site.
 
-Choose an administrator email/password during installation; sign in at `/admin/login`. Configure your business details, bank-transfer instructions and verified mail sender before enabling paid orders. No credentials, real client records or uploads are included.
+A fresh installation: copy `private/installation-key.example.php` to `private/installation-key.php` with your own random key (24+ characters), open `https://<domain>/install`, then fill in the business, bank and legal texts under `/admin` → Nustatymai.
+
+## Changing the frontend
+
+The React sources are not in this repository; `public_html/assets/entry-<hash>.js` is the compiled bundle and changes are made to it directly by small scripts:
+
+- CSS: edit `tools/theme/shared.css` (or `tools/admin/*.css`), then run `python3 tools/theme/build.py`. Never edit the generated `entry-*.css`.
+- Form rules: after changing form fields in the bundle, run `node tools/rules/generate-rules.js public_html/assets/entry-<hash>.js private/app/rules.json private/app/rules.json` so the server validates the same fields.
+- Admin texts in Lithuanian: `tools/admin/lt.json`.
+- `tools/admin/*-patch.py` and `tools/datefield/patch.js` hold earlier bundle changes; they are applied already and only needed when rebuilding from an older bundle.
+
+When the bundle changes, save it under a new hash name and update `.vite/manifest.json`, so browsers do not keep the old file.
+
+## Testing locally
+
+Install MariaDB, create a database, write a `private/config.php` like `config.example.php` and run `php -S localhost:8080 <router>` from `public_html`, where the router serves existing files and otherwise includes `index.php`. Defining `RB_TEST_MAIL_CAPTURE` (a file path) in the router writes outgoing mails to that file instead of sending them.

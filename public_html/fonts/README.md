@@ -6,17 +6,11 @@ wordmark, headings, body text, customer forms and the admin login. Fraunces
 phrase in the homepage headline. Both use the bundled SIL Open Font License 1.1
 notices (`InstrumentSans-OFL.txt`, `Fraunces-OFL.txt`).
 
-Manrope and Source Serif 4 are kept as previous-design assets. Manrope is still
-declared by the bundle CSS as a fallback but is no longer requested by the
-current theme.
-
 Original variable TTFs were obtained from the Google Fonts upstream repository
 and converted to WOFF2 without changing glyphs, names, outlines or axes:
 
 - https://github.com/google/fonts/tree/main/ofl/instrumentsans
 - https://github.com/google/fonts/tree/main/ofl/fraunces
-- https://github.com/google/fonts/tree/main/ofl/manrope
-- https://github.com/google/fonts/tree/main/ofl/sourceserif4
 
 German and English characters and the euro symbol are included. Fonts are
 served from this site; the browser does not contact Google Fonts or another
