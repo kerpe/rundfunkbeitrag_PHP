@@ -282,5 +282,5 @@ function billing_address(array $c): string
     $d = $c['data'];
     $name = ($c['route'] === 'death' || ($d['forWhom'] ?? '') === 'other') ? trim(($d['applicantFirst'] ?? '').' '.($d['applicantLast'] ?? '')) : trim(($d['firstName'] ?? '').' '.($d['lastName'] ?? ''));
     $post = ['different' => 'post', 'new' => 'new', 'main' => 'main'][$d['postTo'] ?? ''] ?? 'home';
-    return trim($name."\n".str_replace(', ', "\n", poa_address($d, $post)));
+    return trim($name."\n".str_replace(', ', "\n", poa_address($d, $post, field_set($c['route'], $d)['fields'])));
 }
