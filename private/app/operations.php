@@ -13,7 +13,7 @@ function withdraw_case(array $c, array $b): array
         fail('USE_CASE_EMAIL');
     }
     $c['operations']['hold'] = ['reason' => 'Customer requested withdrawal', 'at' => now(), 'by' => 'customer'];
-    $c['operations']['withdrawal'] = ['at' => now(), 'name' => text($b['name'] ?? null, 3, 200), 'email' => $e, 'reference' => $c['order']['reference'], 'declaration' => $c['order']['language'] === 'en' ? 'I withdraw from the paid assistance service contract identified above.' : 'Hiermit widerrufe ich den oben bezeichneten Vertrag über den kostenpflichtigen Assistenzservice.'];
+    $c['operations']['withdrawal'] = ['at' => now(), 'name' => text($b['name'] ?? null, 3, 200), 'email' => $e, 'reference' => $c['order']['reference'], 'declaration' => $c['order']['language'] === 'en' ? 'I hereby withdraw from the contract identified above.' : 'Hiermit widerrufe ich den oben bezeichneten Vertrag.'];
     return $c;
 }
 

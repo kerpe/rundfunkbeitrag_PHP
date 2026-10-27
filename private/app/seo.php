@@ -16,10 +16,10 @@ function seo_services(): array
 {
     return [
         'zusammenziehen' => ['Rundfunkbeitrag abmelden beim Zusammenziehen', 'Sie ziehen zu jemandem, der bereits zahlt? Wir melden Ihr Beitragskonto ab, damit nicht doppelt gezahlt wird. Einmalig 49 €, offizielle Formulare kostenlos.'],
-        'ausland' => ['Rundfunkbeitrag abmelden beim Umzug ins Ausland', 'Dauerhaft ins Ausland? Wir melden Ihren Rundfunkbeitrag ab, auch auf Englisch. Einmalig 49 €, offizielles Formular kostenlos.'],
+        'ausland' => ['Rundfunkbeitrag abmelden beim Umzug ins Ausland', 'Dauerhaft ins Ausland? Wir melden Ihren Rundfunkbeitrag ab, auf Wunsch auch auf Englisch. Einmalig 49 €, offizielles Formular kostenlos.'],
         'weitere-wohnung-aufgeben' => ['Eine von mehreren Wohnungen abmelden', 'Sie geben eine von mehreren Wohnungen auf? Wir melden sie beim Beitragsservice ab. Einmalig 49 €, offizielles Formular kostenlos.'],
         'sterbefall' => ['Rundfunkbeitrag nach Todesfall abmelden', 'Wir melden das Beitragskonto einer verstorbenen Person für Angehörige ab. Einmalig 49 €, offizielles Formular kostenlos.'],
-        'anmelden' => ['Wohnung erstmals beim Rundfunkbeitrag anmelden', 'Erste eigene Wohnung oder neue WG? Wir melden Ihre Wohnung beim Beitragsservice an. Einmalig 49 €, offizielles Formular kostenlos.'],
+        'anmelden' => ['Wohnung erstmals beim Rundfunkbeitrag anmelden', 'Erste eigene Wohnung oder neue WG? Wir melden die Wohnung beim Beitragsservice an. Einmalig 49 €, offizielles Formular kostenlos.'],
         'daten-aendern' => ['Umzug oder Namensänderung beim Rundfunkbeitrag melden', 'Umzug oder neuer Name? Wir teilen die Änderung dem Beitragsservice mit. Einmalig 49 €, offizielles Formular kostenlos.'],
         'zahlung-aendern' => ['Zahlungsweise beim Rundfunkbeitrag ändern', 'Lastschrift, Überweisung oder anderer Rhythmus? Wir ändern die Zahlung Ihres Beitragskontos. Einmalig 49 €, offizielles Formular kostenlos.'],
         'zweitwohnung' => ['Nebenwohnung vom Rundfunkbeitrag befreien', 'Sie zahlen für Ihre Hauptwohnung? Wir melden die Nebenwohnung bei Bedarf an und beantragen die Befreiung. Einmalig 49 €.'],
@@ -84,7 +84,7 @@ function seo_meta(string $path): array
         if ($sl === 'de') {
             [$m['title'],$m['description']] = seo_services()[$slug];
         } else {
-            $m['title'] = $d['title'].': we handle the Rundfunkbeitrag for you';
+            $m['title'] = $d['title'].': we handle your Rundfunkbeitrag request';
             $m['description'] = $d['lead'];
         }
         $m['title'] .= ' · '.$t;
@@ -110,7 +110,7 @@ function seo_meta(string $path): array
                 $items .= '<li><a href="'.h(seo_article_url($a)).'">'.h($a['title']).'</a><p>'.h($a['description']).'</p></li>';
             }
         }
-        $m['ssr'] = '<article class="rb-article" lang="'.$m['lang'].'"><p class="eyebrow">'.($en ? 'Guides' : 'Ratgeber').'</p><h1>'.($en ? 'The German broadcasting fee, explained' : 'Rundfunkbeitrag verständlich erklärt').'</h1><p class="public-lead">'.($en ? 'What to do in common situations, and how to do it yourself for free with the official forms.' : 'Was in häufigen Situationen zu tun ist, und wie Sie es mit den offiziellen Formularen selbst kostenlos erledigen.').'</p><ul class="rb-article-list">'.$items.'</ul><p class="rb-article-alt"><a href="'.($en ? '/ratgeber" hreflang="de">Ratgeber auf Deutsch' : '/guide" hreflang="en">Guides in English').'</a></p>'.seo_disclaimer($m['lang']).'</article>';
+        $m['ssr'] = '<article class="rb-article" lang="'.$m['lang'].'"><p class="eyebrow">'.($en ? 'Guides' : 'Ratgeber').'</p><h1>'.($en ? 'The German broadcasting fee, explained' : 'Rundfunkbeitrag verständlich erklärt').'</h1><p class="public-lead">'.($en ? 'What to do in common situations, and how to do it yourself for free with the official forms.' : 'Was in häufigen Situationen zu tun ist und wie Sie es mit den offiziellen Formularen kostenlos selbst erledigen.').'</p><ul class="rb-article-list">'.$items.'</ul><p class="rb-article-alt"><a href="'.($en ? '/ratgeber" hreflang="de">Ratgeber auf Deutsch' : '/guide" hreflang="en">Guides in English').'</a></p>'.seo_disclaimer($m['lang']).'</article>';
         return $m;
     }
     $a = seo_article($path);
@@ -131,14 +131,14 @@ function seo_meta(string $path): array
     if ($alt) {
         $m['alternates'] = [[$a['lang'], $base.$path], [$alt['lang'], $base.seo_article_url($alt)]];
     }
-    $cta = '<aside class="rb-article-cta"><h2>'.($en ? 'Rather have it done for you?' : 'Lieber erledigen lassen?').'</h2><p>'.($en ? 'We check your details and documents, submit with your authorisation and keep you informed at every step. One-off €49, no subscription.' : 'Wir prüfen Ihre Angaben und Nachweise, reichen mit Ihrer Vollmacht ein und informieren Sie bei jedem Schritt. Einmalig 49 €, kein Abonnement.').'</p><p>'.($code ? '<a class="public-button" href="/auftrag/'.strtolower($code).'">'.($en ? 'Start your request' : 'Anliegen starten').'</a> ' : '').'<a href="/leistungen/'.h($a['service']).'">'.($en ? 'Documents and process' : 'Unterlagen und Ablauf').'</a></p></aside>';
+    $cta = '<aside class="rb-article-cta"><h2>'.($en ? 'Rather have it done for you?' : 'Lieber erledigen lassen?').'</h2><p>'.($en ? 'We check your details and documents, submit your request with your authorisation and keep you informed at every step. One-off €49, no subscription.' : 'Wir prüfen Ihre Angaben und Nachweise, reichen Ihren Antrag mit Ihrer Vollmacht ein und informieren Sie bei jedem Schritt. Einmalig 49 €, kein Abonnement.').'</p><p>'.($code ? '<a class="public-button" href="/auftrag/'.strtolower($code).'">'.($en ? 'Start your request' : 'Anliegen starten').'</a> ' : '').'<a href="/leistungen/'.h($a['service']).'">'.($en ? 'Documents and process' : 'Unterlagen und Ablauf').'</a></p></aside>';
     $m['ssr'] = '<article class="rb-article" lang="'.$a['lang'].'"><p class="eyebrow"><a href="'.($en ? '/guide">Guides' : '/ratgeber">Ratgeber').'</a></p><h1>'.h($a['title']).'</h1>'.$a['body'].$cta.($alt ? '<p class="rb-article-alt"><a href="'.h(seo_article_url($alt)).'" hreflang="'.$alt['lang'].'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>' : '').seo_disclaimer($a['lang']).'</article>';
     return $m;
 }
 
 function seo_disclaimer(string $lang): string
 {
-    return '<p class="rb-article-note">'.($lang === 'en' ? 'As of October 2026. General information, not legal advice. We are not affiliated with ARD, ZDF, Deutschlandradio or Beitragsservice. Beitragsservice alone makes the decision.' : 'Stand: Oktober 2026. Allgemeine Information, keine Rechtsberatung. Wir sind nicht mit ARD, ZDF, Deutschlandradio oder dem Beitragsservice verbunden. Die Entscheidung trifft ausschließlich der Beitragsservice.').'</p>';
+    return '<p class="rb-article-note">'.($lang === 'en' ? 'As of October 2026. General information, not legal advice. We are not affiliated with ARD, ZDF, Deutschlandradio or Beitragsservice. Only Beitragsservice makes the decision.' : 'Stand: Oktober 2026. Allgemeine Information, keine Rechtsberatung. Wir sind nicht mit ARD, ZDF, Deutschlandradio oder dem Beitragsservice verbunden. Die Entscheidung trifft ausschließlich der Beitragsservice.').'</p>';
 }
 
 function sitemap_xml(): string
@@ -199,7 +199,7 @@ function seo_service_html(string $slug, string $lang): string
     foreach ($d['no'] as [$t,$o]) {
         $no .= '<li>'.h($t).($o ? ' <a href="'.h(seo_service_url($o, $lang)).'">'.h(seo_service_data()[$o][$lang]['title']).'</a>' : '').'</li>';
     }
-    $faq = array_merge($d['faq'], [[$L('Warum kostet das 49 €, wenn das offizielle Formular kostenlos ist?', 'Why does this cost €49 when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit with your authorisation and keep you informed at every step.')]]);
+    $faq = array_merge($d['faq'], [[$L('Warum kostet das 49 €, wenn das offizielle Formular kostenlos ist?', 'Why does this cost €49 when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos, und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen Ihren Antrag mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit your request with your authorisation and keep you informed at every step.')]]);
     $fq = '';
     foreach ($faq as [$q,$a]) {
         $fq .= '<details><summary>'.h($q).'</summary><p>'.h($a).'</p></details>';
@@ -209,12 +209,12 @@ function seo_service_html(string $slug, string $lang): string
     foreach ($timing as $i => [$a,$b]) {
         $tm .= '<div class="rb-timing-item"><span class="rb-timing-dot" aria-hidden="true">'.($i + 1).'</span><p><strong>'.h($a).'</strong><span>'.h($b).'</span></p></div>';
     }
-    $steps = [[$L('Angaben machen', 'Enter your details'), $L('Sie beantworten die Fragen zu Ihrer Situation und laden Nachweise hoch, falls nötig.', 'You answer the questions about your situation and upload documents if needed.')], [$L('Prüfen und bevollmächtigen', 'Review and authorise'), $L('Sie prüfen alles, erteilen die Vollmacht und erhalten sofort Ihre Bestätigung.', 'You check everything, give your authorisation and get your confirmation straight away.')], [$L('Wir reichen ein', 'We submit'), $L('Wir prüfen Ihre Angaben, fordern Fehlendes an und reichen innerhalb von drei Geschäftstagen nach vollständigen Unterlagen in Ihrem Namen ein. Sie zahlen nach der Bestellung per Überweisung – ohne Vorkasse.', 'We check your details, request anything missing and submit on your behalf within three business days once everything is complete. You pay by bank transfer after ordering – no advance payment required.')]];
+    $steps = [[$L('Angaben machen', 'Enter your details'), $L('Sie beantworten die Fragen zu Ihrer Situation und laden bei Bedarf Nachweise hoch.', 'You answer the questions about your situation and upload documents if needed.')], [$L('Prüfen und bevollmächtigen', 'Review and authorise'), $L('Sie prüfen alles, erteilen die Vollmacht und erhalten sofort Ihre Bestätigung.', 'You check everything, give your authorisation and get your confirmation straight away.')], [$L('Wir reichen ein', 'We submit'), $L('Wir prüfen Ihre Angaben, fordern Fehlendes an und reichen Ihren Antrag innerhalb von drei Geschäftstagen nach Vorliegen aller Unterlagen in Ihrem Namen ein. Sie zahlen nach der Bestellung per Überweisung – ohne Vorkasse.', 'We check your details, request anything missing and submit on your behalf within three business days once everything is complete. You pay by bank transfer after ordering – no advance payment required.')]];
     $st = '';
     foreach ($steps as [$a,$b]) {
         $st .= '<li><strong>'.h($a).'</strong><span>'.h($b).'</span></li>';
     }
-    $get = [$L('Bestellbestätigung mit Auftragsnummer per E-Mail', 'Order confirmation with your order number by email'), $L('Ihren persönlichen Vorgang mit aktuellem Stand online', 'Your personal case page with its current status'), $L('Eine E-Mail bei jedem wichtigen Schritt, auch wenn wir eingereicht haben', 'An email at every important step, including when we have submitted'), $L('Nachrichten an Ihren Sachbearbeiter direkt im Vorgang', 'Messages to your case worker right in your case')];
+    $get = [$L('Bestellbestätigung mit Auftragsnummer per E-Mail', 'Order confirmation with your order number by email'), $L('Ihren persönlichen Vorgang mit dem aktuellen Stand online', 'Your personal case page with its current status'), $L('Eine E-Mail bei jedem wichtigen Schritt, auch nach der Einreichung', 'An email at every important step, including when we have submitted'), $L('Nachrichten an Ihre Sachbearbeitung direkt im Vorgang', 'Messages to your case worker right in your case')];
     $guide = null;
     foreach (seo_articles() as $a) {
         if ($a['service'] === $slug && $a['lang'] === $lang) {
@@ -226,7 +226,7 @@ function seo_service_html(string $slug, string $lang): string
     .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
     .'<header class="rb-svc-hero"><div class="rb-svc-intro"><img class="rb-svc-icon" src="/icons/'.$s['icon'].'.webp" width="64" height="64" alt=""><h1>'.h($d['title']).'</h1><p class="public-lead">'.h($d['lead']).'</p>'
     .'<ul class="rb-svc-facts"><li>'.$L('Einmalig 49 €, kein Abonnement', 'One-off €49, no subscription').'</li><li>'.$L('Angaben in etwa 2–5 Minuten', 'Details in about 2–5 minutes').'</li><li>'.$L('Persönliche Prüfung vor der Einreichung', 'Personal check before submission').'</li></ul></div>'
-    .'<aside class="rb-svc-price"><p class="rb-svc-price-label">'.$L('Einmalige Servicegebühr', 'One-off service fee').'</p><p class="rb-svc-amount">'.$L('49 €', '€49').'</p><p>'.$L('Prüfung, Vorbereitung und Einreichung mit Ihrer Vollmacht.', 'Checking, preparation and submission with your authorisation.').'</p><a class="public-button" href="'.$start.'">'.$L('Anliegen starten', 'Start your request').'</a><p class="rb-svc-small">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></aside></header>'
+    .'<aside class="rb-svc-price"><p class="rb-svc-price-label">'.$L('Einmalige Servicegebühr', 'One-off service fee').'</p><p class="rb-svc-amount">'.$L('49 €', '€49').'</p><p>'.$L('Prüfung, Vorbereitung und Einreichung mit Ihrer Vollmacht.', 'Checking, preparing and submitting your request with your authorisation.').'</p><a class="public-button" href="'.$start.'">'.$L('Anliegen starten', 'Start your request').'</a><p class="rb-svc-small">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></aside></header>'
     .'<section class="rb-svc-fit"><div class="rb-fit-yes"><h2>'.$L('Passt, wenn', 'Right for you if').'</h2><ul>'.$li($d['yes']).'</ul></div><div class="rb-fit-no"><h2>'.$L('Passt nicht, wenn', 'Not right if').'</h2><ul>'.$no.'</ul></div></section>'
     .'<section class="rb-svc-block"><h2>'.$L('Das benötigen Sie', 'What you need').'</h2><ul class="rb-svc-check">'.$li($d['needed']).'</ul><p class="rb-svc-note">'.h($d['note']).'</p></section>'
     .'<section class="rb-svc-block"><h2>'.$L('So läuft es ab', 'How it works').'</h2><ol class="rb-svc-steps">'.$st.'</ol></section>'
@@ -234,7 +234,7 @@ function seo_service_html(string $slug, string $lang): string
     .'<section class="rb-svc-block"><h2>'.$L('Das bekommen Sie', 'What you get').'</h2><ul class="rb-svc-check">'.$li($get).'</ul></section>'
     .'<section class="rb-svc-block rb-svc-faq"><h2>'.$L('Häufige Fragen', 'Frequently asked questions').'</h2>'.$fq.'</section>'
     .($guide ? '<p class="rb-svc-guide"><a href="'.h(seo_article_url($guide)).'">'.$L('Mehr dazu im Ratgeber: ', 'Read our guide: ').h($guide['title']).'</a></p>' : '')
-    .'<aside class="rb-article-cta"><h2>'.$L('Bereit? Wir übernehmen das.', 'Ready? We handle it.').'</h2><p>'.$L('Einmalig 49 €. Die Entscheidung trifft ausschließlich der Beitragsservice; Einreichung und Entscheidung sind getrennte Schritte.', 'One-off €49. Beitragsservice alone makes the decision; submission and decision are separate steps.').'</p><p><a class="public-button" href="'.$start.'">'.$L('Anliegen starten', 'Start your request').'</a></p></aside>'
+    .'<aside class="rb-article-cta"><h2>'.$L('Bereit? Wir übernehmen das.', 'Ready? We handle it.').'</h2><p>'.$L('Einmalig 49 €. Die Entscheidung trifft ausschließlich der Beitragsservice; Einreichung und Entscheidung sind getrennte Schritte.', 'One-off €49. Only Beitragsservice makes the decision; submission and decision are separate steps.').'</p><p><a class="public-button" href="'.$start.'">'.$L('Anliegen starten', 'Start your request').'</a></p></aside>'
     .'<p class="rb-article-alt"><a href="'.h($alt).'" hreflang="'.($en ? 'de' : 'en').'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>'.seo_disclaimer($lang).'</article>';
 }
 
