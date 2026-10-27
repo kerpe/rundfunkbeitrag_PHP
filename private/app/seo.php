@@ -21,7 +21,7 @@ function seo_services(): array
         'sterbefall' => ['Rundfunkbeitrag nach Todesfall abmelden', 'Wir melden das Beitragskonto einer verstorbenen Person für Angehörige ab. Einmalig 49 €, offizielles Formular kostenlos.'],
         'anmelden' => ['Wohnung erstmals beim Rundfunkbeitrag anmelden', 'Erste eigene Wohnung oder neue WG? Wir melden die Wohnung beim Beitragsservice an. Einmalig 49 €, offizielles Formular kostenlos.'],
         'daten-aendern' => ['Umzug oder Namensänderung beim Rundfunkbeitrag melden', 'Umzug oder neuer Name? Wir teilen die Änderung dem Beitragsservice mit. Einmalig 49 €, offizielles Formular kostenlos.'],
-        'zahlung-aendern' => ['Zahlungsweise beim Rundfunkbeitrag ändern', 'Lastschrift, Überweisung oder anderer Rhythmus? Wir ändern die Zahlung Ihres Beitragskontos. Einmalig 49 €, offizielles Formular kostenlos.'],
+        'zahlung-aendern' => ['Zahlungsrhythmus beim Rundfunkbeitrag ändern', 'Lieber halbjährlich oder jährlich zahlen? Wir teilen dem Beitragsservice Ihren gewünschten Zahlungsrhythmus mit. Einmalig 49 €, offizielles Formular kostenlos.'],
         'zweitwohnung' => ['Nebenwohnung vom Rundfunkbeitrag befreien', 'Sie zahlen für Ihre Hauptwohnung? Wir melden die Nebenwohnung bei Bedarf an und beantragen die Befreiung. Einmalig 49 €.'],
         'weitere-wohnung-anmelden' => ['Weitere Wohnung beim Rundfunkbeitrag anmelden', 'Eine zusätzliche Wohnung? Wir zeigen, ob eine Befreiung möglich ist oder eine Anmeldung nötig ist, damit Sie nicht doppelt zahlen.'],
     ];
