@@ -83,6 +83,9 @@ function parse_input(array $b, bool $partial = false): array
             if ($type === 'account' && !preg_match('/^\d{9}$/', preg_replace('/\s/', '', $v))) {
                 $error = 'Enter 9 digits.';
             }
+            if ($type === 'postcode' && !preg_match('/^\d{5}$/', trim($v))) {
+                $error = 'Enter a five-digit German postcode.';
+            }
             if (in_array($type, ['date', 'dob'], true) && !valid_date($v)) {
                 $error = 'Enter a valid calendar date.';
             }
@@ -120,6 +123,12 @@ function parse_input(array $b, bool $partial = false): array
     if (!$partial) {
         if ($route === 'death' && valid_date($d['deathDate'] ?? null) && ($d['deathDate'] > gmdate('Y-m-d') || $d['deathDate'] < ($d['dob'] ?? ''))) {
             $issues['deathDate'] = ['en' => 'Check the date of death.', 'de' => 'Prüfen Sie das Sterbedatum.'];
+        }
+        if ($route === 'payer' && is_string($active['account'] ?? null) && is_string($active['payerAccount'] ?? null) && preg_replace('/\s/', '', $active['account']) === preg_replace('/\s/', '', $active['payerAccount'])) {
+            $issues['payerAccount'] = ['en' => 'This is the same contribution number as your own account.', 'de' => 'Das ist dieselbe Beitragsnummer wie bei Ihrem eigenen Konto.'];
+        }
+        if ($route === 'second' && ($active['mainPayer'] ?? '') === 'spouse' && trim((string)($active['spouseName'] ?? '')) === '') {
+            $issues['spouseName'] = ['en' => 'Please enter the name of the person who pays.', 'de' => 'Bitte geben Sie den Namen der zahlenden Person an.'];
         }
         if ($issues) {
             fail('CHECK_FIELDS', 422, $issues);

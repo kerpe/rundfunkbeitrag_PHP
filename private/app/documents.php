@@ -1,7 +1,7 @@
 <?php
 
 const POA_BODY = ['de' => 'Bevollmächtigte und Umfang
-Ich bevollmächtige {PFULL}, mich gegenüber dem ARD ZDF Deutschlandradio Beitragsservice und der für mein Beitragskonto zuständigen Landesrundfunkanstalt ausschließlich bei dem oben bezeichneten Vorgang zu vertreten.
+Ich bevollmächtige {PFULL}, mich gegenüber dem ARD ZDF Deutschlandradio Beitragsservice und der für das betroffene Beitragskonto zuständigen Landesrundfunkanstalt ausschließlich bei dem oben bezeichneten Vorgang zu vertreten.
 Die Vollmacht umfasst die Übertragung meiner Angaben in die erforderlichen Formulare, deren Einreichung in meinem Namen zusammen mit den bezeichneten Nachweisen sowie die hierfür bis zur Einreichung erforderliche administrative Kommunikation. Offensichtliche Übertragungsfehler dürfen berichtigt werden. Änderungen meines Antragsinhalts oder meiner Sachverhaltsangaben bedürfen meiner vorherigen Bestätigung.
 Bei einem Auftrag zur Befreiung einer Nebenwohnung umfasst die Vollmacht auch deren erforderliche Anmeldung, jedoch nur, wenn diese oben ausdrücklich als Bestandteil des Auftrags bezeichnet ist. Andere Wohnungen oder eigenständige Folgeaufträge sind nicht erfasst.
 
@@ -15,7 +15,7 @@ Ich kann die Vollmacht jederzeit mit Wirkung für die Zukunft gegenüber {P} ode
 Die Erteilung dieser Vollmacht begründet für sich genommen keine Zahlungspflicht und führt nicht zum Verlust des gesetzlichen Widerrufsrechts bezüglich des Servicevertrags. Der Widerruf der Vollmacht ist von der Beendigung dieses Vertrags zu unterscheiden; der Inhalt meiner Erklärung ist maßgeblich.
 
 Erteilung im Online-Bestellvorgang: durch gesondertes aktives Ankreuzen der Erklärung „Ich erteile die Vollmacht für diesen Auftrag“.', 'en' => 'Authorised representative and scope
-I authorise {PFULL}, to represent me before ARD ZDF Deutschlandradio Beitragsservice and the regional broadcasting institution responsible for my contribution account exclusively in the matter identified above.
+I authorise {PFULL}, to represent me before ARD ZDF Deutschlandradio Beitragsservice and the regional broadcasting institution responsible for the contribution account concerned exclusively in the matter identified above.
 The authority covers transferring my information into the necessary forms, submitting them in my name with the identified supporting documents, and the administrative communication necessary for that purpose up to submission. Obvious transcription errors may be corrected. Changes to the substance of my application or my factual statements require my prior confirmation.
 For a secondary-residence exemption order, the authority also covers any necessary registration of that residence, but only where registration is expressly identified above as part of the order. Other dwellings and separate subsequent orders are not covered.
 
@@ -29,9 +29,36 @@ I may revoke this authority at any time with effect for the future by notifying 
 Granting this authority does not itself create an obligation to pay or extinguish the statutory right of withdrawal from the service contract. Revoking the authority is distinct from ending that contract; the substance of my declaration determines its meaning.
 
 Grant in the online checkout: by actively selecting the separate declaration “I grant the power of attorney for this order”.'];
-function poa_address(array $d, string $p): string
+function poa_address(array $d, string $p, array $fields = []): string
 {
-    return implode(', ', array_filter([trim(((string)($d[$p.'Street'] ?? '')).' '.((string)($d[$p.'Number'] ?? ''))), trim((string)($d[$p.'Extra'] ?? '')), trim(((string)($d[$p.'Postcode'] ?? '')).' '.((string)($d[$p.'City'] ?? ''))), $p === 'new' ? trim((string)($d['countryName'] ?? '')) : ''], 'strlen'));
+    $code = $p === 'new' ? ($d['newCountry'] ?? '') : ($p === 'post' && ($d['postCountry'] ?? 'DE') !== 'DE' ? $d['postCountry'] : '');
+    $country = $code === 'other' ? trim((string)($d['countryName'] ?? '')) : '';
+    foreach ($fields as $f) {
+        if ($code !== '' && $country === '' && in_array($f['key'], ['newCountry', 'postCountry'], true)) {
+            foreach ($f['options'] as [$v,$label]) {
+                if ($v === $code) {
+                    $country = $label['de'];
+                }
+            }
+        }
+    }
+    if ($p === 'new' && $code === '') {
+        $country = trim((string)($d['countryName'] ?? ''));
+    }
+    return implode(', ', array_filter([trim(((string)($d[$p.'Street'] ?? '')).' '.((string)($d[$p.'Number'] ?? ''))), trim((string)($d[$p.'Extra'] ?? '')), trim(((string)($d[$p.'Postcode'] ?? '')).' '.((string)($d[$p.'City'] ?? ''))), $country], 'strlen'));
+}
+
+// Dates in the power of attorney: 27.10.2026 in German, 27/10/2026 in the English translation.
+function poa_date(string $v, bool $en): string
+{
+    $sep = $en ? '/' : '.';
+    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $v, $m)) {
+        return $m[3].$sep.$m[2].$sep.$m[1];
+    }
+    if (preg_match('/^(\d{4})-(\d{2})$/', $v, $m)) {
+        return $m[2].$sep.$m[1];
+    }
+    return $v;
 }
 
 function authority_text(array $c, array $s, string $ref, string $at, string $lang): string
@@ -44,14 +71,26 @@ function authority_text(array $c, array $s, string $ref, string $at, string $lan
     $until = gmdate('d.m.Y', strtotime(substr($at, 0, 10).' +6 months'));
     $reg = preg_match('/\b\d{9}\b/', (string)($s['taxIdentifier'] ?? ''), $m) ? $m[0] : '';
     $addr = preg_replace('/\s*\R\s*/', ', ', trim($s['providerAddress']));
-    $flats = [poa_address($d, 'home')];
+    $flats = [poa_address($d, 'home', $set['fields'])];
     if ($r === 'change' && !empty($d['newStreet'])) {
-        $flats[] = poa_address($d, 'new');
+        $flats[] = poa_address($d, 'new', $set['fields']);
     }
+    $death = $r === 'death';
+    $deceased = trim(($d['firstName'] ?? '').' '.($d['lastName'] ?? ''));
     $out = [];
     foreach ($lang === 'en' ? ['de', 'en'] : ['de'] as $l) {
         $en = $l === 'en';
         $title = rules()['routes'][$r]['title'][$l];
+        $role = '';
+        foreach ($set['fields'] as $f) {
+            if ($f['key'] === 'role') {
+                foreach ($f['options'] as [$v,$label]) {
+                    if ($v === ($d['role'] ?? '')) {
+                        $role = $label[$l];
+                    }
+                }
+            }
+        }
         if ($r === 'death' && ($d['remaining'] ?? '') === 'yes' && ($d['remainingWho'] ?? '') === 'self') {
             $who = ($d['remainingWho'] ?? '') === 'other' ? trim(($d['remainingFirst'] ?? '').' '.($d['remainingLast'] ?? '')) : ($en ? 'the person placing the order' : 'auftraggebende Person');
             $title .= ($en ? ' and registration of the dwelling for the remaining resident (' : ' sowie Anmeldung der Wohnung für die verbleibende Person (').$who.')';
@@ -66,7 +105,7 @@ function authority_text(array $c, array $s, string $ref, string $at, string $lan
                 continue;
             }
             if (in_array($f['type'], ['date', 'month'], true)) {
-                $change[] = $f['label'][$l].': '.$v;
+                $change[] = $f['label'][$l].': '.poa_date((string)$v, $en);
             } elseif ($f['key'] === 'changes') {
                 $names = [];
                 foreach ($f['options'] as [$code,$label]) {
@@ -80,13 +119,13 @@ function authority_text(array $c, array $s, string $ref, string $at, string $lan
         $docs = array_map(fn ($x) => $x['title'][$l], $set['documents']);
         $P = $s['providerName'];
         $full = $P.', '.$addr.($reg !== '' ? ($en ? ', registration number ' : ', Registrierungsnummer ').$reg : '').($en ? ', email: ' : ', E-Mail: ').$s['supportEmail'];
-        $head = $en ? "Power of attorney for one broadcasting contribution matter\n\nPrincipal and matter\nFull name: $grantor\nAddress: ".poa_address($d, $post)."\nContribution number, if available: ".(($d['account'] ?? '') ?: 'none (new registration)')."\nOrder reference: $ref\nSelected procedure: $title\nAffected dwelling or dwellings: ".implode('; ', $flats)."\nRelevant date and specific change: ".($change ? implode('; ', $change) : 'see order details')."\nDocuments to be submitted: the form for the procedure identified above".($docs ? ' and, where provided: '.implode('; ', $docs) : '')."\n\n" : "Vollmacht für einen einzelnen Rundfunkbeitragsauftrag\n\nVollmachtgebende Person und Vorgang\nVollständiger Name: $grantor\nAnschrift: ".poa_address($d, $post)."\nBeitragsnummer, soweit vorhanden: ".(($d['account'] ?? '') ?: 'keine (Neuanmeldung)')."\nAuftragsnummer: $ref\nAusgewählter Vorgang: $title\nBetroffene Wohnung beziehungsweise Wohnungen: ".implode('; ', $flats)."\nMaßgebliches Datum und konkrete Änderung: ".($change ? implode('; ', $change) : 'siehe Auftragsangaben')."\nEinzureichende Unterlagen: Formular für den oben bezeichneten Vorgang".($docs ? ' sowie, soweit vorgelegt: '.implode('; ', $docs) : '')."\n\n";
-        $out[] = $head.strtr(POA_BODY[$l], ['{PFULL}' => $full, '{P}' => $P, '{MAIL}' => $s['supportEmail'], '{UNTIL}' => $until]).($en ? "\nRecord: order reference $ref · version ".POA_VERSION." · $at (UTC)\nMethod: " : "\nDokumentation: Auftragsnummer $ref · Fassung ".POA_VERSION." · $at (UTC)\nVerfahren: ").$s['authorityMethod'];
+        $head = $en ? "Power of attorney for one broadcasting contribution matter\n\nPrincipal and matter\nFull name: $grantor\n".($death ? "Role: $role\nPostal address for this matter: ".poa_address($d, $post, $set['fields'])."\nDeceased person: $deceased".(!empty($d['dob']) ? ', born '.poa_date($d['dob'], true) : '')."\nContribution number of the deceased person: ".(($d['account'] ?? '') ?: 'not known') : "Address: ".poa_address($d, $post, $set['fields'])."\nContribution number, if available: ".(($d['account'] ?? '') ?: 'none (new registration)'))."\nOrder reference: $ref\nSelected procedure: $title\nAffected dwelling or dwellings: ".implode('; ', $flats)."\nRelevant date and specific change: ".($change ? implode('; ', $change) : 'see order details')."\nDocuments to be submitted: the form for the procedure identified above".($docs ? ' and, where provided: '.implode('; ', $docs) : '')."\n\n" : "Vollmacht für einen einzelnen Rundfunkbeitragsauftrag\n\nVollmachtgebende Person und Vorgang\nVollständiger Name: $grantor\n".($death ? "Rolle: $role\nPostanschrift für diesen Vorgang: ".poa_address($d, $post, $set['fields'])."\nVerstorbene Person: $deceased".(!empty($d['dob']) ? ', geboren am '.poa_date($d['dob'], false) : '')."\nBeitragsnummer der verstorbenen Person: ".(($d['account'] ?? '') ?: 'nicht bekannt') : "Anschrift: ".poa_address($d, $post, $set['fields'])."\nBeitragsnummer, soweit vorhanden: ".(($d['account'] ?? '') ?: 'keine (Neuanmeldung)'))."\nAuftragsnummer: $ref\nAusgewählter Vorgang: $title\nBetroffene Wohnung beziehungsweise Wohnungen: ".implode('; ', $flats)."\nMaßgebliches Datum und konkrete Änderung: ".($change ? implode('; ', $change) : 'siehe Auftragsangaben')."\nEinzureichende Unterlagen: Formular für den oben bezeichneten Vorgang".($docs ? ' sowie, soweit vorgelegt: '.implode('; ', $docs) : '')."\n\n";
+        $out[] = $head.strtr(POA_BODY[$l], ['{PFULL}' => $full, '{P}' => $P, '{MAIL}' => $s['supportEmail'], '{UNTIL}' => $until]).($en ? "\nRecord: order reference $ref · version ".POA_VERSION.' · '.poa_date($at, true).', '.substr($at, 11, 5)." UTC\nMethod: " : "\nDokumentation: Auftragsnummer $ref · Fassung ".POA_VERSION.' · '.poa_date($at, false).', '.substr($at, 11, 5)." UTC\nVerfahren: ").$s['authorityMethod'];
     }
     return implode("\n\n— English translation for information; the German text above is binding —\n\n", $out);
 }
 
-const POA_VERSION = 'vollmacht-2026-10-25b';
+const POA_VERSION = 'vollmacht-2026-10-27';
 function make_order(array $c, array $s, array $consent, string $lang): array
 {
     $d = $c['data'];

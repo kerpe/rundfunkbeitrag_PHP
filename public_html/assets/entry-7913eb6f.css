@@ -477,3 +477,14 @@ html body .public-price+h2{margin-top:36px}
 .rb-adm-mfa-forms{margin-top:20px;padding-top:18px;border-top:1px solid var(--t-line,#e4ddd0)}
 .rb-adm-mfa-forms h3{font-size:16px;margin:0 0 2px}
 .rb-adm-mfa-forms .rb-adm-muted{margin:0 0 4px}
+.mj-chosen-price{font-size:.875rem;line-height:1.45;font-weight:600;color:var(--t-primary)}
+.mj-redact{font-size:.875rem;line-height:1.5;color:#5b5750;margin:0 0 16px}
+.legal-doc{line-height:1.7}
+.legal-doc p{margin:0 0 10px;overflow-wrap:anywhere}
+.legal-doc .legal-h{font-size:1.15rem;line-height:1.35;margin:28px 0 10px;scroll-margin-top:24px}
+.legal-toc{border:1px solid #dfe6e3;border-radius:12px;padding:14px 18px;margin:0 0 24px;background:#f6faf8}
+.legal-toc ol{margin:8px 0 0;padding-left:0;list-style:none}
+.legal-toc li{margin:4px 0}
+.legal-toc a{text-decoration:underline}
+.mj-dialog .legal-doc{font-size:14px}
+.mj-dialog .legal-doc .legal-h{font-size:1rem}
