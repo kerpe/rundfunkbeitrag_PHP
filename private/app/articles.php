@@ -62,11 +62,11 @@ HTML],
 HTML],
     ['slug' => 'nebenwohnung-befreien-frist', 'lang' => 'de', 'alt' => 'second-home-exemption-deadline', 'service' => 'zweitwohnung',
         'title' => 'Nebenwohnung vom Rundfunkbeitrag befreien: die 3-Monats-Frist',
-        'description' => 'Wer für die Hauptwohnung zahlt, kann eine Nebenwohnung befreien lassen. Warum die Frist von drei Monaten nach dem Einzug Geld spart und welche Nachweise nötig sind.',
+        'description' => 'Wer für die Hauptwohnung zahlt, kann eine Nebenwohnung befreien lassen. Warum die Frist von drei Monaten wichtig ist und welche Nachweise nötig sind.',
         'body' => <<<'HTML'
 <p class="public-lead">Seit einem Urteil des Bundesverfassungsgerichts von 2018 muss niemand für eine Nebenwohnung zusätzlich zahlen, der für seine Hauptwohnung bereits zahlt. Die Befreiung gibt es aber nur auf Antrag, und der Zeitpunkt entscheidet über bares Geld.</p>
 <h2>Kurz erklärt</h2>
-<ul><li>Die Befreiung ist möglich, wenn für Ihre Hauptwohnung bereits der Rundfunkbeitrag gezahlt wird, von Ihnen oder Ihrem Ehe- bzw. eingetragenen Lebenspartner.</li><li>Geht der Antrag innerhalb von drei Monaten nach dem Einzug in die Nebenwohnung beim Beitragsservice ein, kann die Befreiung ab dem Einzugsmonat gelten. Sonst gilt sie erst ab dem Monat der Antragstellung.</li><li>Jeder Monat ohne Befreiung kostet 18,36 €.</li><li>Die Befreiung gilt nur für die Person, die den Antrag stellt. Ihr Ehe- oder eingetragener Lebenspartner kann für dieselbe Nebenwohnung einen eigenen Antrag stellen.</li></ul>
+<ul><li>Die Befreiung ist möglich, wenn für Ihre Hauptwohnung bereits der Rundfunkbeitrag gezahlt wird, von Ihnen oder Ihrem Ehe- bzw. eingetragenen Lebenspartner.</li><li>Geht der Antrag innerhalb von drei Monaten, nachdem alle Voraussetzungen vorliegen (meist ab dem Einzug in die Nebenwohnung), beim Beitragsservice ein, kann die Befreiung ab diesem Monat gelten. Sonst gilt sie erst ab dem Monat der Antragstellung. Über den genauen Beginn entscheidet der Beitragsservice.</li><li>Für Monate ohne Befreiung bleibt in der Regel der Beitrag von 18,36 € fällig.</li><li>Die Befreiung gilt nur für die Person, die den Antrag stellt. Ihr Ehe- oder eingetragener Lebenspartner kann für dieselbe Nebenwohnung einen eigenen Antrag stellen.</li></ul>
 <h2>Was Sie brauchen</h2>
 <ul><li>Beitragsnummer für Ihre Hauptwohnung</li><li>Anschrift der Nebenwohnung und Einzugsdatum</li><li>Erweiterte Meldebescheinigung mit Haupt- und Nebenwohnung oder einen Zweitwohnungsteuerbescheid</li></ul>
 <h2>Kostenlos selbst erledigen</h2>
@@ -76,11 +76,11 @@ HTML],
 HTML],
     ['slug' => 'second-home-exemption-deadline', 'lang' => 'en', 'alt' => 'nebenwohnung-befreien-frist', 'service' => 'zweitwohnung',
         'title' => 'Second home exemption from the Rundfunkbeitrag: the 3-month deadline',
-        'description' => 'If you pay for your main home, you can have a second home exempted. Why the three-month deadline after moving in saves money and which proof you need.',
+        'description' => 'If you pay for your main home, you can have a second home exempted. Why the three-month deadline matters and which proof you need.',
         'body' => <<<'HTML'
 <p class="public-lead">Since a 2018 ruling of Germany's Federal Constitutional Court, nobody who already pays for their main home has to pay again for a second home. But the exemption is only granted on application, and the timing makes a real difference.</p>
 <h2>In short</h2>
-<ul><li>The exemption is possible if you, or your spouse or registered partner, pay the Rundfunkbeitrag for your main home.</li><li>If Beitragsservice receives the application within three months of moving into the second home, the exemption can start in the month you moved in. Otherwise, it only applies from the month of the application.</li><li>Every month without the exemption costs €18.36.</li><li>The exemption only covers the person who applies. Your spouse or registered partner can make their own application for the same second home.</li></ul>
+<ul><li>The exemption is possible if you, or your spouse or registered partner, pay the Rundfunkbeitrag for your main home.</li><li>If Beitragsservice receives the application within three months of all the conditions being met (usually from moving into the second home), the exemption can start in that month. Otherwise, it only applies from the month of the application. Beitragsservice decides the exact start date.</li><li>For months without the exemption, the €18.36 contribution usually remains due.</li><li>The exemption only covers the person who applies. Your spouse or registered partner can make their own application for the same second home.</li></ul>
 <h2>What you need</h2>
 <ul><li>Contribution number for your main home</li><li>Address of the second home and the moving-in date</li><li>Extended registration certificate (erweiterte Meldebescheinigung) showing main and second home, or a second-home tax notice</li></ul>
 <h2>Do it yourself for free</h2>

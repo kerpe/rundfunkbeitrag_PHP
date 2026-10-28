@@ -133,8 +133,9 @@ function api(array $p, string $method): array
             return ['verified' => true, 'verificationMode' => 'email', 'continuationUrl' => '/antrag?case='.$t['caseId']];
         }
         $e = email($b['email'] ?? null);
-        $ref = strtoupper(text($b['reference'] ?? null, 3, 100));
-        $row = sql("SELECT data_json FROM rb_records WHERE kind='case' AND owner_hash<>'erasing' AND LOWER(TRIM(JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.data.email'))))=? AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.order.reference'))=? LIMIT 1", [$e, $ref])->fetch();
+        // A withdrawal may name the contract without the order number (details instead); recovery always needs it.
+        $ref = $head === 'withdrawal' && trim((string)($b['reference'] ?? '')) === '' ? '' : strtoupper(text($b['reference'] ?? null, 3, 100));
+        $row = $ref === '' ? null : sql("SELECT data_json FROM rb_records WHERE kind='case' AND owner_hash<>'erasing' AND LOWER(TRIM(JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.data.email'))))=? AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.order.reference'))=? LIMIT 1", [$e, $ref])->fetch();
         $match = $row ? json_decode($row['data_json'], true) : null;
         if ($head === 'recover-access') {
             rate('recover-request:'.$e, 3, 3600);
@@ -147,11 +148,15 @@ function api(array $p, string $method): array
             fail('WITHDRAWAL_CONFIRMATION_REQUIRED');
         }
         $op = operation($b);
-        $ack = ['name' => text($b['name'] ?? null, 3, 200), 'email' => $e, 'reference' => $ref, 'at' => now(), 'declaration' => 'Hiermit widerrufe ich den bezeichneten Vertrag. / I hereby withdraw from the identified contract.', 'mode' => 'live'];
+        $details = trim((string)($b['details'] ?? ''));
+        if (mb_strlen($details) > 1000) {
+            fail('INVALID_FIELD');
+        }
+        $ack = ['name' => text($b['name'] ?? null, 3, 200), 'email' => $e, 'reference' => $ref, 'details' => $details, 'at' => now(), 'declaration' => 'Hiermit widerrufe ich den bezeichneten Vertrag. / I hereby withdraw from the identified contract.', 'mode' => 'live'];
         $old = record('inbox:'.$op, true);
         if ($old) {
-            foreach (['name', 'email', 'reference'] as $k) {
-                if ($old['value']['acknowledgement'][$k] !== $ack[$k]) {
+            foreach (['name', 'email', 'reference', 'details'] as $k) {
+                if (($old['value']['acknowledgement'][$k] ?? '') !== $ack[$k]) {
                     fail('OPERATION_CONFLICT', 409);
                 }
             }
@@ -162,6 +167,7 @@ function api(array $p, string $method): array
             save_case($match, $updated, $op, 'public-customer', 'withdraw', $b);
         }
         put('inbox:'.$op, 'inbox', ['id' => $op, 'kind' => 'withdrawal', 'status' => $match ? 'matched' : 'received', 'created_at' => now(), 'payload_json' => json_encode($ack), 'acknowledgement' => $ack], $match['id'] ?? '');
+        withdrawal_mails($ack, $op, $match);
         return ['acknowledgement' => $ack];
     }
     if ($head === 'resume') {
