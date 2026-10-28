@@ -96,6 +96,33 @@ function staff_review_notice(array $c, string $id): void
     queue_mail($id.'-staff', $c, 'staff-message', $to, ['subject' => 'Neue Bewertung / New review · '.$ref.' · '.$r['rating'].'/5', 'text' => "Neue Kundenbewertung / New customer review\n{$ref} · {$r['rating']}/5 · {$r['name']}".($r['place'] !== '' ? ' · '.$r['place'] : '')."\n\n{$r['text']}\n\nErst nach Ihrer Freigabe im Vorgang sichtbar. / Shown only after you approve it in the case.\n".config()['public_url'].'/admin']);
 }
 
+// Withdrawal form: staff always hear about it; a declaration we could not match to an order gets its own receipt.
+function withdrawal_mails(array $ack, string $op, ?array $match): void
+{
+    $to = strtolower(trim(settings()['supportEmail'] ?? ''));
+    $case = ['id' => $match['id'] ?? ''];
+    $who = $ack['name'].' · '.$ack['email'];
+    $at = gmdate('d.m.Y, H:i', strtotime($ack['at'])).' UTC';
+    if (filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        $what = $match ? 'Zugeordnet zu / Matched to '.$ack['reference'] : 'NICHT zugeordnet, bitte Auftrag suchen / NOT matched, please find the order'.($ack['reference'] !== '' ? ' (angegeben / given: '.$ack['reference'].')' : '');
+        queue_mail($op.'-staff', $case, 'staff-message', $to, ['subject' => 'Widerruf eingegangen / Withdrawal received'.($match ? ' · '.$ack['reference'] : ''), 'text' => "Widerruf eingegangen / Withdrawal received\n{$at}\n{$who}\n{$what}".($ack['details'] !== '' ? "\n\nAngaben zum Vertrag / Contract details:\n".$ack['details'] : '')."\n\n".config()['public_url'].'/admin']);
+    }
+    if ($match) {
+        return;
+    }
+    try {
+        rate('withdrawal-receipt:'.$ack['email'], 3, 86400);
+    } catch (AppError) {
+        return;
+    }
+    $l = request_lang();
+    $title = mt('title.withdraw', $l);
+    $paras = $l === 'en'
+        ? array_merge(['We received your withdrawal declaration on '.$at.'.', 'Your declaration: I hereby withdraw from the contract identified above.', 'Name: '.$ack['name']], $ack['reference'] !== '' ? ['Order number given: '.$ack['reference']] : [], $ack['details'] !== '' ? ['Your details: '.$ack['details']] : [], ['We will match the declaration to your order and contact you if we need anything else.'])
+        : array_merge(['Ihre Widerrufserklärung ist am '.$at.' bei uns eingegangen.', 'Ihre Erklärung: Hiermit widerrufe ich den oben bezeichneten Vertrag.', 'Name: '.$ack['name']], $ack['reference'] !== '' ? ['Angegebene Auftragsnummer: '.$ack['reference']] : [], $ack['details'] !== '' ? ['Ihre Angaben: '.$ack['details']] : [], ['Wir ordnen die Erklärung Ihrem Auftrag zu und melden uns, falls wir noch etwas brauchen.']);
+    queue_mail($op.'-receipt', $case, 'withdrawal-receipt', $ack['email'], ['subject' => $title, 'text' => $title."\n\n".implode("\n\n", $paras), 'view' => ['lang' => $l, 'title' => $title, 'paras' => $paras]]);
+}
+
 function access_mail(array $c, string $kind): string
 {
     $email = email($c['data']['email'] ?? null);
@@ -199,7 +226,9 @@ function dispatch_mail(int $limit = 5): array
             continue;
         }
         $c = record('case:'.$m['case_id']);
-        if ($m['kind'] === 'staff-invite' ? !record('staff:'.$m['recipient']) : !$c || $c['owner_hash'] === 'erasing' || ($m['kind'] === 'staff-message' ? strtolower(trim(settings()['supportEmail'] ?? '')) !== $m['recipient'] : (strtolower(trim($c['value']['data']['email'])) !== $m['recipient'] || (!in_array($m['kind'], ['verify', 'recover'], true) && (!record('contact:'.$m['case_id']) || record('contact:'.$m['case_id'])['value']['email'] !== $m['recipient']))))) {
+        // Mail for an unmatched withdrawal has no case: only the receipt and the staff notice may go out without one.
+        $caseless = ($m['case_id'] ?? '') === '' && in_array($m['kind'], ['withdrawal-receipt', 'staff-message'], true);
+        if ($caseless ? $m['kind'] === 'staff-message' && strtolower(trim(settings()['supportEmail'] ?? '')) !== $m['recipient'] : ($m['kind'] === 'staff-invite' ? !record('staff:'.$m['recipient']) : !$c || $c['owner_hash'] === 'erasing' || ($m['kind'] === 'staff-message' ? strtolower(trim(settings()['supportEmail'] ?? '')) !== $m['recipient'] : (strtolower(trim($c['value']['data']['email'])) !== $m['recipient'] || (!in_array($m['kind'], ['verify', 'recover'], true) && (!record('contact:'.$m['case_id']) || record('contact:'.$m['case_id'])['value']['email'] !== $m['recipient'])))))) {
             $m['status'] = 'cancelled';
             put('mail:'.$m['id'], 'mail', $m, $m['case_id']);
             db()->commit();
