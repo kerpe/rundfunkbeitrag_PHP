@@ -96,6 +96,17 @@ function staff_review_notice(array $c, string $id): void
     queue_mail($id.'-staff', $c, 'staff-message', $to, ['subject' => 'Neue Bewertung / New review · '.$ref.' · '.$r['rating'].'/5', 'text' => "Neue Kundenbewertung / New customer review\n{$ref} · {$r['rating']}/5 · {$r['name']}".($r['place'] !== '' ? ' · '.$r['place'] : '')."\n\n{$r['text']}\n\nErst nach Ihrer Freigabe im Vorgang sichtbar. / Shown only after you approve it in the case.\n".config()['public_url'].'/admin']);
 }
 
+// Contact form: goes to the support address only; replying answers the customer directly.
+function contact_mail(string $name, string $email, string $ref, string $message): void
+{
+    $to = strtolower(trim(settings()['supportEmail'] ?? ''));
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        fail('SERVICE_UNAVAILABLE', 503);
+    }
+    $who = ($name !== '' ? $name.' · ' : '').$email.($ref !== '' ? ' · '.$ref : '');
+    queue_mail(uuid().'-contact', ['id' => ''], 'staff-message', $to, ['subject' => 'Kontaktformular / Contact form · '.($name !== '' ? $name : $email), 'text' => "Kontaktformular / Contact form\n{$who}\nSprache / Language: ".request_lang()."\n\n{$message}\n\nAntworten Sie direkt auf diese E-Mail. / Reply directly to this email.", 'reply_to' => $email]);
+}
+
 // Withdrawal form: staff always hear about it; a declaration we could not match to an order gets its own receipt.
 function withdrawal_mails(array $ack, string $op, ?array $match): void
 {
@@ -283,6 +294,9 @@ function dispatch_mail(int $limit = 5): array
                 db()->commit();
             }
             $send = ['from' => config()['email_from'], 'to' => [$m['recipient']], 'subject' => $p['subject'], 'text' => $p['text']];
+            if (isset($p['reply_to'])) {
+                $send['reply_to'] = $p['reply_to'];
+            }
             if (isset($p['attachments'])) {
                 $send['attachments'] = $p['attachments'];
             }
