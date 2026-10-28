@@ -106,6 +106,27 @@ function api(array $p, string $method): array
         }
         fail('NOT_FOUND', 404);
     }
+    if ($head === 'contact') {
+        if ($method !== 'POST') {
+            fail('METHOD_NOT_ALLOWED', 405);
+        }
+        $b = body();
+        rate('contact:ip:'.($_SERVER['REMOTE_ADDR'] ?? 'local'), 5, 3600);
+        // Hidden field that people never fill in: answer as if sent, send nothing.
+        if (trim((string)($b['website'] ?? '')) !== '') {
+            return ['sent' => true];
+        }
+        $e = email($b['email'] ?? null);
+        $name = trim((string)($b['name'] ?? ''));
+        $ref = trim((string)($b['reference'] ?? ''));
+        if (mb_strlen($name) > 200 || mb_strlen($ref) > 100) {
+            fail('INVALID_FIELD');
+        }
+        $message = text($b['message'] ?? null, 10, 4000);
+        rate('contact:email:'.$e, 3, 3600);
+        contact_mail($name, $e, $ref, $message);
+        return ['sent' => true];
+    }
     if (in_array($head, ['verify-contact', 'recover-access', 'withdrawal'], true)) {
         if ($method !== 'POST') {
             fail('METHOD_NOT_ALLOWED', 405);
