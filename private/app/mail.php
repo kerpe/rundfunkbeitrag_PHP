@@ -42,7 +42,7 @@ function queue_notice(array $c, string $action, string $id): void
     if (!record('mail:'.$id)) {
         $link = case_link($c['id'], $email, $o['reference']);
     }
-    $p = ['subject' => $title.' · '.$o['reference'], 'text' => $title."\n".$o['reference']."\n\n".($paras ? implode("\n\n", $paras)."\n\n" : '').mt('case.linkIntro', $l)."\n".$link, 'view' => ['lang' => $l, 'title' => $title, 'ref' => $o['reference'], 'paras' => $paras, 'link' => $link, 'linkNote' => mt('case.linkNote', $l)]];
+    $p = ['subject' => $title.' · '.$o['reference'], 'text' => $title."\n".$o['reference']."\n\n".($paras ? implode("\n\n", $paras)."\n\n" : '').mt('case.linkIntro', $l)."\n".$link, 'view' => ['lang' => $l, 'title' => $title, 'ref' => $o['reference'], 'paras' => $paras, 'link' => $link, 'linkNote' => mt('case.linkNote', $l)], 'reply_to' => support_email()];
     if ($action === 'order') {
         $p['snapshot'] = $c;
     }

@@ -262,7 +262,6 @@ function readiness(array $c): array
         }
     }
     $docs = field_set($c['route'], $c['data'])['documents'];
-    $docs[] = ['id' => 'authority', 'required' => true];
     foreach ($docs as $d) {
         if ($d['required'] && !array_filter($c['documents'], fn ($v) => $v['kind'] === $d['id'] && $v['status'] === 'verified')) {
             $b[] = 'document:'.$d['id'];

@@ -204,7 +204,7 @@ function seo_service_html(string $slug, string $lang): string
     foreach ($faq as [$q,$a]) {
         $fq .= '<details><summary>'.h($q).'</summary><p>'.h($a).'</p></details>';
     }
-    $timing = [[$L('Ihre Angaben', 'Your details'), $L('etwa 2–5 Minuten', 'about 2–5 minutes')], [$L('Auftragsbestätigung', 'Order confirmation'), $L('sofort per E-Mail (noch keine Einreichung)', 'straight away by email (not a submission yet)')], [$L('Einreichung', 'Submission'), $L('spätestens 3 Geschäftstage nach vollständigen Unterlagen; wir informieren Sie per E-Mail', 'within 3 business days once your documents are complete; we let you know by email')], [$L('Antwort des Beitragsservice', 'Reply from Beitragsservice'), $L('in der Regel nach einigen Wochen', 'usually after a few weeks')]];
+    $timing = [[$L('Ihre Angaben', 'Your details'), $L('etwa 2–5 Minuten', 'about 2–5 minutes')], [$L('Auftragsbestätigung', 'Order confirmation'), $L('sofort per E-Mail (noch keine Einreichung)', 'straight away by email (not a submission yet)')], [$L('Einreichung', 'Submission'), $L('spätestens 3 Geschäftstage nach vollständigen Unterlagen; wir informieren Sie per E-Mail', 'within 3 business days once your documents are complete; we let you know by email')], [$L('Antwort des Beitragsservice', 'Reply from Beitragsservice'), $L('in der Regel nach einigen Wochen, per Post direkt an Sie', 'usually after a few weeks, by post directly to you')]];
     $tm = '';
     foreach ($timing as $i => [$a,$b]) {
         $tm .= '<div class="rb-timing-item"><span class="rb-timing-dot" aria-hidden="true">'.($i + 1).'</span><p><strong>'.h($a).'</strong><span>'.h($b).'</span></p></div>';

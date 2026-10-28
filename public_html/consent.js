@@ -107,6 +107,18 @@
         document.body.appendChild(box);
     }
 
+    // Google Ads conversion "Order placed": fired on the "Anliegen starten" buttons (links to /flow/reason), only with consent.
+    // Navigation waits for Google's callback (at most 1 s) so the hit is not lost.
+    document.addEventListener('click', function (e) {
+        var a = e.target && e.target.closest && e.target.closest('a[href="/flow/reason"]');
+        if (!a || !id || read() !== 'granted' || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        var url = a.href, done = false;
+        function go() { if (!done) { done = true; location.href = url; } }
+        load();
+        gtag('event', 'conversion', { send_to: id + '/0r3tCPit7qwdEK-TkIFF', value: 49.0, currency: 'EUR', transaction_id: '', event_callback: go });
+        setTimeout(go, 1000);
+    }, true);
     document.addEventListener('click', function (e) {
         var el = e.target && e.target.closest && e.target.closest('[data-rb-consent]');
         if (!el) return;
