@@ -107,6 +107,12 @@
         document.body.appendChild(box);
     }
 
+    // Google Ads conversion "Order placed": called by the order form once an order is recorded, only with consent.
+    window.rbConversion = function (ref, value) {
+        if (!id || read() !== 'granted') return;
+        load();
+        gtag('event', 'conversion', { send_to: id + '/0r3tCPit7qwdEK-TkIFF', value: value, currency: 'EUR', transaction_id: ref || '' });
+    };
     document.addEventListener('click', function (e) {
         var el = e.target && e.target.closest && e.target.closest('[data-rb-consent]');
         if (!el) return;
