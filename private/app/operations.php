@@ -64,6 +64,10 @@ function staff_action(array $c, array $b): array
             $n['checks']['paymentReference'] = text($b['reference'] ?? null, 3, 200);
             $n['checks']['paidAt'] = $c['checks']['paidAt'] ?? now();
             if (empty($c['checks']['paid'])) {
+                // The "payment received" email goes out only the first time; an invoice means it was already sent.
+                if (empty($o['paymentNotified']) && !record('invoice:'.$c['id'])) {
+                    $o['paymentNotified'] = now();
+                }
                 issue_invoice($n, invoice_service_date($n), billing_address($n));
             }
         } elseif (($b['paid'] ?? null) === false) {
