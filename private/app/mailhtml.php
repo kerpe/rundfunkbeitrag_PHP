@@ -59,7 +59,7 @@ function mail_html(array $p, ?string $qrCid = null): string
         $body .= mail_p(mt('pay.referenceNote', $l), 14);
         $body .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 22px"><tr><td style="font-family:'.$f.';font-size:16px;font-weight:600;color:'.$c['dark'].';padding:0 0 4px">'.h(mt('pay.yourOrder', $l)).'</td></tr><tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">'
          .mail_row(h(mt('pay.orderNumber', $l)), $v['ref']).mail_row(h(mt('pay.service', $l)), $pay['service']).mail_row(h(mt('pay.orderedOn', $l)), $pay['at'])
-         .'</table></td></tr></table>'.mail_p(mt('pay.pdf', $l), 14);
+         .'</table></td></tr></table>'.(empty($v['noPdf']) ? mail_p(mt('pay.pdf', $l), 14) : '');
     }
     if (isset($v['link'])) {
         $body .= mail_button($v['link'], $v['button'] ?? mt('mail.open', $l));
