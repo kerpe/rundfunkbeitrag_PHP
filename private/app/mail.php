@@ -65,6 +65,22 @@ function order_mail(array $p, array $snapshot): array
     return $p;
 }
 
+// Payment reminder: sent once by cron.php when an order is still unpaid three days after ordering; same layout as the order confirmation, without the PDF.
+function payment_reminder(array $c): void
+{
+    $o = $c['order'];
+    $l = rb_lang($o['language'] ?? 'de');
+    $email = strtolower(trim($c['data']['email']));
+    $amount = mail_money((int)($o['feeCents'] ?? 4900), $l);
+    $at = (new DateTimeImmutable($o['at']))->setTimezone(new DateTimeZone('Europe/Berlin'))->format('d.m.Y');
+    $title = mt('rem.title', $l);
+    $paras = [mt('rem.intro', $l, ['date' => $at, 'amount' => $amount])];
+    $link = case_link($c['id'], $email, $o['reference']);
+    $text = $title."\n".$o['reference']."\n\n".$paras[0]."\n\n".mt('pay.transfer', $l).":\n".mt('pay.recipient', $l).': '.$o['beneficiary']."\nIBAN: ".$o['iban']."\nBIC: ".$o['bic']."\n".mt('pay.amount', $l).': '.$amount."\n".mt('pay.reference', $l).': '.$o['reference']."\n\n".mt('pay.referenceNote', $l)."\n\n".mt('rem.paid', $l)."\n\n".mt('rem.free', $l)."\n\n".mt('case.linkIntro', $l)."\n".$link;
+    $view = ['lang' => $l, 'title' => $title, 'preheader' => mt('rem.preheader', $l).' · '.$o['reference'], 'ref' => $o['reference'], 'paras' => $paras, 'noPdf' => true, 'pay' => ['beneficiary' => $o['beneficiary'], 'iban' => $o['iban'], 'bic' => $o['bic'], 'feeCents' => $o['feeCents'] ?? 4900, 'amount' => $amount, 'service' => pick_lang(rules()['routes'][$c['route']]['title'], $l), 'at' => gmdate('d.m.Y, H:i', strtotime($o['at'])).' UTC'], 'link' => $link, 'linkNote' => mt('case.linkNote', $l), 'after' => [mt('rem.paid', $l), mt('rem.free', $l)]];
+    queue_mail('payment-reminder-'.$c['id'], $c, 'payment-reminder', $email, ['subject' => mt('rem.subject', $l).' · '.$o['reference'], 'text' => $text, 'view' => $view, 'reply_to' => support_email()]);
+}
+
 function case_link(string $caseId, string $email, string $ref): string
 {
     $raw = bin2hex(random_bytes(32));

@@ -85,12 +85,39 @@ function purge_retention(): array
     }
     return ['documents' => $docs, 'cases' => $cases];
 }
+// Payment reminder (AGB 6.3): one free email when an order is still unpaid three days after ordering.
+// Orders placed before the feature went live get none.
+const REMINDER_AFTER_DAYS = 3;
+const REMINDER_SINCE = '2026-10-29T00:00:00Z';
+function payment_reminders(): int
+{
+    $n = 0;
+    foreach (sql("SELECT id FROM rb_records WHERE kind='case' AND owner_hash<>'erasing' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.state')) IN ('ordered','in_review','needs_information','submitting','submitted') LIMIT 500")->fetchAll() as $row) {
+        db()->beginTransaction();
+        $r = record($row['id'], true);
+        $c = $r['value'] ?? null;
+        $at = strtotime($c['order']['at'] ?? '') ?: 0;
+        if (!$c || !$at || $at < strtotime(REMINDER_SINCE) || $at > time() - REMINDER_AFTER_DAYS * 86400 || !empty($c['checks']['paid']) || isset($c['operations']['withdrawal']) || isset($c['operations']['paymentReminder']) || !filter_var($c['data']['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
+            db()->commit();
+            continue;
+        }
+        payment_reminder($c);
+        $c['operations']['paymentReminder'] = ['at' => now()];
+        $c['version']++;
+        $c['updatedAt'] = now();
+        put('case:'.$c['id'], 'case', $c, '', $r['owner_hash']);
+        db()->commit();
+        $n++;
+    }
+    return $n;
+}
 try {
+    $reminders = payment_reminders();
     $result = dispatch_mail();
     $purged = purge_stale_drafts();
     $retention = purge_retention();
     sql('DELETE FROM rb_records WHERE expires_at IS NOT NULL AND expires_at<?', [time()]);
-    put('settings:jobs', 'settings', ['updated_at' => now(), 'delivery' => $result, 'draftsPurged' => $purged, 'retention' => $retention]);
+    put('settings:jobs', 'settings', ['updated_at' => now(), 'delivery' => $result, 'paymentReminders' => $reminders, 'draftsPurged' => $purged, 'retention' => $retention]);
     echo "Mail queue processed.\n";
 } catch (Throwable) {
     fwrite(STDERR, "Mail job failed; check administrator delivery tools.\n");
