@@ -30,6 +30,32 @@ function purge_stale_drafts(): int
     }
     return $n;
 }
+// Orders that were never submitted (e.g. missing details never arrived) are deleted after STALE_ORDER_DAYS without any change
+// (privacy notice §11); invoices are kept for accounting.
+const STALE_ORDER_DAYS = 180;
+function purge_stale_orders(): int
+{
+    $n = 0;
+    foreach (sql("SELECT id FROM rb_records WHERE kind='case' AND owner_hash<>'erasing' AND updated_at<? AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.state')) IN ('ordered','in_review','needs_information') LIMIT 200", [time() - STALE_ORDER_DAYS * 86400])->fetchAll() as $row) {
+        db()->beginTransaction();
+        $r = record($row['id'], true);
+        $c = $r['value'] ?? null;
+        if (!$c || !in_array($c['state'], ['ordered', 'in_review', 'needs_information'], true) || !empty($c['submission']) || (int)$r['updated_at'] >= time() - STALE_ORDER_DAYS * 86400) {
+            db()->commit();
+            continue;
+        }
+        sql("DELETE FROM rb_records WHERE (parent_id=? AND kind<>'invoice') OR id=?", [$c['id'], 'case:'.$c['id']]);
+        put('erasure:'.$c['id'], 'erasure', ['id' => $c['id'], 'at' => now(), 'by' => 'stale-order', 'status' => 'complete']);
+        db()->commit();
+        foreach ($c['documents'] as $d) {
+            if (($d['objectKey'] ?? '') !== '' && is_file($f = private_root().'/data/uploads/'.$d['objectKey'])) {
+                unlink($f);
+            }
+        }
+        $n++;
+    }
+    return $n;
+}
 // Retention (privacy notice §11): customer-uploaded evidence goes DOC_KEEP_DAYS after submission (or closing); the whole case CASE_KEEP_DAYS later. Staff receipts stay until then; invoices are kept for accounting.
 const DOC_KEEP_DAYS = 180;
 const CASE_KEEP_DAYS = 1095;
@@ -124,9 +150,10 @@ try {
     $reminders = payment_reminders();
     $result = dispatch_mail();
     $purged = purge_stale_drafts();
+    $staleOrders = purge_stale_orders();
     $retention = purge_retention();
     sql('DELETE FROM rb_records WHERE expires_at IS NOT NULL AND expires_at<?', [time()]);
-    put('settings:jobs', 'settings', ['updated_at' => now(), 'delivery' => $result, 'paymentReminders' => $reminders, 'draftsPurged' => $purged, 'retention' => $retention]);
+    put('settings:jobs', 'settings', ['updated_at' => now(), 'delivery' => $result, 'paymentReminders' => $reminders, 'draftsPurged' => $purged, 'staleOrdersPurged' => $staleOrders, 'retention' => $retention]);
     echo "Mail queue processed.\n";
 } catch (Throwable) {
     fwrite(STDERR, "Mail job failed; check administrator delivery tools.\n");
