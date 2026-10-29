@@ -346,7 +346,7 @@ function save_case(array $before, array $next, string $op, string $by, string $a
     if ($action === 'order') {
         put('package:'.$op, 'package', ['id' => $op, 'sequence' => count(records('package', $before['id'])) + 1, 'created_at' => now(), 'snapshot' => $next], $before['id']);
         queue_notice($next, $action, $op);
-    } elseif ($action === 'payment' && empty($before['checks']['paid']) && !empty($next['checks']['paid'])) {
+    } elseif ($action === 'payment' && empty($before['operations']['paymentNotified']) && !empty($next['operations']['paymentNotified'])) {
         queue_notice($next, 'payment-received', $op);
     } elseif (in_array($action, ['request-information', 'record-submission', 'record-response', 'withdraw', 'review-withdrawal', 'plan-refund', 'record-refund', 'official-follow-up', 'complaint', 'privacy-request', 'resolve-privacy'], true)) {
         queue_notice($next, $action, $op);
