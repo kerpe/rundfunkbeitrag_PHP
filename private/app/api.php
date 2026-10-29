@@ -244,6 +244,25 @@ function api(array $p, string $method): array
         }
         download(file_get_contents($file), $doc['mime'], $doc['name']);
     }
+    // Google Ads "Purchase": staff mark payment in their own browser, so consent.js reports it from the
+    // customer's browser on their next visit (GET lists paid, unreported orders; POST {id} marks one reported).
+    if ($head === 'ads-conversions') {
+        if ($method === 'POST') {
+            $c = current_case(text(body()['id'] ?? null, 36, 36));
+            if (!empty($c['checks']['paid'])) {
+                put('adsconv:'.$c['id'], 'adsconv', ['at' => now()], $c['id']);
+            }
+            return ['ok' => true];
+        }
+        $out = [];
+        foreach (sql("SELECT data_json FROM rb_records WHERE kind='case' AND owner_hash=? AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.checks.paid'))='true' ORDER BY updated_at DESC LIMIT 20", [owner()])->fetchAll() as $r) {
+            $c = json_decode($r['data_json'], true);
+            if (strtotime($c['checks']['paidAt'] ?? '') > time() - 90 * 86400 && !record('adsconv:'.$c['id'])) {
+                $out[] = ['id' => $c['id'], 'reference' => $c['order']['reference'], 'value' => ($c['order']['feeCents'] ?? 4900) / 100];
+            }
+        }
+        return ['conversions' => $out];
+    }
     if ($head !== 'cases') {
         fail('NOT_FOUND', 404);
     }
