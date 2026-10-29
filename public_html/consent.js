@@ -54,6 +54,20 @@
         s.async = true;
         s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
         document.head.appendChild(s);
+        purchases();
+    }
+    // Google Ads conversion "Purchase": orders staff marked as paid are reported once from the customer's own browser
+    // (staff mark payment in their browser, which has no ad click). Case number = transaction_id, so Google drops duplicates;
+    // an order stays listed until Google's callback has fired, so a lost hit is retried on the next visit.
+    function purchases() {
+        if (!window.fetch) return;
+        fetch('/api/journey/ads-conversions', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+            ((d && d.conversions) || []).forEach(function (c) {
+                gtag('event', 'conversion', { send_to: id + '/z9lQCLSt9KwdEK-TkIFF', value: c.value, currency: 'EUR', transaction_id: c.reference, event_callback: function () {
+                    fetch('/api/journey/ads-conversions', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': (window.PHPBOOT || {}).csrf || '' }, body: JSON.stringify({ id: c.id }) });
+                } });
+            });
+        }).catch(function () {});
     }
     function close() {
         if (box) box.remove();
