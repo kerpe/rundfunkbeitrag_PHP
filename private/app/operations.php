@@ -85,6 +85,14 @@ function staff_action(array $c, array $b): array
             fail('INVALID_STATE', 409);
         }
         if (($b['paid'] ?? null) === true) {
+            // Whoever records the payment takes over an unassigned case, so "Claim case" is not needed.
+            if (!$c['assignedTo'] && $c['state'] !== 'submitting') {
+                $n['assignedTo'] = $a;
+                if ($c['state'] === 'ordered') {
+                    $n['state'] = 'in_review';
+                }
+                $n['reviewStartedAt'] ??= now();
+            }
             $n['checks']['paid'] = true;
             $n['checks']['paymentReference'] = text($b['reference'] ?? null, 3, 200);
             $n['checks']['paidAt'] = $c['checks']['paidAt'] ?? now();
@@ -184,14 +192,23 @@ function staff_action(array $c, array $b): array
         }
         $n['state'] = 'submitting';
     } elseif ($action === 'record-submission') {
-        if ($c['state'] !== 'submitting' || $c['submission']) {
+        // Staff submit on the official website, then record it here in one step (the old begin-submission step is optional).
+        if (!in_array($c['state'], ['in_review', 'submitting'], true) || $c['submission']) {
             fail('INVALID_STATE', 409);
         }
+        if ($c['state'] === 'in_review') {
+            if (readiness($c)) {
+                fail('NOT_READY', 409, readiness($c));
+            }
+            if (!settings()['liveEnabled']) {
+                fail('LIVE_ORDERS_DISABLED', 423);
+            }
+        }
         $docs = array_values(array_filter($c['documents'], fn ($d) => $d['id'] === ($b['receiptDocumentId'] ?? '') && $d['kind'] === 'submissionReceipt'));
-        if (!$docs) {
+        if (($b['receiptDocumentId'] ?? '') !== '' && !$docs) {
             fail('RECEIPT_REQUIRED');
         }
-        $n['submission'] = ['at' => now(), 'reference' => text($b['reference'] ?? null, 3, 300), 'receiptDocumentId' => $docs[0]['id']];
+        $n['submission'] = ['at' => now(), 'reference' => text($b['reference'] ?? null, 3, 300), 'receiptDocumentId' => $docs[0]['id'] ?? null];
         $n['state'] = 'submitted';
         if (($o['transmission']['status'] ?? '') === 'uncertain') {
             unset($o['transmission']);
@@ -207,13 +224,13 @@ function staff_action(array $c, array $b): array
         if (!$docs) {
             fail('RESPONSE_DOCUMENT_REQUIRED');
         }
-        $n['response'] = ['at' => now(), 'outcome' => $b['outcome'], 'message' => text($b['message'] ?? null, 3, 2000), 'documentId' => $docs[0]['id']];
+        $n['response'] = ['at' => now(), 'outcome' => $b['outcome'], 'message' => trim((string)($b['message'] ?? '')) === '' ? '' : text($b['message'], 3, 2000), 'documentId' => $docs[0]['id']];
         $n['state'] = 'closed';
     } elseif ($action === 'close-case') {
         if ($c['state'] !== 'submitted') {
             fail('INVALID_STATE', 409);
         }
-        $o['closedWithoutResponse'] = ['reason' => text($b['reason'] ?? null, 3, 500), 'at' => now(), 'by' => $a];
+        $o['closedWithoutResponse'] = ['reason' => trim((string)($b['reason'] ?? '')) === '' ? '' : text($b['reason'], 3, 500), 'at' => now(), 'by' => $a];
         $n['state'] = 'closed';
     } elseif ($action === 'pause') {
         $o['hold'] = ['reason' => text($b['reason'] ?? null, 3), 'at' => now(), 'by' => $a];

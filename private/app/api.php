@@ -486,7 +486,7 @@ function upload_document(array $c): array
     }
     if ($special) {
         require_admin();
-        if ($c['assignedTo'] !== actor() || ($kind === 'submissionReceipt' ? $c['state'] !== 'submitting' : $c['state'] !== 'submitted')) {
+        if ($c['assignedTo'] !== actor() || ($kind === 'submissionReceipt' ? !in_array($c['state'], ['in_review', 'submitting'], true) : $c['state'] !== 'submitted')) {
             fail('INVALID_STATE', 409);
         }
     } elseif (!in_array($kind, $allowed, true) || !in_array($c['state'], ['draft', 'ordered', 'in_review', 'needs_information'], true)) {
