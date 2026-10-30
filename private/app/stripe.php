@@ -10,6 +10,13 @@ function stripe_config(): array
     return ['mode' => in_array($c['stripe_mode'] ?? 'off', ['off', 'test', 'on'], true) ? ($c['stripe_mode'] ?? 'off') : 'off', 'key' => (string)($c['stripe_secret_key'] ?? ''), 'whsec' => (string)($c['stripe_webhook_secret'] ?? ''), 'testEmail' => strtolower(trim((string)($c['stripe_test_email'] ?? '')))];
 }
 
+// Card payment is open to every customer (texts on the homepage, FAQ and service pages then mention it).
+function stripe_public(): bool
+{
+    $s = stripe_config();
+    return $s['mode'] === 'on' && $s['key'] !== '';
+}
+
 function stripe_offered(array $c): bool
 {
     $s = stripe_config();
