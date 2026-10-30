@@ -33,6 +33,9 @@ function queue_notice(array $c, string $action, string $id): void
     if ($invoice) {
         $paras = array_merge((array)$paras, [mt('inv.mail', $l)]);
     }
+    if ($action === 'record-submission' && empty($c['submission']['receiptDocumentId']) && $paras) {
+        $paras[0] = mt('step.submittedNoReceipt', $l);
+    }
     if ($action === 'record-submission' && !empty($c['submission']['at']) && $paras) {
         $w = (new DateTimeImmutable($c['submission']['at']))->setTimezone(new DateTimeZone('Europe/Berlin'));
         array_splice($paras, 1, 0, [mt('submission.when', $l, ['date' => $w->format('d.m.Y'), 'time' => $w->format('H:i')])]);
