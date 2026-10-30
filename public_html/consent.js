@@ -1,9 +1,10 @@
 /* Cookie consent + Google tag (Consent Mode v2, basic mode).
    gtag.js is only loaded after the visitor clicks "Accept"; before that nothing is sent to Google.
-   The choice is kept in the first-party cookie rb-consent (granted|denied) for 6 months.
+   The choice is kept in the first-party cookie rb-consent (granted|granted-ga|denied) for 6 months.
+   With a Google Analytics ID (data-ga) only "granted-ga" counts: an older "granted" covered Google Ads only, so the banner asks again.
    Any element with data-rb-consent (footer "Cookie-Einstellungen") reopens the banner. */
 (function () {
-    var me = document.currentScript, id = me && me.getAttribute('data-gtag');
+    var me = document.currentScript, id = me && me.getAttribute('data-gtag'), ga = me && me.getAttribute('data-ga');
     var NAME = 'rb-consent', AGE = 15552000, loaded = false, box = null;
     window.dataLayer = window.dataLayer || [];
     function gtag() { window.dataLayer.push(arguments); }
@@ -11,7 +12,18 @@
     gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
     gtag('set', 'ads_data_redaction', true);
 
-    var TEXT = {
+    var TEXT = ga ? {
+        de: {
+            title: 'Datenschutz-Einstellungen',
+            body: 'Mit Ihrer Einwilligung nutzen wir Google Analytics, um zu verstehen, wie unsere Website genutzt wird, und den Google-Tag von Google Ads, um zu messen, ob Besucher über unsere Anzeigen zu uns kommen und einen Auftrag erteilen. Dabei werden Cookies gesetzt und Daten an Google übermittelt, auch in die USA. Ohne Einwilligung wird nichts an Google gesendet. Sie können Ihre Wahl jederzeit über „Cookie-Einstellungen“ unten auf jeder Seite ändern. ',
+            more: 'Datenschutzerklärung', reject: 'Ablehnen', accept: 'Akzeptieren'
+        },
+        en: {
+            title: 'Privacy settings',
+            body: 'With your consent we use Google Analytics to understand how our website is used, and the Google Ads tag to measure whether visitors reach us through our ads and place an order. This sets cookies and sends data to Google, including to the USA. Without your consent nothing is sent to Google. You can change your choice at any time via “Cookie settings” at the bottom of every page. ',
+            more: 'Privacy policy', reject: 'Reject', accept: 'Accept'
+        }
+    } : {
         de: {
             title: 'Datenschutz-Einstellungen',
             body: 'Mit Ihrer Einwilligung nutzen wir den Google-Tag von Google Ads, um zu messen, ob Besucher über unsere Anzeigen zu uns kommen und einen Auftrag erteilen. Dabei werden Cookies gesetzt und Daten an Google übermittelt, auch in die USA. Ohne Einwilligung wird nichts an Google gesendet. Sie können Ihre Wahl jederzeit über „Cookie-Einstellungen“ unten auf jeder Seite ändern. ',
@@ -29,11 +41,13 @@
         + '.rb-consent-btns button:hover{background:#eef9f5}.rb-consent-btns button:focus-visible{outline:3px solid #297369;outline-offset:2px}';
 
     function read() {
-        var m = document.cookie.match(/(?:^|;\s*)rb-consent=(granted|denied)/);
-        return m ? m[1] : null;
+        var m = document.cookie.match(/(?:^|;\s*)rb-consent=(granted-ga|granted|denied)/);
+        if (!m) return null;
+        if (m[1] === 'granted-ga') return 'granted';
+        return m[1] === 'granted' && ga ? null : m[1];
     }
     function save(v) {
-        document.cookie = NAME + '=' + v + '; Max-Age=' + AGE + '; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+        document.cookie = NAME + '=' + (v === 'granted' && ga ? 'granted-ga' : v) + '; Max-Age=' + AGE + '; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
     }
     function dropGoogleCookies() {
         var host = location.hostname, domains = ['', host, '.' + host, '.' + host.replace(/^www\./, '')];
@@ -45,16 +59,18 @@
         });
     }
     function load() {
-        if (loaded || !id) return;
+        if (loaded || !(id || ga)) return;
         loaded = true;
-        gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
+        gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' });
         gtag('js', new Date());
-        gtag('config', id);
+        if (id) gtag('config', id);
+        // Google Analytics 4: page views and the built-in enhanced measurement; IP addresses are never stored by GA4.
+        if (ga) gtag('config', ga);
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id || ga);
         document.head.appendChild(s);
-        purchases();
+        if (id) purchases();
     }
     // Google Ads conversion "Purchase": orders staff marked as paid are reported once from the customer's own browser
     // (staff mark payment in their browser, which has no ad click). Case number = transaction_id, so Google drops duplicates;
@@ -80,7 +96,7 @@
         if (v === 'granted') {
             load();
         } else {
-            gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+            gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
             dropGoogleCookies();
             if (loaded || was === 'granted') location.reload();
         }
