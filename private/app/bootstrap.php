@@ -378,6 +378,9 @@ function public_case(array $c): array
     }
     if (!empty($c['order']) && empty($c['checks']['paid'])) {
         $c['order']['girocode'] = girocode_data_uri($c['order']);
+        if (empty($GLOBALS['rb_staff_view']) && stripe_offered($c)) {
+            $c['order']['cardPay'] = '/zahlung/karte?case='.$c['id'];
+        }
     }
     foreach (['data', 'answers', 'checks'] as $k) {
         if (empty($c[$k])) {
@@ -417,6 +420,7 @@ require __DIR__.'/mailtext.php';
 require __DIR__.'/mail.php';
 require __DIR__.'/mailhtml.php';
 require __DIR__.'/operations.php';
+require __DIR__.'/stripe.php';
 require __DIR__.'/api.php';
 
 // Customer reviews: one per case, only after we submitted it; published only after staff approval.

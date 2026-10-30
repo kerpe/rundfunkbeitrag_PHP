@@ -38,6 +38,7 @@ try {
         sql('SELECT 1');
         response_json(['ok' => true]);
     }
+    stripe_route($path, $method);
     if (str_starts_with($path, '/api/')) {
         if ($path === '/api/postcodes') {
             $p = $_GET['postcode'] ?? '';
@@ -88,7 +89,7 @@ try {
     }
     if ($path === '/robots.txt') {
         header('Content-Type: text/plain');
-        echo config()['indexing'] ? "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /antrag\nDisallow: /auftrag/\nDisallow: /case-access\nDisallow: /verify-contact\nDisallow: /recover-access\nDisallow: /withdrawal\nDisallow: /fortsetzen\nSitemap: ".config()['public_url']."/sitemap.xml\n" : "User-agent: *\nDisallow: /\n";
+        echo config()['indexing'] ? "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /antrag\nDisallow: /auftrag/\nDisallow: /case-access\nDisallow: /verify-contact\nDisallow: /recover-access\nDisallow: /withdrawal\nDisallow: /zahlung/\nDisallow: /fortsetzen\nSitemap: ".config()['public_url']."/sitemap.xml\n" : "User-agent: *\nDisallow: /\n";
         exit;
     }
     if ($path === '/weitere-anliegen') {

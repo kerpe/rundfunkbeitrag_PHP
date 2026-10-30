@@ -101,6 +101,32 @@ function auth_route(string $path, string $method): bool
                 }
                 $c['email_from'] = $from;
                 $c['indexing'] = isset($_POST['indexing']);
+                $sk = trim(text($_POST['stripe_secret_key'] ?? '', 0, 256));
+                if ($sk !== '' && !preg_match('/^(sk|rk)_(test|live)_[A-Za-z0-9]+$/', $sk)) {
+                    fail('INVALID_STRIPE_KEY');
+                }
+                $wh = trim(text($_POST['stripe_webhook_secret'] ?? '', 0, 256));
+                if ($wh !== '' && !preg_match('/^whsec_[A-Za-z0-9]+$/', $wh)) {
+                    fail('INVALID_STRIPE_WEBHOOK');
+                }
+                if ($sk !== '') {
+                    $c['stripe_secret_key'] = $sk;
+                }
+                if ($wh !== '') {
+                    $c['stripe_webhook_secret'] = $wh;
+                }
+                $te = strtolower(trim(text($_POST['stripe_test_email'] ?? '', 0, 250)));
+                if ($te !== '' && !filter_var($te, FILTER_VALIDATE_EMAIL)) {
+                    fail('INVALID_EMAIL');
+                }
+                $c['stripe_test_email'] = $te;
+                $c['stripe_mode'] = in_array($_POST['stripe_mode'] ?? '', ['off', 'test', 'on'], true) ? $_POST['stripe_mode'] : 'off';
+                if ($c['stripe_mode'] !== 'off' && (empty($c['stripe_secret_key']) || empty($c['stripe_webhook_secret']))) {
+                    fail('STRIPE_KEYS_MISSING');
+                }
+                if ($c['stripe_mode'] === 'test' && $te === '') {
+                    fail('STRIPE_TEST_EMAIL_MISSING');
+                }
                 $tmp = tempnam(private_root(), '.config-');
                 chmod($tmp, 0600);
                 file_put_contents($tmp, "<?php\nreturn ".var_export($c, true).";\n", LOCK_EX);
@@ -113,13 +139,21 @@ function auth_route(string $path, string $method): bool
                 header('Location: /admin/configuration?saved=1', true, 303);
                 exit;
             } catch (AppError $e) {
-                $error = ['INVALID_EMAIL_KEY' => 'Resend raktas turi prasidėti „re_“.', 'INVALID_EMAIL' => 'Neteisingas siuntėjo adresas.', 'CONFIG_WRITE_FAILED' => 'Nepavyko įrašyti nustatymų failo serveryje.', 'CSRF_REQUIRED' => 'Puslapis paseno. Atnaujinkite jį ir bandykite dar kartą.', 'SAME_ORIGIN_REQUIRED' => 'Puslapis paseno. Atnaujinkite jį ir bandykite dar kartą.'][$e->reason] ?? $e->reason;
+                $error = ['INVALID_EMAIL_KEY' => 'Resend raktas turi prasidėti „re_“.', 'INVALID_EMAIL' => 'Neteisingas siuntėjo adresas.', 'CONFIG_WRITE_FAILED' => 'Nepavyko įrašyti nustatymų failo serveryje.', 'INVALID_STRIPE_KEY' => 'Stripe slaptasis raktas turi prasidėti „sk_test_“, „sk_live_“, „rk_test_“ arba „rk_live_“.', 'INVALID_STRIPE_WEBHOOK' => 'Stripe pranešimų (webhook) raktas turi prasidėti „whsec_“.', 'STRIPE_KEYS_MISSING' => 'Kad įjungtumėte mokėjimus kortele, įrašykite abu Stripe raktus.', 'STRIPE_TEST_EMAIL_MISSING' => 'Bandymo režimui įrašykite el. pašto adresą, kurio užsakymuose bus rodomas mygtukas.', 'CSRF_REQUIRED' => 'Puslapis paseno. Atnaujinkite jį ir bandykite dar kartą.', 'SAME_ORIGIN_REQUIRED' => 'Puslapis paseno. Atnaujinkite jį ir bandykite dar kartą.'][$e->reason] ?? $e->reason;
             }
         }
         $mail = !empty($c['resend_key']);
+        $sm = in_array($c['stripe_mode'] ?? 'off', ['test', 'on'], true) ? $c['stripe_mode'] : 'off';
+        $sk = (string)($c['stripe_secret_key'] ?? '');
+        $skNote = $sk === '' ? 'sk_live_… arba sk_test_…' : 'Išsaugotas '.(str_contains($sk, '_test_') ? 'BANDOMASIS' : 'TIKRASIS').' raktas (…'.substr($sk, -4).'). Palikite tuščią, kad nekeistumėte.';
+        $opt = fn (string $v, string $label) => '<label class="rb-adm-check"><input type="radio" name="stripe_mode" value="'.$v.'" '.($sm === $v ? 'checked' : '').'><span>'.$label.'</span></label>';
         admin_page('system', 'Sistema', admin_msg($error, isset($_GET['saved']) && !$error ? 'Išsaugota.' : '').'<form method="post">'.admin_csrf()
         .'<section class="mj-card rb-adm-card"><div class="rb-adm-card-head"><h2>Laiškų siuntimas</h2><span class="rb-adm-pill '.($mail ? 'rb-adm-pill-ok">Veikia' : 'rb-adm-pill-wait">Neįjungta').'</span></div><p class="rb-adm-muted">Visi laiškai klientams ir jums siunčiami per Resend.</p><div class="rb-adm-grid2"><label class="rb-adm-f">Resend API raktas<input type="password" name="resend_key" autocomplete="new-password" placeholder="'.($mail ? 'Raktas išsaugotas. Palikite tuščią, kad nekeistumėte.' : 're_…').'"><small>Raktą rasite resend.com → API Keys.</small></label><label class="rb-adm-f">Siuntėjas<input name="email_from" value="'.h($c['email_from']).'" maxlength="250"><small>Pvz. Rundfunkbeitrag Support &lt;info@rundfunkbeitragsupport.de&gt;. Domenas turi būti patvirtintas Resend.</small></label></div></section>'
         .'<section class="mj-card rb-adm-card"><div class="rb-adm-card-head"><h2>Paieškos sistemos</h2><span class="rb-adm-pill '.($c['indexing'] ? 'rb-adm-pill-ok">Leidžiama' : 'rb-adm-pill-wait">Išjungta').'</span></div><label class="rb-adm-check"><input type="checkbox" name="indexing" '.($c['indexing'] ? 'checked' : '').'><span><strong>Leisti Google rodyti svetainę paieškoje</strong><br><span class="rb-adm-muted">Įjunkite tik vienoje svetainėje, kad Google nematytų dviejų vienodų.</span></span></label></section>'
+        .'<section class="mj-card rb-adm-card" id="stripe"><div class="rb-adm-card-head"><h2>Mokėjimai kortele (Stripe)</h2><span class="rb-adm-pill '.['off' => 'rb-adm-pill-wait">Išjungta', 'test' => 'rb-adm-pill-wait">Bandymas', 'on' => 'rb-adm-pill-ok">Įjungta'][$sm].'</span></div><p class="rb-adm-muted">Klientai užsakymo puslapyje mato mygtuką „Apmokėti kortele“. Sumokėjus užsakymas pats pažymimas kaip apmokėtas, klientas gauna įprastą laišką. Banko pavedimas lieka.</p>'
+        .$opt('off', '<strong>Išjungta</strong><br><span class="rb-adm-muted">Niekas nemato mokėjimo kortele.</span>').$opt('test', '<strong>Bandymas</strong><br><span class="rb-adm-muted">Mygtuką mato tik užsakymai su žemiau nurodytu el. paštu. Naudokite su bandomaisiais raktais.</span>').$opt('on', '<strong>Įjungta visiems klientams</strong><br><span class="rb-adm-muted">Naudokite su tikraisiais raktais.</span>')
+        .($sm === 'on' && str_contains($sk, '_test_') ? '<p class="rb-adm-msg rb-adm-msg-err">Įjungta visiems, bet išsaugotas BANDOMASIS raktas: klientai negalės tikrai sumokėti.</p>' : '')
+        .'<div class="rb-adm-grid2"><label class="rb-adm-f">Slaptasis raktas<input type="password" name="stripe_secret_key" autocomplete="new-password" placeholder="'.h($skNote).'"><small>Stripe → Developers → API keys → Secret key.</small></label><label class="rb-adm-f">Pranešimų (webhook) raktas<input type="password" name="stripe_webhook_secret" autocomplete="new-password" placeholder="'.(empty($c['stripe_webhook_secret']) ? 'whsec_…' : 'Raktas išsaugotas. Palikite tuščią, kad nekeistumėte.').'"><small>Pranešimų adresas: '.h(config()['public_url']).'/api/stripe/webhook, įvykiai checkout.session.completed ir checkout.session.async_payment_succeeded.</small></label><label class="rb-adm-f">Bandymo el. paštas<input type="email" name="stripe_test_email" value="'.h($c['stripe_test_email'] ?? '').'" maxlength="250"><small>Tik bandymo režimui: užsakymai su šiuo el. paštu matys mygtuką.</small></label></div></section>'
         .'<div class="rb-adm-form-actions"><button class="rb-btn">Išsaugoti</button></div></form>');
 
     }
