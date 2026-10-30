@@ -61,6 +61,9 @@ function order_mail(array $p, array $snapshot): array
     $l = rb_lang($o['language'] ?? 'de');
     $amount = mail_money((int)($o['feeCents'] ?? 4900), $l);
     $intro = mt('pay.intro', $l, ['amount' => $amount]);
+    if (stripe_offered($snapshot)) {
+        $intro .= ' '.mt('pay.card', $l);
+    }
     $p['text'] = mb_strtoupper(mt('pay.title', $l))."\n\n".$intro."\n\n".mt('pay.transfer', $l).":\n".mt('pay.recipient', $l).': '.$o['beneficiary']."\nIBAN: ".$o['iban']."\nBIC: ".$o['bic']."\n".mt('pay.amount', $l).': '.$amount."\n".mt('pay.reference', $l).': '.$o['reference']."\n\n".mt('pay.referenceNote', $l)."\n".(girocode_payload($o) ? "\n".mt('pay.girocodeText', $l)."\n" : '')."\n----\n\n".$p['text'];
     if (isset($p['view'])) {
         $p['view'] = ['lang' => $l, 'title' => mt('pay.title', $l), 'preheader' => mt('pay.preheader', $l).' · '.$o['reference'], 'ref' => $o['reference'], 'paras' => [$intro], 'pay' => ['beneficiary' => $o['beneficiary'], 'iban' => $o['iban'], 'bic' => $o['bic'], 'feeCents' => $o['feeCents'] ?? 4900, 'amount' => $amount, 'service' => pick_lang(rules()['routes'][$snapshot['route']]['title'], $l), 'at' => gmdate('d.m.Y, H:i', strtotime($o['at'])).' UTC']] + $p['view'];
@@ -80,6 +83,9 @@ function payment_reminder(array $c, int $no = 1, int $of = 1): void
     $final = $no >= $of;
     $title = mt($final ? 'rem.titleLast' : 'rem.title', $l);
     $paras = [mt($final ? 'rem.introLast' : ($no > 1 ? 'rem.intro2' : 'rem.intro'), $l, ['date' => $at, 'amount' => $amount])];
+    if (stripe_offered($c)) {
+        $paras[0] .= ' '.mt('pay.card', $l);
+    }
     $link = case_link($c['id'], $email, $o['reference']);
     $text = $title."\n".$o['reference']."\n\n".$paras[0]."\n\n".mt('pay.transfer', $l).":\n".mt('pay.recipient', $l).': '.$o['beneficiary']."\nIBAN: ".$o['iban']."\nBIC: ".$o['bic']."\n".mt('pay.amount', $l).': '.$amount."\n".mt('pay.reference', $l).': '.$o['reference']."\n\n".mt('pay.referenceNote', $l)."\n\n".mt('rem.paid', $l)."\n\n".mt('rem.free', $l)."\n\n".mt('case.linkIntro', $l)."\n".$link;
     $view = ['lang' => $l, 'title' => $title, 'preheader' => mt('rem.preheader', $l).' · '.$o['reference'], 'ref' => $o['reference'], 'paras' => $paras, 'noPdf' => true, 'pay' => ['beneficiary' => $o['beneficiary'], 'iban' => $o['iban'], 'bic' => $o['bic'], 'feeCents' => $o['feeCents'] ?? 4900, 'amount' => $amount, 'service' => pick_lang(rules()['routes'][$c['route']]['title'], $l), 'at' => gmdate('d.m.Y, H:i', strtotime($o['at'])).' UTC'], 'link' => $link, 'linkNote' => mt('case.linkNote', $l), 'after' => [mt('rem.paid', $l), mt('rem.free', $l)]];

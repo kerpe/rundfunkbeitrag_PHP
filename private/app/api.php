@@ -258,7 +258,7 @@ function api(array $p, string $method): array
         $out = [];
         foreach (sql("SELECT data_json FROM rb_records WHERE kind='case' AND owner_hash=? AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.checks.paid'))='true' ORDER BY updated_at DESC LIMIT 20", [owner()])->fetchAll() as $r) {
             $c = json_decode($r['data_json'], true);
-            if (strtotime($c['checks']['paidAt'] ?? '') > time() - 90 * 86400 && !record('adsconv:'.$c['id'])) {
+            if (strtotime($c['checks']['paidAt'] ?? '') > time() - 90 * 86400 && !str_starts_with($c['checks']['paymentReference'] ?? '', 'Stripe TEST') && !record('adsconv:'.$c['id'])) {
                 $out[] = ['id' => $c['id'], 'reference' => $c['order']['reference'], 'value' => ($c['order']['feeCents'] ?? 4900) / 100];
             }
         }
