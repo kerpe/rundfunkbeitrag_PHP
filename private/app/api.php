@@ -49,6 +49,7 @@ function api(array $p, string $method): array
         if ($part === 'cases' && $which) {
             $c = current_case($which, true);
             if ($method === 'GET') {
+                $c = auto_checks($c);
                 return ['case' => public_case($c), 'blockers' => readiness($c), 'events' => records('event', $c['id'])];
             }
             if (!in_array($method, ['POST', 'PATCH'], true)) {

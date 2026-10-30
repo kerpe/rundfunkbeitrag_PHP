@@ -1,5 +1,29 @@
 <?php
 
+// The electronic authority (required checkbox at order) and the confirmation email with the contract PDF
+// are already on record, so staff no longer confirm them by hand.
+function auto_checks(array $c): array
+{
+    if (!$c['order'] || $c['state'] === 'draft') {
+        return $c;
+    }
+    $k = &$c['checks'];
+    if ((empty($k['authorityVerified']) || empty($k['authorityReference'])) && ($c['order']['consent']['authority'] ?? null) === true) {
+        $k['authorityVerified'] = true;
+        $k['authorityReference'] = 'Elektroninis įgaliojimas: varnelė užsakyme '.str_replace('T', ' ', substr($c['order']['at'], 0, 16)).' UTC';
+    }
+    if (empty($k['contractDeliveredAt']) || empty($k['deliveryReference'])) {
+        foreach (records('mail', $c['id']) as $m) {
+            if ($m['kind'] === 'order' && in_array($m['status'], ['accepted', 'delivered'], true)) {
+                $k['contractDeliveredAt'] = gmdate('Y-m-d\\TH:i:s.000\\Z', strtotime($m['delivered_at'] ?? $m['created_at']));
+                $k['deliveryReference'] = 'Patvirtinimo laiškas su sutartimi (PDF) išsiųstas '.$m['recipient'].($m['provider_id'] ? ' · Resend '.$m['provider_id'] : '');
+                break;
+            }
+        }
+    }
+    return $c;
+}
+
 function withdraw_case(array $c, array $b): array
 {
     if (!$c['order'] || ($b['confirm'] ?? false) !== true) {
@@ -20,6 +44,7 @@ function withdraw_case(array $c, array $b): array
 function staff_action(array $c, array $b): array
 {
     $action = $b['action'] ?? '';
+    $c = auto_checks($c);
     $n = $c;
     $a = actor();
     $n['operations'] ??= [];
@@ -127,7 +152,7 @@ function staff_action(array $c, array $b): array
         if (!empty($checks['withdrawalEndsAt']) && (!isset($checks['contractDeliveredAt']) || strtotime($checks['withdrawalEndsAt']) <= strtotime($checks['contractDeliveredAt']))) {
             fail('INVALID_DATE');
         }
-        $n['checks'] = $checks;
+        $n['checks'] = auto_checks(['checks' => $checks] + $n)['checks'];
     } elseif ($action === 'verify-document') {
         if (!in_array($c['state'], ['in_review', 'needs_information'], true)) {
             fail('INVALID_STATE', 409);
@@ -183,6 +208,12 @@ function staff_action(array $c, array $b): array
             fail('RESPONSE_DOCUMENT_REQUIRED');
         }
         $n['response'] = ['at' => now(), 'outcome' => $b['outcome'], 'message' => text($b['message'] ?? null, 3, 2000), 'documentId' => $docs[0]['id']];
+        $n['state'] = 'closed';
+    } elseif ($action === 'close-case') {
+        if ($c['state'] !== 'submitted') {
+            fail('INVALID_STATE', 409);
+        }
+        $o['closedWithoutResponse'] = ['reason' => text($b['reason'] ?? null, 3, 500), 'at' => now(), 'by' => $a];
         $n['state'] = 'closed';
     } elseif ($action === 'pause') {
         $o['hold'] = ['reason' => text($b['reason'] ?? null, 3), 'at' => now(), 'by' => $a];
