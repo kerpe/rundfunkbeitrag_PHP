@@ -133,6 +133,7 @@ try {
     $lang = $seo['lang'] ?? (($_COOKIE['site-language'] ?? 'de') === 'en' ? 'en' : 'de');
     $boot = ['language' => $lang, 'csrf' => $_SESSION['csrf']] + (admin() ? ['email' => admin_email(), 'owner' => is_owner()] : []);
     $boot['supportEmail'] = support_email();
+    $boot['card'] = stripe_public();
     $private = in_array($path, ['/admin', '/staff', '/antrag', '/case-access', '/verify-contact', '/recover-access', '/withdrawal', '/fortsetzen'], true) || str_starts_with($path, '/auftrag/');
     $nonce = base64_encode(random_bytes(16));
     $tracking = !in_array($path, ['/admin', '/staff'], true);
