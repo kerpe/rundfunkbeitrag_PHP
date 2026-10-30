@@ -90,6 +90,9 @@ jobs:
       # lftp instead of FTP-Deploy-Action: on Hostinger the action's FTPS data
       # connection resets when it enters folders that already exist (private/app,
       # and public_html of a freshly created site).
+      # Each file is uploaded under a temporary name and renamed when complete, so
+      # visitors never hit a half-written PHP file during the upload (that gave
+      # an empty HTTP 500 page while a deploy was running).
       - name: Upload public_html and private
         if: env.HAS_FTP == 'true'
         env:
@@ -107,6 +110,7 @@ jobs:
           lftp --env-password -u "$FTP_USERNAME" "$host" -e "
             set ftp:ssl-force $ssl; set ftp:ssl-protect-data $ssl; set ssl:verify-certificate no;
             set net:max-retries 3; set net:timeout 30;
+            set xfer:use-temp-file yes; set xfer:temp-file-name .rbup-*;
             mirror -R --verbose --no-perms ./public_html/ '$PUBLIC_DIR';
             mirror -R --verbose --no-perms \
               -x '^config\.php$' -x '^installation-key\.php$' -x '^data/' -x '(^|/)\.git' \
