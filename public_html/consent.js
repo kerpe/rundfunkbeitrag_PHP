@@ -155,8 +155,8 @@
 
     // Order form funnel, only with consent. Google Analytics gets one event per form step the visitor reaches
     // (begin_checkout when the form is first shown, then form_details, form_documents, form_review, form_email, form_email_verified) and order_placed when the order is recorded;
-    // Google Ads gets the "Order submitted" conversion (ORDER_LABEL) at the same moment. No form contents are sent.
-    var ORDER_LABEL = '-6mWCPfxrLEdEK-TkIFF', STEPS = ['begin_checkout', 'form_details', 'form_documents', 'form_review', 'form_email'], seen = {}, timer = 0;
+    // Google Ads gets its "Order placed" conversion (ORDER_LABEL) at the same moment; form starts are counted by Google's own "Begin checkout". No form contents are sent.
+    var ORDER_LABEL = '0r3tCPit7qwdEK-TkIFF', STEPS = ['begin_checkout', 'form_details', 'form_documents', 'form_review', 'form_email'], seen = {}, timer = 0;
     function service() {
         var m = location.pathname.match(/^\/auftrag\/(p-0[1-8])$/i);
         return m ? m[1].toUpperCase() : '';
@@ -208,18 +208,6 @@
         };
     }
 
-    // Google Ads conversion "Order placed" (start): fired on the start buttons (links to /flow/reason or straight to an order form), only with consent.
-    // Navigation waits for Google's callback (at most 1 s) so the hit is not lost.
-    document.addEventListener('click', function (e) {
-        var a = e.target && e.target.closest && e.target.closest('a[href="/flow/reason"], a[href^="/auftrag/p-0"]');
-        if (!a || (a.closest('.mj-layout') && a.getAttribute('href') !== '/flow/reason') || !id || read() !== 'granted' || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        e.preventDefault();
-        var url = a.href, done = false;
-        function go() { if (!done) { done = true; location.href = url; } }
-        load();
-        gtag('event', 'conversion', { send_to: id + '/0r3tCPit7qwdEK-TkIFF', value: 49.0, currency: 'EUR', transaction_id: '', event_callback: go });
-        setTimeout(go, 1000);
-    }, true);
     document.addEventListener('click', function (e) {
         var el = e.target && e.target.closest && e.target.closest('[data-rb-consent]');
         if (!el) return;
