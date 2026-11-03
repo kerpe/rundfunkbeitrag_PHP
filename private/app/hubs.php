@@ -12,11 +12,11 @@ return [
             'lead' => 'Wählen Sie Ihren Grund. Wir bereiten die Abmeldung vor und reichen sie mit Ihrer Vollmacht beim Beitragsservice ein.',
             'ask' => 'Warum möchten Sie abmelden?',
             'cards' => [
-                ['sterbefall', 'Ein Angehöriger ist verstorben', 'Wir melden das Beitragskonto der verstorbenen Person ab.'],
                 ['ausland', 'Ich ziehe dauerhaft ins Ausland', 'Sie geben Ihre Wohnung in Deutschland ganz auf.'],
                 ['zusammenziehen', 'Ich ziehe zu jemandem, der schon zahlt', 'Pro Wohnung zahlt nur eine Person. Ihr eigenes Konto wird abgemeldet.'],
                 ['weitere-wohnung-aufgeben', 'Ich gebe eine von mehreren Wohnungen auf', 'Sie behalten mindestens eine Wohnung und zahlen nur noch für diese.'],
                 ['daten-aendern', 'Ich ziehe nur um', 'Dann müssen Sie nicht abmelden. Ihr Konto zieht mit um, wir melden die neue Anschrift.'],
+                ['sterbefall', 'Ein Angehöriger ist verstorben', 'Wir melden das Beitragskonto der verstorbenen Person ab.'],
             ],
             'note' => ['Einfach so abmelden geht nicht', 'Der Rundfunkbeitrag wird pro Wohnung gezahlt, auch ohne Fernseher oder Radio. Abmelden können Sie nur, wenn Sie für eine Wohnung nicht mehr zahlen müssen, zum Beispiel aus einem der Gründe oben. Bei geringem Einkommen kann eine Befreiung möglich sein; diesen Antrag bieten wir derzeit nicht an.'],
             'faq' => [
@@ -30,11 +30,11 @@ return [
             'lead' => 'Choose your reason. We prepare the deregistration and submit it to Beitragsservice with your authorisation.',
             'ask' => 'Why do you want to deregister?',
             'cards' => [
-                ['sterbefall', 'A relative has died', 'We deregister the contribution account of the person who died.'],
                 ['ausland', 'I am leaving Germany for good', 'You are giving up your home in Germany completely.'],
                 ['zusammenziehen', 'I am moving in with someone who already pays', 'Only one person pays per home. Your own account is deregistered.'],
                 ['weitere-wohnung-aufgeben', 'I am giving up one of several homes', 'You keep at least one home and only pay for that one.'],
                 ['daten-aendern', 'I am only moving home', 'Then you do not need to deregister. Your account moves with you; we report the new address.'],
+                ['sterbefall', 'A relative has died', 'We deregister the contribution account of the person who died.'],
             ],
             'note' => ['You cannot simply cancel it', 'The Rundfunkbeitrag is paid per home, even without a TV or radio. You can only deregister when you no longer have to pay for a home, for example for one of the reasons above. People on a low income may be able to get an exemption; we do not offer that application at the moment.'],
             'faq' => [
