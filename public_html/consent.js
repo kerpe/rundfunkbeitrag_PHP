@@ -93,6 +93,7 @@
         if (!window.fetch) return;
         fetch('/api/journey/ads-conversions', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
             ((d && d.conversions) || []).forEach(function (c) {
+                if (ga) gtag('event', 'purchase', { send_to: ga, transaction_id: c.reference, value: c.value, currency: 'EUR' });
                 gtag('event', 'conversion', { send_to: id + '/z9lQCLSt9KwdEK-TkIFF', value: c.value, currency: 'EUR', transaction_id: c.reference, event_callback: function () {
                     fetch('/api/journey/ads-conversions', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': (window.PHPBOOT || {}).csrf || '' }, body: JSON.stringify({ id: c.id }) });
                 } });
@@ -152,18 +153,61 @@
         document.body.appendChild(box);
     }
 
-    // Google Ads conversion "Order placed": fired on the "Anliegen starten" buttons (links to /flow/reason), only with consent.
-    // Navigation waits for Google's callback (at most 1 s) so the hit is not lost.
-    document.addEventListener('click', function (e) {
-        var a = e.target && e.target.closest && e.target.closest('a[href="/flow/reason"]');
-        if (!a || !id || read() !== 'granted' || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        e.preventDefault();
-        var url = a.href, done = false;
-        function go() { if (!done) { done = true; location.href = url; } }
+    // Order form funnel, only with consent. Google Analytics gets one event per form step the visitor reaches
+    // (begin_checkout when the form is first shown, then form_details, form_documents, form_review, form_email, form_email_verified) and order_placed when the order is recorded;
+    // Google Ads gets its "Order placed" conversion (ORDER_LABEL) at the same moment; form starts are counted by Google's own "Begin checkout". No form contents are sent.
+    var ORDER_LABEL = '0r3tCPit7qwdEK-TkIFF', STEPS = ['begin_checkout', 'form_details', 'form_documents', 'form_review', 'form_email'], seen = {}, timer = 0;
+    function service() {
+        var m = location.pathname.match(/^\/auftrag\/(p-0[1-8])$/i);
+        return m ? m[1].toUpperCase() : '';
+    }
+    function step() {
+        timer = 0;
+        if (!ga || read() !== 'granted') return;
+        // Sidebar of the order form: one li per step, the current one has aria-current="step".
+        var li = document.querySelector('.mj-sidebar li[aria-current="step"]');
+        if (!li) return;
+        var name = STEPS[Array.prototype.indexOf.call(li.parentNode.children, li)];
         load();
-        gtag('event', 'conversion', { send_to: id + '/0r3tCPit7qwdEK-TkIFF', value: 49.0, currency: 'EUR', transaction_id: '', event_callback: go });
-        setTimeout(go, 1000);
-    }, true);
+        // A service page opens the form at "Ihre Angaben", so the form start is counted at whichever step is shown first.
+        if (!seen.begin_checkout) {
+            seen.begin_checkout = true;
+            gtag('event', 'begin_checkout', { send_to: ga, service: service(), value: 49.0, currency: 'EUR' });
+        }
+        if (!name || seen[name]) return;
+        seen[name] = true;
+        gtag('event', name, { send_to: ga, service: service() });
+    }
+    function ordered(reference) {
+        if (read() !== 'granted') return;
+        load();
+        if (ga) gtag('event', 'order_placed', { send_to: ga, service: service(), transaction_id: reference, value: 49.0, currency: 'EUR' });
+        if (id && ORDER_LABEL) gtag('event', 'conversion', { send_to: id + '/' + ORDER_LABEL, value: 49.0, currency: 'EUR', transaction_id: reference });
+    }
+    if (window.MutationObserver) {
+        new MutationObserver(function () { if (!timer) timer = setTimeout(step, 300); }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-current'] });
+    }
+    // The e-mail code is checked by POST /api/journey/cases/<id>/verify-code; the order is recorded by POST /api/journey/cases/<id>/order; a successful answer carries the order number.
+    if (window.fetch) {
+        var send = window.fetch;
+        window.fetch = function (u, o) {
+            var p = send.apply(this, arguments);
+            try {
+                var url = typeof u === 'string' ? u : (u && u.url) || '';
+                if (ga && /\/api\/journey\/cases\/[^\/?]+\/verify-code$/.test(url)) {
+                    p.then(function (r) { if (r.ok && read() === 'granted' && !seen.form_email_verified) { seen.form_email_verified = true; gtag('event', 'form_email_verified', { send_to: ga, service: service() }); } }).catch(function () {});
+                }
+                if (/\/api\/journey\/cases\/[^\/?]+\/order$/.test(url) && o && o.method && o.method !== 'GET') {
+                    p.then(function (r) {
+                        if (!r.ok) return;
+                        r.clone().json().then(function (d) { ordered((d && d.case && d.case.order && d.case.order.reference) || ''); }).catch(function () { ordered(''); });
+                    }).catch(function () {});
+                }
+            } catch (e) {}
+            return p;
+        };
+    }
+
     document.addEventListener('click', function (e) {
         var el = e.target && e.target.closest && e.target.closest('[data-rb-consent]');
         if (!el) return;
