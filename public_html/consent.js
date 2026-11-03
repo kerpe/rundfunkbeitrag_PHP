@@ -1,10 +1,12 @@
-/* Cookie consent + Google tag (Consent Mode v2, basic mode).
+/* Cookie consent + Google tag (Consent Mode v2, basic mode) + Microsoft Clarity (data-clarity).
    gtag.js is only loaded after the visitor clicks "Accept"; before that nothing is sent to Google.
-   The choice is kept in the first-party cookie rb-consent (granted|granted-ga|denied) for 6 months.
-   With a Google Analytics ID (data-ga) only "granted-ga" counts: an older "granted" covered Google Ads only, so the banner asks again.
+   The choice is kept in the first-party cookie rb-consent (granted[-ga][-cl]|denied) for 6 months.
+   The cookie value names the tools accepted (granted, granted-ga, granted-ga-cl); if more tools are active now, the banner asks again.
    Any element with data-rb-consent (footer "Cookie-Einstellungen") reopens the banner. */
 (function () {
-    var me = document.currentScript, id = me && me.getAttribute('data-gtag'), ga = me && me.getAttribute('data-ga');
+    var me = document.currentScript, id = me && me.getAttribute('data-gtag'), ga = me && me.getAttribute('data-ga'), cl = me && me.getAttribute('data-clarity');
+    // Consent covers the tools named in the banner at that time: "granted" = Google Ads, "-ga" = + Analytics, "-cl" = + Clarity.
+    var NEED = (ga ? ['ga'] : []).concat(cl ? ['cl'] : []);
     var NAME = 'rb-consent', AGE = 15552000, loaded = false, box = null;
     window.dataLayer = window.dataLayer || [];
     function gtag() { window.dataLayer.push(arguments); }
@@ -12,26 +14,24 @@
     gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
     gtag('set', 'ads_data_redaction', true);
 
-    var TEXT = ga ? {
+    // Banner text lists only the tools that are switched on.
+    var USE = {
+        de: [ga && 'Google Analytics, um zu verstehen, wie unsere Website genutzt wird', cl && 'Microsoft Clarity, um anhand aufgezeichneter Klicks, Scroll- und Mausbewegungen zu erkennen, wo unsere Seiten verbessert werden können (Eingaben in Formularfelder werden nicht aufgezeichnet)', 'den Google-Tag von Google Ads, um zu messen, ob Besucher über unsere Anzeigen zu uns kommen und einen Auftrag erteilen'],
+        en: [ga && 'Google Analytics to understand how our website is used', cl && 'Microsoft Clarity to see from recorded clicks, scrolling and mouse movements where our pages can be improved (what you type into form fields is not recorded)', 'the Google Ads tag to measure whether visitors reach us through our ads and place an order']
+    };
+    function list(a, and) {
+        a = a.filter(Boolean);
+        return a.length > 1 ? a.slice(0, -1).join(', ') + and + a[a.length - 1] : a[0];
+    }
+    var TEXT = {
         de: {
             title: 'Datenschutz-Einstellungen',
-            body: 'Mit Ihrer Einwilligung nutzen wir Google Analytics, um zu verstehen, wie unsere Website genutzt wird, und den Google-Tag von Google Ads, um zu messen, ob Besucher über unsere Anzeigen zu uns kommen und einen Auftrag erteilen. Dabei werden Cookies gesetzt und Daten an Google übermittelt, auch in die USA. Ohne Einwilligung wird nichts an Google gesendet. Sie können Ihre Wahl jederzeit über „Cookie-Einstellungen“ unten auf jeder Seite ändern. ',
+            body: 'Mit Ihrer Einwilligung nutzen wir ' + list(USE.de, ', und ') + '. Dabei werden Cookies gesetzt und Daten an ' + (cl ? 'Google und Microsoft' : 'Google') + ' übermittelt, auch in die USA. Ohne Einwilligung wird nichts an ' + (cl ? 'Google oder Microsoft' : 'Google') + ' gesendet. Sie können Ihre Wahl jederzeit über „Cookie-Einstellungen“ unten auf jeder Seite ändern. ',
             more: 'Datenschutzerklärung', reject: 'Ablehnen', accept: 'Akzeptieren'
         },
         en: {
             title: 'Privacy settings',
-            body: 'With your consent we use Google Analytics to understand how our website is used, and the Google Ads tag to measure whether visitors reach us through our ads and place an order. This sets cookies and sends data to Google, including to the USA. Without your consent nothing is sent to Google. You can change your choice at any time via “Cookie settings” at the bottom of every page. ',
-            more: 'Privacy policy', reject: 'Reject', accept: 'Accept'
-        }
-    } : {
-        de: {
-            title: 'Datenschutz-Einstellungen',
-            body: 'Mit Ihrer Einwilligung nutzen wir den Google-Tag von Google Ads, um zu messen, ob Besucher über unsere Anzeigen zu uns kommen und einen Auftrag erteilen. Dabei werden Cookies gesetzt und Daten an Google übermittelt, auch in die USA. Ohne Einwilligung wird nichts an Google gesendet. Sie können Ihre Wahl jederzeit über „Cookie-Einstellungen“ unten auf jeder Seite ändern. ',
-            more: 'Datenschutzerklärung', reject: 'Ablehnen', accept: 'Akzeptieren'
-        },
-        en: {
-            title: 'Privacy settings',
-            body: 'With your consent we use the Google Ads tag to measure whether visitors reach us through our ads and place an order. This sets cookies and sends data to Google, including to the USA. Without your consent nothing is sent to Google. You can change your choice at any time via “Cookie settings” at the bottom of every page. ',
+            body: 'With your consent we use ' + list(USE.en, ', and ') + '. This sets cookies and sends data to ' + (cl ? 'Google and Microsoft' : 'Google') + ', including to the USA. Without your consent nothing is sent to ' + (cl ? 'Google or Microsoft' : 'Google') + '. You can change your choice at any time via “Cookie settings” at the bottom of every page. ',
             more: 'Privacy policy', reject: 'Reject', accept: 'Accept'
         }
     };
@@ -41,26 +41,30 @@
         + '.rb-consent-btns button:hover{background:#eef9f5}.rb-consent-btns button:focus-visible{outline:3px solid #297369;outline-offset:2px}';
 
     function read() {
-        var m = document.cookie.match(/(?:^|;\s*)rb-consent=(granted-ga|granted|denied)/);
+        var m = document.cookie.match(/(?:^|;\s*)rb-consent=(granted(?:-[a-z]+)*|denied)/);
         if (!m) return null;
-        if (m[1] === 'granted-ga') return 'granted';
-        return m[1] === 'granted' && ga ? null : m[1];
+        if (m[1] === 'denied') return 'denied';
+        // A visitor who accepted fewer tools than are now active is asked again.
+        var has = m[1].split('-').slice(1);
+        return NEED.every(function (k) { return has.indexOf(k) >= 0; }) ? 'granted' : null;
     }
     function save(v) {
-        document.cookie = NAME + '=' + (v === 'granted' && ga ? 'granted-ga' : v) + '; Max-Age=' + AGE + '; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+        document.cookie = NAME + '=' + (v === 'granted' ? ['granted'].concat(NEED).join('-') : v) + '; Max-Age=' + AGE + '; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
     }
     function dropGoogleCookies() {
         var host = location.hostname, domains = ['', host, '.' + host, '.' + host.replace(/^www\./, '')];
         document.cookie.split(';').forEach(function (c) {
             var n = c.split('=')[0].trim();
-            if (/^(_gcl|_ga|_gac|_gid|_gat)/.test(n)) {
+            if (/^(_gcl|_ga|_gac|_gid|_gat|_clck|_clsk)/.test(n)) {
                 domains.forEach(function (d) { document.cookie = n + '=; Max-Age=0; Path=/' + (d ? '; Domain=' + d : ''); });
             }
         });
     }
     function load() {
-        if (loaded || !(id || ga)) return;
+        if (loaded) return;
         loaded = true;
+        if (cl) clarity();
+        if (!(id || ga)) return;
         gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' });
         gtag('js', new Date());
         if (id) gtag('config', id);
@@ -71,6 +75,16 @@
         s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id || ga);
         document.head.appendChild(s);
         if (id) purchases();
+    }
+    // Microsoft Clarity: heatmaps and session recordings. Loaded only after consent, so the consent signal is "granted" for
+    // analytics; nothing is shared for advertising. Order form and case pages carry data-clarity-mask (all text masked).
+    function clarity() {
+        var c = window.clarity = window.clarity || function () { (c.q = c.q || []).push(arguments); };
+        c('consentv2', { ad_Storage: 'denied', analytics_Storage: 'granted' });
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.clarity.ms/tag/' + encodeURIComponent(cl);
+        document.head.appendChild(s);
     }
     // Google Ads conversion "Purchase": orders staff marked as paid are reported once from the customer's own browser
     // (staff mark payment in their browser, which has no ad click). Case number = transaction_id, so Google drops duplicates;
@@ -97,6 +111,7 @@
             load();
         } else {
             gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
+            if (window.clarity) window.clarity('consentv2', { ad_Storage: 'denied', analytics_Storage: 'denied' });
             dropGoogleCookies();
             if (loaded || was === 'granted') location.reload();
         }
