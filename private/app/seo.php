@@ -247,7 +247,7 @@ function seo_service_html(string $slug, string $lang): string
     return '<article class="rb-service" lang="'.$lang.'">'
     .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
     .'<header class="rb-svc-hero"><div class="rb-svc-intro"><img class="rb-svc-icon" src="/icons/'.$s['icon'].'.webp" width="64" height="64" alt=""><h1>'.h($d['title']).'</h1>'
-    .'<p class="rb-svc-key">'.$L('49 € einmalig · keine Vorkasse · kein Abo', '€49 one-off · no advance payment · no subscription').'</p>'
+    .'<p class="rb-svc-key">'.$L('49 € einmalig · kein Abo · wir warten nicht auf Ihre Zahlung', '€49 one-off · no subscription · we start without waiting for your payment').'</p>'
     .'<a class="public-button rb-svc-cta" href="'.$start.'">'.h($cta).'</a>'
     .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p>'
     .'<p class="public-lead">'.h($d['lead']).'</p></div>'
@@ -261,7 +261,7 @@ function seo_service_html(string $slug, string $lang): string
     .($guide ? '<p class="rb-svc-guide"><a href="'.h(seo_article_url($guide)).'">'.$L('Mehr dazu im Ratgeber: ', 'Read our guide: ').h($guide['title']).'</a></p>' : '')
     .'<aside class="rb-article-cta"><h2>'.$L('Bereit? Wir übernehmen das.', 'Ready? We handle it.').'</h2><p>'.$L('Einmalig 49 €. Die Entscheidung trifft ausschließlich der Beitragsservice; Einreichung und Entscheidung sind getrennte Schritte.', 'One-off €49. Only Beitragsservice makes the decision; submission and decision are separate steps.').'</p><p><a class="public-button" href="'.$start.'">'.h($cta).'</a></p></aside>'
     .'<p class="rb-article-alt"><a href="'.h($alt).'" hreflang="'.($en ? 'de' : 'en').'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>'.seo_disclaimer($lang)
-    .'<div class="rb-svc-sticky" aria-hidden="true"><p><strong>'.$L('49 €', '€49').'</strong><span>'.$L('keine Vorkasse', 'no advance payment').'</span></p><a class="public-button" href="'.$start.'" tabindex="-1">'.h($cta).'</a></div></article>';
+    .'<div class="rb-svc-sticky" aria-hidden="true"><p><strong>'.$L('49 €', '€49').'</strong><span>'.$L('einmalig, kein Abo', 'one-off, no subscription').'</span></p><a class="public-button" href="'.$start.'" tabindex="-1">'.h($cta).'</a></div></article>';
 }
 
 function seo_service_jsonld(string $slug, string $lang): array
@@ -353,7 +353,7 @@ function seo_hub_html(string $slug, string $lang): string
     return '<article class="rb-service rb-hub" lang="'.$lang.'">'
     .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
     .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1>'
-    .'<p class="rb-svc-key">'.$L('49 € einmalig · keine Vorkasse · kein Abo', '€49 one-off · no advance payment · no subscription').'</p>'
+    .'<p class="rb-svc-key">'.$L('49 € einmalig · kein Abo · wir warten nicht auf Ihre Zahlung', '€49 one-off · no subscription · we start without waiting for your payment').'</p>'
     .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p></header>'
     .'<section class="rb-svc-block"><h2>'.h($d['ask']).'</h2><p class="rb-hub-lead">'.h($d['lead']).'</p><ul class="rb-hub-cards">'.$cards.'</ul><p class="rb-svc-note">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></section>'
     .'<section class="rb-svc-block rb-hub-note"><h2>'.h($d['note'][0]).'</h2><p>'.h($d['note'][1]).'</p></section>'
