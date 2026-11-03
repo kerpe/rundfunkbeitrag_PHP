@@ -331,7 +331,8 @@ function seo_hub_html(string $slug, string $lang): string
     foreach ($d['cards'] as [$svc,$title,$text]) {
         $s = seo_service_data()[$svc];
         $start = '/auftrag/'.strtolower($s['code']);
-        $cards .= '<li class="rb-hub-card"><img src="/icons/'.$s['icon'].'.webp" width="48" height="48" alt=""><div><h3><a href="'.$start.'">'.h($title).'</a></h3><p>'.h($text).'</p><p class="rb-hub-links"><a class="rb-hub-start" href="'.$start.'">'.$L('Jetzt starten', 'Start now').'</a><a href="'.h(seo_service_url($svc, $lang)).'">'.$L('Details und Unterlagen', 'Details and documents').'</a></p></div></li>';
+        // Same look as the service cards on /antrag: icon on top, title, short text, the whole card opens the order form.
+        $cards .= '<li class="rb-hub-card"><a href="'.$start.'"><img src="/icons/'.$s['icon'].'.webp" width="64" height="64" alt=""><h3>'.h($title).'</h3><p>'.h($text).'</p></a></li>';
     }
     $fq = '';
     foreach (array_merge($d['faq'], [[$L('Warum kostet das 49 €, wenn das offizielle Formular kostenlos ist?', 'Why does this cost €49 when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos, und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen Ihren Antrag mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit your request with your authorisation and keep you informed at every step.')]]) as [$q,$a]) {
