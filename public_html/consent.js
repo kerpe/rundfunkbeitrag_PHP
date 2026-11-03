@@ -27,18 +27,24 @@
         de: {
             title: 'Datenschutz-Einstellungen',
             body: 'Mit Ihrer Einwilligung nutzen wir ' + list(USE.de, ', und ') + '. Dabei werden Cookies gesetzt und Daten an ' + (cl ? 'Google und Microsoft' : 'Google') + ' übermittelt, auch in die USA. Ohne Einwilligung wird nichts an ' + (cl ? 'Google oder Microsoft' : 'Google') + ' gesendet. Sie können Ihre Wahl jederzeit über „Cookie-Einstellungen“ unten auf jeder Seite ändern. ',
-            more: 'Datenschutzerklärung', reject: 'Ablehnen', accept: 'Akzeptieren'
+            more: 'Datenschutzerklärung', reject: 'Ablehnen', accept: 'Akzeptieren',
+            short: 'Nur mit Ihrer Einwilligung nutzen wir Cookies von ' + (cl ? 'Google und Microsoft' : 'Google') + ', um die Nutzung der Website und den Erfolg unserer Anzeigen zu messen.', details: 'Details'
         },
         en: {
             title: 'Privacy settings',
             body: 'With your consent we use ' + list(USE.en, ', and ') + '. This sets cookies and sends data to ' + (cl ? 'Google and Microsoft' : 'Google') + ', including to the USA. Without your consent nothing is sent to ' + (cl ? 'Google or Microsoft' : 'Google') + '. You can change your choice at any time via “Cookie settings” at the bottom of every page. ',
-            more: 'Privacy policy', reject: 'Reject', accept: 'Accept'
+            more: 'Privacy policy', reject: 'Reject', accept: 'Accept',
+            short: 'Only with your consent, we use cookies from ' + (cl ? 'Google and Microsoft' : 'Google') + ' to measure how the website is used and how our ads perform.', details: 'Details'
         }
     };
     var CSS = '.rb-consent{position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:560px;margin:0 auto;padding:20px;background:#fff;color:#1e3231;border:1px solid #e5e2de;border-radius:12px;box-shadow:0 10px 40px rgba(20,38,36,.18);font:400 15px/1.5 Manrope,"Segoe UI",Helvetica,Arial,sans-serif}'
         + '.rb-consent h2{margin:0 0 8px;font-size:17px;font-weight:650;color:#163734}.rb-consent p{margin:0 0 16px}.rb-consent a{color:#297369;text-decoration:underline}'
         + '.rb-consent-btns{display:flex;gap:12px}.rb-consent-btns button{flex:1;min-height:44px;padding:10px 16px;border:2px solid #297369;border-radius:8px;background:#fff;color:#1c4d47;font:inherit;font-weight:600;cursor:pointer}'
-        + '.rb-consent-btns button:hover{background:#eef9f5}.rb-consent-btns button:focus-visible{outline:3px solid #297369;outline-offset:2px}';
+        + '.rb-consent-btns button:hover{background:#eef9f5}.rb-consent-btns button:focus-visible{outline:3px solid #297369;outline-offset:2px}'
+        // Phones: a small bar at the bottom (short text + "Details"); the full text opens on request. Both choices stay equally prominent.
+        + '.rb-consent-short{display:none}.rb-consent-more{padding:0;border:0;background:none;color:#297369;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}'
+        + '@media (max-width:640px){.rb-consent{left:8px;right:8px;bottom:8px;padding:12px 14px;font-size:13.5px;line-height:1.4;max-height:calc(100vh - 16px);overflow:auto}.rb-consent h2{margin:0 0 4px;font-size:15px}.rb-consent p{margin:0 0 10px}'
+        + '.rb-consent .rb-consent-short{display:block}.rb-consent .rb-consent-full{display:none}.rb-consent.is-open .rb-consent-full{display:block}.rb-consent.is-open .rb-consent-short .rb-consent-more{display:none}.rb-consent-btns{gap:8px}}';
 
     function read() {
         var m = document.cookie.match(/(?:^|;\s*)rb-consent=(granted(?:-[a-z]+)*|denied)/);
@@ -132,8 +138,18 @@
         box.setAttribute('aria-labelledby', 'rb-consent-title');
         box.setAttribute('translate', 'no');
         var h = document.createElement('h2'), p = document.createElement('p'), a = document.createElement('a'), row = document.createElement('div');
+        var sp = document.createElement('p'), more = document.createElement('button');
         h.id = 'rb-consent-title';
         h.textContent = t.title;
+        sp.className = 'rb-consent-short';
+        sp.textContent = t.short + ' ';
+        more.type = 'button';
+        more.className = 'rb-consent-more';
+        more.textContent = t.details;
+        more.setAttribute('aria-expanded', 'false');
+        more.addEventListener('click', function () { box.classList.add('is-open'); more.setAttribute('aria-expanded', 'true'); });
+        sp.appendChild(more);
+        p.className = 'rb-consent-full';
         p.textContent = t.body;
         a.href = '/datenschutz';
         a.textContent = t.more;
@@ -148,6 +164,7 @@
             row.appendChild(btn);
         });
         box.appendChild(h);
+        box.appendChild(sp);
         box.appendChild(p);
         box.appendChild(row);
         document.body.appendChild(box);
