@@ -58,7 +58,7 @@ function seo_article_url(array $a): string
 
 function seo_known(string $path): bool
 {
-    return $path === '/ratgeber' || $path === '/guide' || seo_article($path) !== null || seo_service_path($path) !== null;
+    return $path === '/ratgeber' || $path === '/guide' || seo_article($path) !== null || seo_service_path($path) !== null || seo_hub_path($path) !== null;
 }
 // Title, description, page language, server-rendered guide HTML and hreflang alternates for a path.
 function seo_meta(string $path): array
@@ -75,6 +75,17 @@ function seo_meta(string $path): array
         if ($path === '/') {
             $m['ssr'] = seo_home_html();
         }
+        return $m;
+    }
+    if ($hb = seo_hub_path($path)) {
+        [$slug,$hl] = $hb;
+        $d = seo_hub_data()[$slug][$hl];
+        $m['lang'] = $hl;
+        $m['title'] = $d['seo'].' · '.$t;
+        $m['description'] = $d['description'];
+        $m['alternates'] = [['de', $base.seo_hub_url($slug, 'de')], ['en', $base.seo_hub_url($slug, 'en')]];
+        $m['ssr'] = seo_hub_html($slug, $hl);
+        $m['jsonld'] = seo_hub_jsonld($slug, $hl);
         return $m;
     }
     if ($sv = seo_service_path($path)) {
@@ -150,6 +161,10 @@ function sitemap_xml(): string
     }
     foreach (array_keys(seo_service_data()) as $s) {
         $paths[] = seo_service_url($s, 'en');
+    }
+    foreach (array_keys(seo_hub_data()) as $s) {
+        $paths[] = seo_hub_url($s, 'de');
+        $paths[] = seo_hub_url($s, 'en');
     }
     foreach (seo_articles() as $a) {
         $paths[] = seo_article_url($a);
@@ -279,4 +294,69 @@ function seo_home_html(): string
         $li .= '<li><a href="/leistungen/'.h($slug).'">'.h($x['de']['title']).'</a></li>';
     }
     return '<div class="rb-ssr-home"><h1>Rundfunkbeitrag ummelden, abmelden, anmelden. Wir übernehmen das.</h1><p>Sie wählen Ihr Anliegen und machen Ihre Angaben. Wir prüfen alles persönlich und reichen Ihren Antrag mit Ihrer Vollmacht beim Beitragsservice ein. Einmalig 49 €, kein Abonnement.</p><h2>Unsere Leistungen</h2><ul>'.$li.'</ul><p><a href="/antrag">Anliegen starten</a> · <a href="/kontakt">Kontakt</a> · <a href="/services/moving-or-name-change" hreflang="en">English</a></p><p>Unabhängiger, kostenpflichtiger Privatservice. Wir sind nicht mit ARD, ZDF, Deutschlandradio oder dem Beitragsservice verbunden. Die offiziellen Formulare sind kostenlos.</p></div>';
+}
+// Guide pages that lead to the right service (private/app/hubs.php): /leistungen/<slug> (de) and /services/<en slug> (en).
+function seo_hub_data(): array
+{
+    static $s = null;
+    return $s ??= require __DIR__.'/hubs.php';
+}
+
+function seo_hub_url(string $slug, string $lang): string
+{
+    return $lang === 'en' ? '/services/'.seo_hub_data()[$slug]['enslug'] : '/leistungen/'.$slug;
+}
+// Returns [slug, lang] for a hub page path, or null.
+function seo_hub_path(string $path): ?array
+{
+    if (preg_match('#^/leistungen/([a-z-]+)$#', $path, $m) && isset(seo_hub_data()[$m[1]])) {
+        return [$m[1], 'de'];
+    }
+    if (preg_match('#^/services/([a-z-]+)$#', $path, $m)) {
+        foreach (seo_hub_data() as $slug => $s) {
+            if ($s['enslug'] === $m[1]) {
+                return [$slug, 'en'];
+            }
+        }
+    }
+    return null;
+}
+
+function seo_hub_html(string $slug, string $lang): string
+{
+    $d = seo_hub_data()[$slug][$lang];
+    $en = $lang === 'en';
+    $L = fn ($de, $e) => $en ? $e : $de;
+    $cards = '';
+    foreach ($d['cards'] as [$svc,$title,$text]) {
+        $s = seo_service_data()[$svc];
+        $start = '/auftrag/'.strtolower($s['code']);
+        $cards .= '<li class="rb-hub-card"><img src="/icons/'.$s['icon'].'.webp" width="48" height="48" alt=""><div><h3><a href="'.$start.'">'.h($title).'</a></h3><p>'.h($text).'</p><p class="rb-hub-links"><a class="rb-hub-start" href="'.$start.'">'.$L('Jetzt starten', 'Start now').'</a><a href="'.h(seo_service_url($svc, $lang)).'">'.$L('Details und Unterlagen', 'Details and documents').'</a></p></div></li>';
+    }
+    $fq = '';
+    foreach (array_merge($d['faq'], [[$L('Warum kostet das 49 €, wenn das offizielle Formular kostenlos ist?', 'Why does this cost €49 when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos, und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen Ihren Antrag mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit your request with your authorisation and keep you informed at every step.')]]) as [$q,$a]) {
+        $fq .= '<details><summary>'.h($q).'</summary><p>'.h($a).'</p></details>';
+    }
+    $alt = seo_hub_url($slug, $en ? 'de' : 'en');
+    return '<article class="rb-service rb-hub" lang="'.$lang.'">'
+    .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
+    .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1><p class="public-lead">'.h($d['lead']).'</p>'
+    .'<ul class="rb-svc-facts"><li>'.$L('Einmalig 49 €, kein Abonnement', 'One-off €49, no subscription').'</li><li>'.$L('Angaben in etwa 2–5 Minuten', 'Details in about 2–5 minutes').'</li><li>'.$L('Persönliche Prüfung vor der Einreichung', 'Personal check before submission').'</li></ul></header>'
+    .'<section class="rb-svc-block"><h2>'.h($d['ask']).'</h2><ul class="rb-hub-cards">'.$cards.'</ul><p class="rb-svc-note">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></section>'
+    .'<section class="rb-svc-block rb-hub-note"><h2>'.h($d['note'][0]).'</h2><p>'.h($d['note'][1]).'</p></section>'
+    .'<section class="rb-svc-block rb-svc-faq"><h2>'.$L('Häufige Fragen', 'Frequently asked questions').'</h2>'.$fq.'</section>'
+    .'<p class="rb-article-alt"><a href="'.h($alt).'" hreflang="'.($en ? 'de' : 'en').'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>'.seo_disclaimer($lang).'</article>';
+}
+
+function seo_hub_jsonld(string $slug, string $lang): array
+{
+    $d = seo_hub_data()[$slug][$lang];
+    $base = config()['public_url'];
+    $en = $lang === 'en';
+    $faq = [];
+    foreach ($d['faq'] as [$q,$a]) {
+        $faq[] = ['@type' => 'Question', 'name' => $q, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $a]];
+    }
+    return [['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [['@type' => 'ListItem', 'position' => 1, 'name' => $en ? 'Home' : 'Startseite', 'item' => $base.'/'], ['@type' => 'ListItem', 'position' => 2, 'name' => $en ? 'Services' : 'Leistungen', 'item' => $base.'/#leistungen'], ['@type' => 'ListItem', 'position' => 3, 'name' => $d['title'], 'item' => $base.seo_hub_url($slug, $lang)]]],
+        ['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $faq]];
 }
