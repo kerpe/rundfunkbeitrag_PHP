@@ -156,7 +156,7 @@
     // Order form funnel, only with consent. Google Analytics gets one event per form step the visitor reaches
     // (begin_checkout when the form is first shown, then form_details, form_documents, form_review, form_email, form_email_verified) and order_placed when the order is recorded;
     // Google Ads gets the "Order submitted" conversion (ORDER_LABEL) at the same moment. No form contents are sent.
-    var ORDER_LABEL = '', STEPS = ['begin_checkout', 'form_details', 'form_documents', 'form_review', 'form_email'], seen = {}, timer = 0;
+    var ORDER_LABEL = '-6mWCPfxrLEdEK-TkIFF', STEPS = ['begin_checkout', 'form_details', 'form_documents', 'form_review', 'form_email'], seen = {}, timer = 0;
     function service() {
         var m = location.pathname.match(/^\/auftrag\/(p-0[1-8])$/i);
         return m ? m[1].toUpperCase() : '';
