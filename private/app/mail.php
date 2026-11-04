@@ -188,7 +188,7 @@ function verify_code_mail(array $c, string $email): string
     return $id;
 }
 
-// After an order with an unconfirmed address: one mail with a 6-digit code (30 minutes) and a confirmation link (7 days).
+// After an order with an unconfirmed address: one mail with a confirmation link (7 days).
 function order_verify_mail(array $c): void
 {
     $email = email($c['data']['email'] ?? null);
@@ -197,8 +197,6 @@ function order_verify_mail(array $c): void
     } catch (AppError) {
         return;
     }
-    $code = sprintf('%06d', random_int(0, 999999));
-    put('vcode:'.$c['id'], 'vcode', ['hash' => secret_hash($c['id'].':'.$code), 'email' => $email, 'attempts' => 0], $c['id'], '', time() + 1800);
     $raw = bin2hex(random_bytes(32));
     put('token:'.secret_hash($raw), 'token', ['caseId' => $c['id'], 'email' => $email, 'kind' => 'verify', 'expires' => time() + 7 * 86400], $c['id'], '', time() + 7 * 86400);
     $url = config()['public_url'].'/verify-contact#'.$raw;
@@ -206,7 +204,7 @@ function order_verify_mail(array $c): void
     $ref = $c['order']['reference'];
     $title = mt('confirm.title', $l);
     $paras = [mt('confirm.body', $l)];
-    $after = [mt('confirm.code', $l, ['code' => $code]), mt('verify.ignore', $l)];
+    $after = [mt('confirm.valid', $l), mt('verify.ignore', $l)];
     queue_mail('verify-'.$c['id'].'-'.$ref, $c, 'verify', $email, ['subject' => $title.' · '.$ref, 'text' => $title."\n".$ref."\n\n".$paras[0]."\n\n".$url."\n\n".implode("\n\n", $after), 'view' => ['lang' => $l, 'title' => $title, 'ref' => $ref, 'preheader' => mt('confirm.preheader', $l), 'paras' => $paras, 'link' => $url, 'button' => mt('confirm.button', $l), 'after' => $after], 'expiresAt' => time() + 7 * 86400]);
 }
 
