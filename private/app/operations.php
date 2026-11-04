@@ -49,8 +49,8 @@ function delete_fake_case(array $c, array $b): array
     if (!in_array($c['state'], ['ordered', 'in_review'], true) || !empty($c['checks']['paid']) || !empty($c['submission']) || isset($c['operations']['transmission']) || record('invoice:'.$c['id'])) {
         fail('DELETE_NOT_ALLOWED', 409);
     }
-    if ($ref === '' || strtoupper(trim((string)($b['confirm'] ?? ''))) !== strtoupper($ref)) {
-        fail('DELETE_CONFIRMATION_REQUIRED');
+    if ($ref === '') {
+        fail('DELETE_NOT_ALLOWED', 409);
     }
     $reason = text($b['reason'] ?? null, 3, 500);
     $keys = array_column($c['documents'], 'objectKey');
@@ -357,6 +357,6 @@ function billing_address(array $c): string
 {
     $d = $c['data'];
     $name = ($c['route'] === 'death' || ($d['forWhom'] ?? '') === 'other') ? trim(($d['applicantFirst'] ?? '').' '.($d['applicantLast'] ?? '')) : trim(($d['firstName'] ?? '').' '.($d['lastName'] ?? ''));
-    $post = ['different' => 'post', 'new' => 'new', 'main' => 'main'][$d['postTo'] ?? ''] ?? 'home';
+    $post = ['different' => 'post', 'new' => 'new', 'main' => 'main'][$c['route'] === 'abroad' ? 'new' : ($d['postTo'] ?? '')] ?? 'home';
     return trim($name."\n".str_replace(', ', "\n", poa_address($d, $post, field_set($c['route'], $d)['fields'])));
 }

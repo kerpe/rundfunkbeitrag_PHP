@@ -46,6 +46,10 @@ function parse_input(array $b, bool $partial = false): array
     if (count($d) > 60) {
         fail('INVALID_FIELD');
     }
+    // Leaving Germany: official post always goes to the new address abroad (no choice shown).
+    if ($route === 'abroad') {
+        $d['postTo'] = 'new';
+    }
     foreach ($d as $v) {
         if (is_string($v) && mb_strlen($v) <= 4000) {
             continue;
@@ -137,6 +141,9 @@ function parse_input(array $b, bool $partial = false): array
         if (($r['decisions'][$route][$key]['status'] ?? '') !== 'eligible') {
             fail('INELIGIBLE_CASE');
         }
+    }
+    if ($route === 'abroad') {
+        $active['postTo'] = 'new';
     }
     return ['route' => $route, 'answers' => $answers, 'data' => $active];
 }
