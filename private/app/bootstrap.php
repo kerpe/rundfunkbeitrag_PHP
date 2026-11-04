@@ -346,6 +346,12 @@ function save_case(array $before, array $next, string $op, string $by, string $a
     if ($action === 'order') {
         put('package:'.$op, 'package', ['id' => $op, 'sequence' => count(records('package', $before['id'])) + 1, 'created_at' => now(), 'snapshot' => $next], $before['id']);
         queue_notice($next, $action, $op);
+        // Unconfirmed email: hold the order confirmation until the customer confirms the address (release_held_mail).
+        if (!email_confirmed($next) && ($m = record('mail:'.$op, true))) {
+            $m['value']['status'] = 'held';
+            put('mail:'.$op, 'mail', $m['value'], $before['id']);
+            order_verify_mail($next);
+        }
     } elseif ($action === 'payment' && empty($before['operations']['paymentNotified']) && !empty($next['operations']['paymentNotified'])) {
         queue_notice($next, 'payment-received', $op);
     } elseif (in_array($action, ['request-information', 'record-submission', 'record-response', 'withdraw', 'review-withdrawal', 'plan-refund', 'record-refund', 'official-follow-up', 'complaint', 'privacy-request', 'resolve-privacy'], true)) {
@@ -382,12 +388,22 @@ function public_case(array $c): array
             $c['order']['cardPay'] = '/zahlung/karte?case='.$c['id'];
         }
     }
+    if (!empty($c['order'])) {
+        $c['emailConfirmed'] = email_confirmed($c);
+    }
     foreach (['data', 'answers', 'checks'] as $k) {
         if (empty($c[$k])) {
             $c[$k] = (object)[];
         }
     }
     return $c;
+}
+
+// True when the customer confirmed the order's email address (code or link). We start work only after that.
+function email_confirmed(array $c): bool
+{
+    $contact = record('contact:'.$c['id']);
+    return $contact && $contact['value']['email'] === strtolower(trim((string)($c['data']['email'] ?? '')));
 }
 
 function public_settings(): array

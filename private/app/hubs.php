@@ -2,7 +2,7 @@
 
 // Guide pages that send a visitor to the right service: /leistungen/<slug> (German) and /services/<enslug> (English).
 // Rendered server-side by seo.php (seo_hub_html). Not linked from menus or the homepage; reached from ads, search and the sitemap.
-// Each hub: enslug, per language: title, description (meta), lead, ask (heading above the cards), cards ([service slug, title, text]), note ([heading, text]), faq ([question, answer]).
+// Each hub: enslug, per language: title, description (meta), lead, ask (heading above the cards), cards ([service slug, title, text, optional true = 'most common' tag]), note ([heading, text]), faq ([question, answer]).
 // Official sources are named as text only; we do not link customers to rundfunkbeitrag.de.
 return [
     'abmelden' => ['enslug' => 'deregister',
@@ -12,8 +12,8 @@ return [
             'lead' => 'Wählen Sie Ihren Grund. Wir bereiten die Abmeldung vor und reichen sie mit Ihrer Vollmacht beim Beitragsservice ein.',
             'ask' => 'Warum möchten Sie abmelden?',
             'cards' => [
+                ['zusammenziehen', 'Ich ziehe zu jemandem, der schon zahlt', 'Pro Wohnung zahlt nur eine Person. Ihr eigenes Konto wird abgemeldet.', true],
                 ['ausland', 'Ich ziehe dauerhaft ins Ausland', 'Sie geben Ihre Wohnung in Deutschland ganz auf.'],
-                ['zusammenziehen', 'Ich ziehe zu jemandem, der schon zahlt', 'Pro Wohnung zahlt nur eine Person. Ihr eigenes Konto wird abgemeldet.'],
                 ['weitere-wohnung-aufgeben', 'Ich gebe eine von mehreren Wohnungen auf', 'Sie behalten mindestens eine Wohnung und zahlen nur noch für diese.'],
                 ['daten-aendern', 'Ich ziehe nur um', 'Dann müssen Sie nicht abmelden. Ihr Konto zieht mit um, wir melden die neue Anschrift.'],
                 ['sterbefall', 'Ein Angehöriger ist verstorben', 'Wir melden das Beitragskonto der verstorbenen Person ab.'],
@@ -30,8 +30,8 @@ return [
             'lead' => 'Choose your reason. We prepare the deregistration and submit it to Beitragsservice with your authorisation.',
             'ask' => 'Why do you want to deregister?',
             'cards' => [
+                ['zusammenziehen', 'I am moving in with someone who already pays', 'Only one person pays per home. Your own account is deregistered.', true],
                 ['ausland', 'I am leaving Germany for good', 'You are giving up your home in Germany completely.'],
-                ['zusammenziehen', 'I am moving in with someone who already pays', 'Only one person pays per home. Your own account is deregistered.'],
                 ['weitere-wohnung-aufgeben', 'I am giving up one of several homes', 'You keep at least one home and only pay for that one.'],
                 ['daten-aendern', 'I am only moving home', 'Then you do not need to deregister. Your account moves with you; we report the new address.'],
                 ['sterbefall', 'A relative has died', 'We deregister the contribution account of the person who died.'],

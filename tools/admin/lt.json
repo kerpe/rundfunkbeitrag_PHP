@@ -153,6 +153,8 @@
 "Withdrawal received; work stopped": "Klientas atsisakė, darbas sustabdytas",
 "Reconcile previous transmission": "Išsiaiškinti ankstesnį pateikimą",
 "Verify contract delivery": "Patikrinti sutarties pristatymą",
+"Customer has not confirmed the email address yet": "Klientas dar nepatvirtino el. pašto adreso",
+"Contribution number missing: ask the customer": "Trūksta mokėtojo numerio: paprašykite kliento",
 "Verify signed authorisation": "Patikrinti pasirašytą įgaliojimą",
 "Check customer details": "Patikrinti kliento duomenis",
 "Customer order missing": "Trūksta kliento užsakymo",

@@ -339,11 +339,13 @@ function seo_hub_html(string $slug, string $lang): string
     $en = $lang === 'en';
     $L = fn ($de, $e) => $en ? $e : $de;
     $cards = '';
-    foreach ($d['cards'] as [$svc,$title,$text]) {
+    foreach ($d['cards'] as $card) {
+        [$svc,$title,$text] = $card;
         $s = seo_service_data()[$svc];
         $start = '/auftrag/'.strtolower($s['code']);
+        $tag = empty($card[3]) ? '' : '<span class="rb-hub-tag">'.$L('Häufigster Grund', 'Most common').'</span>';
         // Same look as the service cards on /antrag: icon on top, title, short text, the whole card opens the order form.
-        $cards .= '<li class="rb-hub-card"><a href="'.$start.'"><img src="/icons/'.$s['icon'].'.webp" width="64" height="64" alt=""><h3>'.h($title).'</h3><p>'.h($text).'</p></a></li>';
+        $cards .= '<li class="rb-hub-card"><a href="'.$start.'"><img src="/icons/'.$s['icon'].'.webp" width="64" height="64" alt=""><h3>'.$tag.h($title).'</h3><p>'.h($text).'</p></a></li>';
     }
     $fq = '';
     foreach (array_merge($d['faq'], [[$L('Warum kostet das etwas, wenn das offizielle Formular kostenlos ist?', 'Why do you charge for this when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos, und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen Ihren Antrag mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit your request with your authorisation and keep you informed at every step.')]]) as [$q,$a]) {
@@ -352,7 +354,10 @@ function seo_hub_html(string $slug, string $lang): string
     $alt = seo_hub_url($slug, $en ? 'de' : 'en');
     return '<article class="rb-service rb-hub" lang="'.$lang.'">'
     .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
-    .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1></header>'
+    .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1>'
+    // First phone screen: how payment works, how long it takes, who we are (Vilius, 2026-11-04).
+    .'<p class="rb-hub-key">'.$L('Keine Vorkasse · Angaben in etwa 3 Minuten', 'No advance payment · about 3 minutes to fill in').'</p>'
+    .'<p class="rb-hub-badge">'.$L('EU-Unternehmen · Daten in Frankfurt', 'EU company · data stored in Frankfurt').'</p></header>'
     // Cards come straight after the title so visitors from ads or search can pick their case at once.
     .'<section class="rb-svc-block rb-hub-pick"><h2>'.h($d['ask']).'</h2><ul class="rb-hub-cards">'.$cards.'</ul>'
     .'<p class="rb-hub-lead">'.h($d['lead']).'</p>'
