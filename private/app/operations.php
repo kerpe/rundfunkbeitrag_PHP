@@ -49,8 +49,8 @@ function delete_fake_case(array $c, array $b): array
     if (!in_array($c['state'], ['ordered', 'in_review'], true) || !empty($c['checks']['paid']) || !empty($c['submission']) || isset($c['operations']['transmission']) || record('invoice:'.$c['id'])) {
         fail('DELETE_NOT_ALLOWED', 409);
     }
-    if ($ref === '' || strtoupper(trim((string)($b['confirm'] ?? ''))) !== strtoupper($ref)) {
-        fail('DELETE_CONFIRMATION_REQUIRED');
+    if ($ref === '') {
+        fail('DELETE_NOT_ALLOWED', 409);
     }
     $reason = text($b['reason'] ?? null, 3, 500);
     $keys = array_column($c['documents'], 'objectKey');
