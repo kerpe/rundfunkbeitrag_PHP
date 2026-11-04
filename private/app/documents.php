@@ -67,7 +67,7 @@ function authority_text(array $c, array $s, string $ref, string $at, string $lan
     $r = $c['route'];
     $set = field_set($r, $d);
     $grantor = ($r === 'death' || ($d['forWhom'] ?? '') === 'other') ? trim($d['applicantFirst'].' '.$d['applicantLast']) : trim($d['firstName'].' '.$d['lastName']);
-    $post = ['different' => 'post', 'new' => 'new', 'main' => 'main'][$d['postTo'] ?? ''] ?? 'home';
+    $post = ['different' => 'post', 'new' => 'new', 'main' => 'main'][$r === 'abroad' ? 'new' : ($d['postTo'] ?? '')] ?? 'home';
     $until = gmdate('d.m.Y', strtotime(substr($at, 0, 10).' +6 months'));
     $reg = preg_match('/\b\d{9}\b/', (string)($s['taxIdentifier'] ?? ''), $m) ? $m[0] : '';
     $addr = preg_replace('/\s*\R\s*/', ', ', trim($s['providerAddress']));
