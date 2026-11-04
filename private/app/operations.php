@@ -60,6 +60,15 @@ function delete_fake_case(array $c, array $b): array
     foreach (array_unique(array_filter($keys)) as $k) {
         $GLOBALS['unlink_after_commit'][] = private_root().'/data/uploads/'.basename($k);
     }
+    // The admin mail log keeps a short line for each email of the deleted order (no content), so what was sent stays visible.
+    foreach (records('mail', $c['id']) as $m) {
+        $line = array_intersect_key($m, array_flip(['id', 'kind', 'recipient', 'status', 'error', 'provider_id', 'attempts', 'created_at', 'delivered_at']));
+        if (in_array($line['status'] ?? '', ['queued', 'retry', 'sending', 'held'], true)) {
+            $line['status'] = 'cancelled';
+        }
+        // put() keeps parent_id on update, so detach the row from the case directly (the DELETE below goes by parent_id).
+        sql("UPDATE rb_records SET parent_id='', data_json=?, updated_at=? WHERE id=?", [json_encode($line + ['case_id' => '', 'caseDeleted' => $ref, 'payload' => []], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), time(), 'mail:'.$m['id']]);
+    }
     sql('DELETE FROM rb_records WHERE parent_id=? OR id=?', [$c['id'], 'case:'.$c['id']]);
     put('erasure:'.$c['id'], 'erasure', ['id' => $c['id'], 'reference' => $ref, 'at' => now(), 'by' => actor(), 'kind' => 'fake-order', 'reason' => $reason, 'status' => 'complete']);
     return ['deleted' => true, 'reference' => $ref];
