@@ -261,7 +261,7 @@ function seo_service_html(string $slug, string $lang): string
     .($guide ? '<p class="rb-svc-guide"><a href="'.h(seo_article_url($guide)).'">'.$L('Mehr dazu im Ratgeber: ', 'Read our guide: ').h($guide['title']).'</a></p>' : '')
     .'<aside class="rb-article-cta"><h2>'.$L('Bereit? Wir übernehmen das.', 'Ready? We handle it.').'</h2><p>'.$L('Einmalig 35 €. Die Entscheidung trifft ausschließlich der Beitragsservice; Einreichung und Entscheidung sind getrennte Schritte.', 'One-off €35. Only Beitragsservice makes the decision; submission and decision are separate steps.').'</p><p><a class="public-button" href="'.$start.'">'.h($cta).'</a></p></aside>'
     .'<p class="rb-article-alt"><a href="'.h($alt).'" hreflang="'.($en ? 'de' : 'en').'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>'.seo_disclaimer($lang)
-    .'<div class="rb-svc-sticky" aria-hidden="true"><p><strong>'.$L('35 €', '€35').'</strong><span>'.$L('einmalig, kein Abo', 'one-off, no subscription').'</span></p><a class="public-button" href="'.$start.'" tabindex="-1">'.h($cta).'</a></div></article>';
+    .'<div class="rb-svc-sticky" aria-hidden="true"><a class="public-button" href="'.$start.'" tabindex="-1">'.h($cta).'</a></div></article>';
 }
 
 function seo_service_jsonld(string $slug, string $lang): array
