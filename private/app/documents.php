@@ -133,7 +133,7 @@ function make_order(array $c, array $s, array $consent, string $lang): array
     $at = now();
     $ref = $c['order']['reference'] ?? new_reference();
     $authority = authority_text($c, $s, $ref, $at, $lang);
-    $o = ['at' => $at, 'reference' => $ref, 'feeCents' => 4900, 'consent' => $consent, 'authorityText' => $authority, 'declarations' => (isset(rules()['situations'][$c['route']][$lang]) ? ['situation' => rules()['situations'][$c['route']][$lang]] : []) + rules()['declarations'][$lang], 'settingsVersion' => $s['version'], 'permittedStartAt' => $consent['early'] ? $at : '', 'language' => $lang];
+    $o = ['at' => $at, 'reference' => $ref, 'feeCents' => 3500, 'consent' => $consent, 'authorityText' => $authority, 'declarations' => (isset(rules()['situations'][$c['route']][$lang]) ? ['situation' => rules()['situations'][$c['route']][$lang]] : []) + rules()['declarations'][$lang], 'settingsVersion' => $s['version'], 'permittedStartAt' => $consent['early'] ? $at : '', 'language' => $lang];
     foreach (['termsText', 'withdrawalText', 'privacyText', 'providerName', 'providerAddress', 'supportEmail', 'iban', 'bic', 'beneficiary', 'authorityMethod'] as $k) {
         $o[$k] = $s[$k];
     }

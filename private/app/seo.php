@@ -15,14 +15,14 @@ function seo_codes(): array
 function seo_services(): array
 {
     return [
-        'zusammenziehen' => ['Rundfunkbeitrag abmelden beim Zusammenziehen', 'Sie ziehen zu jemandem, der bereits zahlt? Wir melden Ihr Beitragskonto ab, damit nicht doppelt gezahlt wird. Einmalig 49 €, offizielle Formulare kostenlos.'],
-        'ausland' => ['Rundfunkbeitrag abmelden beim Umzug ins Ausland', 'Dauerhaft ins Ausland? Wir melden Ihren Rundfunkbeitrag ab, auf Wunsch auch auf Englisch. Einmalig 49 €, offizielles Formular kostenlos.'],
-        'weitere-wohnung-aufgeben' => ['Eine von mehreren Wohnungen abmelden', 'Sie geben eine von mehreren Wohnungen auf? Wir melden sie beim Beitragsservice ab. Einmalig 49 €, offizielles Formular kostenlos.'],
-        'sterbefall' => ['Rundfunkbeitrag nach Todesfall abmelden', 'Wir melden das Beitragskonto einer verstorbenen Person für Angehörige ab. Einmalig 49 €, offizielles Formular kostenlos.'],
-        'anmelden' => ['Wohnung erstmals beim Rundfunkbeitrag anmelden', 'Erste eigene Wohnung oder neue WG? Wir melden die Wohnung beim Beitragsservice an. Einmalig 49 €, offizielles Formular kostenlos.'],
-        'daten-aendern' => ['Umzug oder Namensänderung beim Rundfunkbeitrag melden', 'Umzug oder neuer Name? Wir teilen die Änderung dem Beitragsservice mit. Einmalig 49 €, offizielles Formular kostenlos.'],
-        'zahlung-aendern' => ['Zahlungsrhythmus beim Rundfunkbeitrag ändern', 'Lieber halbjährlich oder jährlich zahlen? Wir teilen dem Beitragsservice Ihren gewünschten Zahlungsrhythmus mit. Einmalig 49 €, offizielles Formular kostenlos.'],
-        'zweitwohnung' => ['Nebenwohnung vom Rundfunkbeitrag befreien', 'Sie zahlen für Ihre Hauptwohnung? Wir melden die Nebenwohnung bei Bedarf an und beantragen die Befreiung. Einmalig 49 €.'],
+        'zusammenziehen' => ['Rundfunkbeitrag abmelden beim Zusammenziehen', 'Sie ziehen zu jemandem, der bereits zahlt? Wir melden Ihr Beitragskonto ab, damit nicht doppelt gezahlt wird. Einmalig 35 €, offizielle Formulare kostenlos.'],
+        'ausland' => ['Rundfunkbeitrag abmelden beim Umzug ins Ausland', 'Dauerhaft ins Ausland? Wir melden Ihren Rundfunkbeitrag ab, auf Wunsch auch auf Englisch. Einmalig 35 €, offizielles Formular kostenlos.'],
+        'weitere-wohnung-aufgeben' => ['Eine von mehreren Wohnungen abmelden', 'Sie geben eine von mehreren Wohnungen auf? Wir melden sie beim Beitragsservice ab. Einmalig 35 €, offizielles Formular kostenlos.'],
+        'sterbefall' => ['Rundfunkbeitrag nach Todesfall abmelden', 'Wir melden das Beitragskonto einer verstorbenen Person für Angehörige ab. Einmalig 35 €, offizielles Formular kostenlos.'],
+        'anmelden' => ['Wohnung erstmals beim Rundfunkbeitrag anmelden', 'Erste eigene Wohnung oder neue WG? Wir melden die Wohnung beim Beitragsservice an. Einmalig 35 €, offizielles Formular kostenlos.'],
+        'daten-aendern' => ['Umzug oder Namensänderung beim Rundfunkbeitrag melden', 'Umzug oder neuer Name? Wir teilen die Änderung dem Beitragsservice mit. Einmalig 35 €, offizielles Formular kostenlos.'],
+        'zahlung-aendern' => ['Zahlungsrhythmus beim Rundfunkbeitrag ändern', 'Lieber halbjährlich oder jährlich zahlen? Wir teilen dem Beitragsservice Ihren gewünschten Zahlungsrhythmus mit. Einmalig 35 €, offizielles Formular kostenlos.'],
+        'zweitwohnung' => ['Nebenwohnung vom Rundfunkbeitrag befreien', 'Sie zahlen für Ihre Hauptwohnung? Wir melden die Nebenwohnung bei Bedarf an und beantragen die Befreiung. Einmalig 35 €.'],
         'weitere-wohnung-anmelden' => ['Weitere Wohnung beim Rundfunkbeitrag anmelden', 'Eine zusätzliche Wohnung? Wir zeigen, ob eine Befreiung möglich ist oder eine Anmeldung nötig ist, damit Sie nicht doppelt zahlen.'],
     ];
 }
@@ -30,7 +30,7 @@ function seo_services(): array
 function seo_static(): array
 {
     return [
-        '/' => ['Rundfunkbeitrag anmelden, abmelden, ändern · Rundfunkbeitrag Support', 'Persönliche Unterstützung bei Rundfunkbeitrag-Anliegen: Abmeldung, Anmeldung, Änderung, Nebenwohnung. Unabhängiger Privatservice, einmalig 49 €. Offizielle Formulare sind kostenlos.'],
+        '/' => ['Rundfunkbeitrag anmelden, abmelden, ändern · Rundfunkbeitrag Support', 'Persönliche Unterstützung bei Rundfunkbeitrag-Anliegen: Abmeldung, Anmeldung, Änderung, Nebenwohnung. Unabhängiger Privatservice, einmalig 35 €. Offizielle Formulare sind kostenlos.'],
         '/kontakt' => ['Kontakt · Rundfunkbeitrag Support', 'Fragen zu Ihrem Rundfunkbeitrag-Anliegen oder Ihrem Vorgang? Schreiben Sie uns.'],
         '/impressum' => ['Impressum · Rundfunkbeitrag Support', null], '/datenschutz' => ['Datenschutz · Rundfunkbeitrag Support', null], '/agb' => ['AGB · Rundfunkbeitrag Support', null], '/widerruf' => ['Widerruf · Rundfunkbeitrag Support', null],
         '/weitere-anliegen' => ['Weitere Rundfunkbeitrag-Anliegen · Rundfunkbeitrag Support', null],
@@ -65,7 +65,7 @@ function seo_meta(string $path): array
 {
     $base = config()['public_url'];
     $t = 'Rundfunkbeitrag Support';
-    $m = ['title' => $t, 'description' => 'Persönliche administrative Unterstützung für Rundfunkbeitrag-Anliegen. Unabhängiger Privatservice. Einmalig 49 €.', 'lang' => null, 'ssr' => '', 'alternates' => []];
+    $m = ['title' => $t, 'description' => 'Persönliche administrative Unterstützung für Rundfunkbeitrag-Anliegen. Unabhängiger Privatservice. Einmalig 35 €.', 'lang' => null, 'ssr' => '', 'alternates' => []];
     $s = seo_static()[$path] ?? null;
     if ($s) {
         $m['title'] = $s[0];
@@ -142,7 +142,7 @@ function seo_meta(string $path): array
     if ($alt) {
         $m['alternates'] = [[$a['lang'], $base.$path], [$alt['lang'], $base.seo_article_url($alt)]];
     }
-    $cta = '<aside class="rb-article-cta"><h2>'.($en ? 'Rather have it done for you?' : 'Lieber erledigen lassen?').'</h2><p>'.($en ? 'We check your details and documents, submit your request with your authorisation and keep you informed at every step. One-off €49, no subscription.' : 'Wir prüfen Ihre Angaben und Nachweise, reichen Ihren Antrag mit Ihrer Vollmacht ein und informieren Sie bei jedem Schritt. Einmalig 49 €, kein Abonnement.').'</p><p>'.($code ? '<a class="public-button" href="/auftrag/'.strtolower($code).'">'.($en ? 'Start your request' : 'Anliegen starten').'</a> ' : '').'<a href="/leistungen/'.h($a['service']).'">'.($en ? 'Documents and process' : 'Unterlagen und Ablauf').'</a></p></aside>';
+    $cta = '<aside class="rb-article-cta"><h2>'.($en ? 'Rather have it done for you?' : 'Lieber erledigen lassen?').'</h2><p>'.($en ? 'We check your details and documents, submit your request with your authorisation and keep you informed at every step. One-off €35, no subscription.' : 'Wir prüfen Ihre Angaben und Nachweise, reichen Ihren Antrag mit Ihrer Vollmacht ein und informieren Sie bei jedem Schritt. Einmalig 35 €, kein Abonnement.').'</p><p>'.($code ? '<a class="public-button" href="/auftrag/'.strtolower($code).'">'.($en ? 'Start your request' : 'Anliegen starten').'</a> ' : '').'<a href="/leistungen/'.h($a['service']).'">'.($en ? 'Documents and process' : 'Unterlagen und Ablauf').'</a></p></aside>';
     $m['ssr'] = '<article class="rb-article" lang="'.$a['lang'].'"><p class="eyebrow"><a href="'.($en ? '/guide">Guides' : '/ratgeber">Ratgeber').'</a></p><h1>'.h($a['title']).'</h1>'.$a['body'].$cta.($alt ? '<p class="rb-article-alt"><a href="'.h(seo_article_url($alt)).'" hreflang="'.$alt['lang'].'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>' : '').seo_disclaimer($a['lang']).'</article>';
     return $m;
 }
@@ -214,7 +214,7 @@ function seo_service_html(string $slug, string $lang): string
     foreach ($d['no'] as [$t,$o]) {
         $no .= '<li>'.h($t).($o ? ' <a href="'.h(seo_service_url($o, $lang)).'">'.h(seo_service_data()[$o][$lang]['title']).'</a>' : '').'</li>';
     }
-    $faq = array_merge($d['faq'], [[$L('Warum kostet das 49 €, wenn das offizielle Formular kostenlos ist?', 'Why does this cost €49 when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos, und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen Ihren Antrag mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit your request with your authorisation and keep you informed at every step.')]]);
+    $faq = array_merge($d['faq'], [[$L('Warum kostet das 35 €, wenn das offizielle Formular kostenlos ist?', 'Why does this cost €35 when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos, und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen Ihren Antrag mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit your request with your authorisation and keep you informed at every step.')]]);
     $fq = '';
     foreach ($faq as [$q,$a]) {
         $fq .= '<details><summary>'.h($q).'</summary><p>'.h($a).'</p></details>';
@@ -251,7 +251,7 @@ function seo_service_html(string $slug, string $lang): string
     .'<a class="public-button rb-svc-cta" href="'.$start.'">'.h($cta).'</a>'
     .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p>'
     .'<p class="public-lead">'.h($d['lead']).'</p></div>'
-    .'<aside class="rb-svc-price"><p class="rb-svc-price-label">'.$L('Einmalige Servicegebühr', 'One-off service fee').'</p><p class="rb-svc-amount">'.$L('49 €', '€49').'</p><p>'.$L('Prüfung, Vorbereitung und Einreichung mit Ihrer Vollmacht.', 'Checking, preparing and submitting your request with your authorisation.').'</p><a class="public-button" href="'.$start.'">'.h($cta).'</a><p class="rb-svc-small">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></aside></header>'
+    .'<aside class="rb-svc-price"><p class="rb-svc-price-label">'.$L('Einmalige Servicegebühr', 'One-off service fee').'</p><p class="rb-svc-amount">'.$L('35 €', '€35').'</p><p>'.$L('Prüfung, Vorbereitung und Einreichung mit Ihrer Vollmacht.', 'Checking, preparing and submitting your request with your authorisation.').'</p><a class="public-button" href="'.$start.'">'.h($cta).'</a><p class="rb-svc-small">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></aside></header>'
     .'<section class="rb-svc-fit"><div class="rb-fit-yes"><h2>'.$L('Passt, wenn', 'Right for you if').'</h2><ul>'.$li($d['yes']).'</ul></div><div class="rb-fit-no"><h2>'.$L('Passt nicht, wenn', 'Not right if').'</h2><ul>'.$no.'</ul></div></section>'
     .'<section class="rb-svc-block"><h2>'.$L('Das benötigen Sie', 'What you need').'</h2><ul class="rb-svc-check">'.$li($d['needed']).'</ul><p class="rb-svc-note">'.h($d['note']).'</p></section>'
     .'<section class="rb-svc-block"><h2>'.$L('So läuft es ab', 'How it works').'</h2><ol class="rb-svc-steps">'.$st.'</ol></section>'
@@ -259,9 +259,9 @@ function seo_service_html(string $slug, string $lang): string
     .'<section class="rb-svc-block"><h2>'.$L('Das bekommen Sie', 'What you get').'</h2><ul class="rb-svc-check">'.$li($get).'</ul></section>'
     .'<section class="rb-svc-block rb-svc-faq"><h2>'.$L('Häufige Fragen', 'Frequently asked questions').'</h2>'.$fq.'</section>'
     .($guide ? '<p class="rb-svc-guide"><a href="'.h(seo_article_url($guide)).'">'.$L('Mehr dazu im Ratgeber: ', 'Read our guide: ').h($guide['title']).'</a></p>' : '')
-    .'<aside class="rb-article-cta"><h2>'.$L('Bereit? Wir übernehmen das.', 'Ready? We handle it.').'</h2><p>'.$L('Einmalig 49 €. Die Entscheidung trifft ausschließlich der Beitragsservice; Einreichung und Entscheidung sind getrennte Schritte.', 'One-off €49. Only Beitragsservice makes the decision; submission and decision are separate steps.').'</p><p><a class="public-button" href="'.$start.'">'.h($cta).'</a></p></aside>'
+    .'<aside class="rb-article-cta"><h2>'.$L('Bereit? Wir übernehmen das.', 'Ready? We handle it.').'</h2><p>'.$L('Einmalig 35 €. Die Entscheidung trifft ausschließlich der Beitragsservice; Einreichung und Entscheidung sind getrennte Schritte.', 'One-off €35. Only Beitragsservice makes the decision; submission and decision are separate steps.').'</p><p><a class="public-button" href="'.$start.'">'.h($cta).'</a></p></aside>'
     .'<p class="rb-article-alt"><a href="'.h($alt).'" hreflang="'.($en ? 'de' : 'en').'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>'.seo_disclaimer($lang)
-    .'<div class="rb-svc-sticky" aria-hidden="true"><p><strong>'.$L('49 €', '€49').'</strong><span>'.$L('einmalig, kein Abo', 'one-off, no subscription').'</span></p><a class="public-button" href="'.$start.'" tabindex="-1">'.h($cta).'</a></div></article>';
+    .'<div class="rb-svc-sticky" aria-hidden="true"><p><strong>'.$L('35 €', '€35').'</strong><span>'.$L('einmalig, kein Abo', 'one-off, no subscription').'</span></p><a class="public-button" href="'.$start.'" tabindex="-1">'.h($cta).'</a></div></article>';
 }
 
 function seo_service_jsonld(string $slug, string $lang): array
@@ -275,7 +275,7 @@ function seo_service_jsonld(string $slug, string $lang): array
     foreach ($d['faq'] as [$q,$a]) {
         $faq[] = ['@type' => 'Question', 'name' => $q, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $a]];
     }
-    return [['@context' => 'https://schema.org', '@type' => 'Service', 'name' => $d['title'], 'description' => $d['lead'], 'url' => $url, 'areaServed' => 'DE', 'inLanguage' => $lang, 'provider' => ['@type' => 'Organization', 'name' => 'Rundfunkbeitrag Support', 'url' => $base.'/'], 'offers' => ['@type' => 'Offer', 'price' => '49.00', 'priceCurrency' => 'EUR', 'url' => $base.'/auftrag/'.strtolower($s['code'])]],
+    return [['@context' => 'https://schema.org', '@type' => 'Service', 'name' => $d['title'], 'description' => $d['lead'], 'url' => $url, 'areaServed' => 'DE', 'inLanguage' => $lang, 'provider' => ['@type' => 'Organization', 'name' => 'Rundfunkbeitrag Support', 'url' => $base.'/'], 'offers' => ['@type' => 'Offer', 'price' => '35.00', 'priceCurrency' => 'EUR', 'url' => $base.'/auftrag/'.strtolower($s['code'])]],
         ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => [['@type' => 'ListItem', 'position' => 1, 'name' => $en ? 'Home' : 'Startseite', 'item' => $base.'/'], ['@type' => 'ListItem', 'position' => 2, 'name' => $en ? 'Services' : 'Leistungen', 'item' => $base.'/#leistungen'], ['@type' => 'ListItem', 'position' => 3, 'name' => $d['title'], 'item' => $url]]],
         ['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $faq]];
 }
@@ -284,7 +284,7 @@ function seo_head(string $path, array $seo): string
 {
     $base = config()['public_url'];
     $lang = $seo['lang'] ?? 'de';
-    $o = '<meta property="og:type" content="website"><meta property="og:site_name" content="Rundfunkbeitrag Support"><meta property="og:title" content="'.h(preg_replace('/ · Rundfunkbeitrag Support$/', '', $seo['title'])).'"><meta property="og:description" content="'.h($seo['description']).'"><meta property="og:url" content="'.h($base.$path).'"><meta property="og:image" content="'.h($base.'/brand/og-49.png').'"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="'.($lang === 'en' ? 'en_GB' : 'de_DE').'"><meta name="twitter:card" content="summary_large_image">';
+    $o = '<meta property="og:type" content="website"><meta property="og:site_name" content="Rundfunkbeitrag Support"><meta property="og:title" content="'.h(preg_replace('/ · Rundfunkbeitrag Support$/', '', $seo['title'])).'"><meta property="og:description" content="'.h($seo['description']).'"><meta property="og:url" content="'.h($base.$path).'"><meta property="og:image" content="'.h($base.'/brand/og-35.png').'"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="'.($lang === 'en' ? 'en_GB' : 'de_DE').'"><meta name="twitter:card" content="summary_large_image">';
     $ld = $seo['jsonld'] ?? [];
     if ($path === '/') {
         $ld[] = ['@context' => 'https://schema.org', '@type' => 'Organization', 'name' => 'Rundfunkbeitrag Support', 'url' => $base.'/', 'logo' => $base.'/brand/antenna.svg', 'description' => 'Unabhängiger, kostenpflichtiger Privatservice für Rundfunkbeitrag-Anliegen. Nicht mit ARD, ZDF, Deutschlandradio oder dem Beitragsservice verbunden.'];
@@ -304,7 +304,7 @@ function seo_home_html(): string
     foreach (seo_service_data() as $slug => $x) {
         $li .= '<li><a href="/leistungen/'.h($slug).'">'.h($x['de']['title']).'</a></li>';
     }
-    return '<div class="rb-ssr-home"><h1>Rundfunkbeitrag ummelden, abmelden, anmelden. Wir übernehmen das.</h1><p>Sie wählen Ihr Anliegen und machen Ihre Angaben. Wir prüfen alles persönlich und reichen Ihren Antrag mit Ihrer Vollmacht beim Beitragsservice ein. Einmalig 49 €, kein Abonnement.</p><h2>Unsere Leistungen</h2><ul>'.$li.'</ul><p><a href="/antrag">Anliegen starten</a> · <a href="/kontakt">Kontakt</a> · <a href="/services/moving-or-name-change" hreflang="en">English</a></p><p>Unabhängiger, kostenpflichtiger Privatservice. Wir sind nicht mit ARD, ZDF, Deutschlandradio oder dem Beitragsservice verbunden. Die offiziellen Formulare sind kostenlos.</p></div>';
+    return '<div class="rb-ssr-home"><h1>Rundfunkbeitrag ummelden, abmelden, anmelden. Wir übernehmen das.</h1><p>Sie wählen Ihr Anliegen und machen Ihre Angaben. Wir prüfen alles persönlich und reichen Ihren Antrag mit Ihrer Vollmacht beim Beitragsservice ein. Einmalig 35 €, kein Abonnement.</p><h2>Unsere Leistungen</h2><ul>'.$li.'</ul><p><a href="/antrag">Anliegen starten</a> · <a href="/kontakt">Kontakt</a> · <a href="/services/moving-or-name-change" hreflang="en">English</a></p><p>Unabhängiger, kostenpflichtiger Privatservice. Wir sind nicht mit ARD, ZDF, Deutschlandradio oder dem Beitragsservice verbunden. Die offiziellen Formulare sind kostenlos.</p></div>';
 }
 // Guide pages that lead to the right service (private/app/hubs.php): /leistungen/<slug> (de) and /services/<en slug> (en).
 function seo_hub_data(): array
