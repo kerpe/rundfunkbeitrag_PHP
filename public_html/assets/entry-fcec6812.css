@@ -551,3 +551,6 @@ html body .rb-svc-sticky .public-button{flex:1;max-width:250px;margin:0;color:va
 @media (prefers-reduced-motion:reduce){.rb-svc-sticky,.rb-menu-icon,.rb-menu-icon:before,.rb-menu-icon:after{transition:none !important}}
 html body .rb-hub-hero .rb-svc-trust{margin-bottom:8px}
 html body .rb-hub-lead{margin:-6px 0 16px;color:var(--t-muted)}
+
+html body .rb-hub-hero{margin-bottom:14px}html body .rb-hub-pick h2{margin-top:0}html body .rb-hub-pick .rb-hub-lead{margin:18px 0 10px}html body .rb-hub-pick .rb-svc-key{margin:0 0 4px}@media (max-width:760px){html body .rb-hub-hero h1{margin-bottom:6px}}
+html body main.landing-page .landing-hero{padding-top:40px}@media (max-width:760px){html body main.landing-page .landing-hero{padding-top:20px}html body .rb-hub-card>a{display:grid;grid-template-columns:48px minmax(0,1fr);column-gap:12px;row-gap:2px;align-items:center;padding:12px 14px}html body .rb-hub-card img{grid-row:span 2;width:48px;height:48px;margin:0}html body .rb-hub-card h3{font-size:16px;line-height:1.35}html body .rb-hub-card p{grid-column:2;font-size:13.5px;line-height:1.45}html body .rb-hub-cards{gap:8px}}

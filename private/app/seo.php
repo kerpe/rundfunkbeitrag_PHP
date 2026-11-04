@@ -247,7 +247,7 @@ function seo_service_html(string $slug, string $lang): string
     return '<article class="rb-service" lang="'.$lang.'">'
     .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
     .'<header class="rb-svc-hero"><div class="rb-svc-intro"><img class="rb-svc-icon" src="/icons/'.$s['icon'].'.webp" width="64" height="64" alt=""><h1>'.h($d['title']).'</h1>'
-    .'<p class="rb-svc-key">'.$L('49 € einmalig · kein Abo · wir warten nicht auf Ihre Zahlung', '€49 one-off · no subscription · we start without waiting for your payment').'</p>'
+    .'<p class="rb-svc-key">'.$L('Kein Abo · wir warten nicht auf Ihre Zahlung', 'No subscription · we start without waiting for your payment').'</p>'
     .'<a class="public-button rb-svc-cta" href="'.$start.'">'.h($cta).'</a>'
     .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p>'
     .'<p class="public-lead">'.h($d['lead']).'</p></div>'
@@ -346,16 +346,19 @@ function seo_hub_html(string $slug, string $lang): string
         $cards .= '<li class="rb-hub-card"><a href="'.$start.'"><img src="/icons/'.$s['icon'].'.webp" width="64" height="64" alt=""><h3>'.h($title).'</h3><p>'.h($text).'</p></a></li>';
     }
     $fq = '';
-    foreach (array_merge($d['faq'], [[$L('Warum kostet das 49 €, wenn das offizielle Formular kostenlos ist?', 'Why does this cost €49 when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos, und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen Ihren Antrag mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit your request with your authorisation and keep you informed at every step.')]]) as [$q,$a]) {
+    foreach (array_merge($d['faq'], [[$L('Warum kostet das etwas, wenn das offizielle Formular kostenlos ist?', 'Why do you charge for this when the official form is free?'), $L('Die offiziellen Formulare des Beitragsservice sind kostenlos, und Sie können sie selbst nutzen. Wir sind ein unabhängiger, kostenpflichtiger Service: Wir prüfen Ihre Angaben und Nachweise persönlich, reichen Ihren Antrag mit Ihrer Vollmacht ein und halten Sie bei jedem Schritt auf dem Laufenden.', 'The official Beitragsservice forms are free and you can use them yourself. We are an independent, paid service: we check your details and documents personally, submit your request with your authorisation and keep you informed at every step.')]]) as [$q,$a]) {
         $fq .= '<details><summary>'.h($q).'</summary><p>'.h($a).'</p></details>';
     }
     $alt = seo_hub_url($slug, $en ? 'de' : 'en');
     return '<article class="rb-service rb-hub" lang="'.$lang.'">'
     .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
-    .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1>'
+    .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1></header>'
+    // Cards come straight after the title so visitors from ads or search can pick their case at once.
+    .'<section class="rb-svc-block rb-hub-pick"><h2>'.h($d['ask']).'</h2><ul class="rb-hub-cards">'.$cards.'</ul>'
+    .'<p class="rb-hub-lead">'.h($d['lead']).'</p>'
     .'<p class="rb-svc-key">'.$L('Kein Abo · wir warten nicht auf Ihre Zahlung', 'No subscription · we start without waiting for your payment').'</p>'
-    .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p></header>'
-    .'<section class="rb-svc-block"><h2>'.h($d['ask']).'</h2><p class="rb-hub-lead">'.h($d['lead']).'</p><ul class="rb-hub-cards">'.$cards.'</ul><p class="rb-svc-note">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></section>'
+    .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p>'
+    .'<p class="rb-svc-note">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></section>'
     .'<section class="rb-svc-block rb-hub-note"><h2>'.h($d['note'][0]).'</h2><p>'.h($d['note'][1]).'</p></section>'
     .'<section class="rb-svc-block rb-svc-faq"><h2>'.$L('Häufige Fragen', 'Frequently asked questions').'</h2>'.$fq.'</section>'
     .'<p class="rb-article-alt"><a href="'.h($alt).'" hreflang="'.($en ? 'de' : 'en').'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>'.seo_disclaimer($lang).'</article>';
