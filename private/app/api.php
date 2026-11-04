@@ -96,7 +96,7 @@ function api(array $p, string $method): array
         }
         if ($part === 'maintenance') {
             if ($method === 'GET') {
-                return ['health' => ['cases' => (int)sql("SELECT COUNT(*) FROM rb_records WHERE kind='case'")->fetchColumn(), 'testCases' => 0, 'pendingMail' => ['n' => (int)sql("SELECT COUNT(*) FROM rb_records WHERE kind='mail' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.status')) NOT IN ('delivered','accepted','expired')")->fetchColumn()], 'incompleteUploads' => ['n' => 0], 'privacyRequests' => ['n' => (int)sql("SELECT COUNT(*) FROM rb_records WHERE kind='case' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.operations.privacy.status'))='requested'")->fetchColumn()], 'lastBackgroundJob' => record('settings:jobs')['value'] ?? null, 'liveReleaseAllowed' => true]];
+                return ['health' => ['cases' => (int)sql("SELECT COUNT(*) FROM rb_records WHERE kind='case'")->fetchColumn(), 'testCases' => 0, 'pendingMail' => ['n' => (int)sql("SELECT COUNT(*) FROM rb_records WHERE kind='mail' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.status')) IN ('queued','retry','sending')")->fetchColumn(), 'held' => (int)sql("SELECT COUNT(*) FROM rb_records WHERE kind='mail' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.status'))='held'")->fetchColumn()], 'incompleteUploads' => ['n' => 0], 'privacyRequests' => ['n' => (int)sql("SELECT COUNT(*) FROM rb_records WHERE kind='case' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.operations.privacy.status'))='requested'")->fetchColumn()], 'lastBackgroundJob' => record('settings:jobs')['value'] ?? null, 'liveReleaseAllowed' => true]];
             }
             $b = body();
             if (($b['action'] ?? '') === 'expire-access') {
