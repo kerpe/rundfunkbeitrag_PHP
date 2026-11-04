@@ -44,7 +44,11 @@
         // Phones: a small bar at the bottom (short text + "Details"); the full text opens on request. Both choices stay equally prominent.
         + '.rb-consent-short{display:none}.rb-consent-more{padding:0;border:0;background:none;color:#297369;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}'
         + '@media (max-width:640px){.rb-consent{left:8px;right:8px;bottom:8px;padding:12px 14px;font-size:13.5px;line-height:1.4;max-height:calc(100vh - 16px);overflow:auto}.rb-consent h2{margin:0 0 4px;font-size:15px}.rb-consent p{margin:0 0 10px}'
-        + '.rb-consent .rb-consent-short{display:block}.rb-consent .rb-consent-full{display:none}.rb-consent.is-open .rb-consent-full{display:block}.rb-consent.is-open .rb-consent-short .rb-consent-more{display:none}.rb-consent-btns{gap:8px}}';
+        + '.rb-consent .rb-consent-short{display:block}.rb-consent .rb-consent-full{display:none}.rb-consent.is-open .rb-consent-full{display:block}.rb-consent.is-open .rb-consent-short .rb-consent-more{display:none}.rb-consent-btns{gap:8px}'
+        // Phones: a thin bar flush with the bottom edge, so it does not cover the page content; the heading shows only with the full text.
+        + '.rb-consent{left:0;right:0;bottom:0;max-width:none;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-width:1px 0 0;border-radius:12px 12px 0 0;font-size:12.5px;line-height:1.35;box-shadow:0 -4px 20px rgba(20,38,36,.12)}'
+        + '.rb-consent h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.rb-consent.is-open h2{position:static;width:auto;height:auto;clip:auto;white-space:normal}'
+        + '.rb-consent p{margin:0 0 6px}.rb-consent-btns button{min-height:40px;padding:6px 12px}}';
 
     function read() {
         var m = document.cookie.match(/(?:^|;\s*)rb-consent=(granted(?:-[a-z]+)*|denied)/);

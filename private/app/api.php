@@ -149,13 +149,14 @@ function api(array $p, string $method): array
                 fail('LINK_EXPIRED', 410);
             }
             put('contact:'.$t['caseId'], 'contact', ['email' => $t['email'], 'verifiedAt' => now()], $t['caseId']);
+            release_held_mail($t['caseId']);
             $c = $cr['value'];
             if ($cr['owner_hash'] !== owner()) {
                 $c['version']++;
                 put($cr['id'], 'case', $c, '', owner());
             }
             sql('DELETE FROM rb_records WHERE id=?', [$id]);
-            return ['verified' => true, 'verificationMode' => 'email', 'continuationUrl' => '/antrag?case='.$t['caseId']];
+            return ['verified' => true, 'verificationMode' => 'email', 'continuationUrl' => '/antrag?case='.$t['caseId'], 'dispatchAfterCommit' => true];
         }
         $e = email($b['email'] ?? null);
         // A withdrawal may name the contract without the order number (details instead); recovery always needs it.
@@ -359,6 +360,7 @@ function api(array $p, string $method): array
     }
     if ($which === 'verify-code') {
         check_verify_code($c, $b['code'] ?? null);
+        release_held_mail($c['id']);
         return ['verified' => true, 'verificationMode' => 'email'];
     }
     if ($which === 'verification-delivery') {
@@ -457,10 +459,7 @@ function api(array $p, string $method): array
         if (($b['settingsVersion'] ?? null) !== $s['version'] || (isset($c['draftReview']) && $c['draftReview']['settingsVersion'] !== $s['version'])) {
             fail('TERMS_CHANGED', 409);
         }
-        $contact = record('contact:'.$c['id']);
-        if (!$contact || $contact['value']['email'] !== strtolower(trim($n['data']['email']))) {
-            fail('VERIFY_EMAIL_FIRST');
-        }
+        // The email address no longer has to be confirmed first: save_case() sends a confirmation link and holds the order mail.
         $n['order'] = make_order($n, $s, consent($b['consent'] ?? null), rb_lang($b['language'] ?? request_lang()));
         $n['state'] = 'ordered';
         $n['question'] = '';
@@ -471,7 +470,8 @@ function api(array $p, string $method): array
         $n['question'] = '';
     }
     $saved = save_case($c, $n, $op, 'customer', $which ?: 'save', $b);
-    return ['case' => public_case($saved)] + ($which === 'order' ? ['confirmation' => ['status' => 'queued']] : []);
+    $first = $which === 'order' && !email_confirmed($saved) ? ['dispatchFirst' => 'verify-'.$saved['id'].'-'.$saved['order']['reference']] : [];
+    return ['case' => public_case($saved)] + ($which === 'order' ? ['confirmation' => ['status' => 'queued']] : []) + $first;
 }
 
 function upload_document(array $c): array

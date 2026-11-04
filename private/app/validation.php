@@ -226,6 +226,15 @@ function readiness(array $c): array
     }
     if (!$c['order']) {
         $b[] = 'order';
+    } elseif (!email_confirmed($c)) {
+        $b[] = 'email';
+    }
+    // Contribution numbers are optional in the form ("send it later"); we never submit without them.
+    foreach (field_set($c['route'], $c['data'])['fields'] as $f) {
+        if (in_array($f['key'], ['account', 'payerAccount'], true) && trim((string)($c['data'][$f['key']] ?? '')) === '') {
+            $b[] = 'accountNumber';
+            break;
+        }
     }
     $o = $c['operations'] ?? [];
     $checks = $c['checks'];
