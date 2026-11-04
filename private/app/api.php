@@ -354,8 +354,8 @@ function api(array $p, string $method): array
     }
     expected($b, $c);
     if ($which === 'verify-email') {
-        access_mail($c, 'verify');
-        return ['message' => 'VERIFICATION_QUEUED', 'verificationMode' => 'email', 'sender' => preg_match('/[^<>\s]+@[^<>\s]+/', (string)(config()['email_from'] ?? ''), $fm) ? $fm[0] : ''];
+        $mailId = access_mail($c, 'verify');
+        return ['dispatchFirst' => $mailId, 'message' => 'VERIFICATION_QUEUED', 'verificationMode' => 'email', 'sender' => preg_match('/[^<>\s]+@[^<>\s]+/', (string)(config()['email_from'] ?? ''), $fm) ? $fm[0] : ''];
     }
     if ($which === 'verify-code') {
         check_verify_code($c, $b['code'] ?? null);

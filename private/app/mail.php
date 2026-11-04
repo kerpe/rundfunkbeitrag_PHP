@@ -229,13 +229,14 @@ function remote_http(string $url, string $method = 'GET', ?array $payload = null
     return [$code, json_decode($raw, true) ?? []];
 }
 
-function dispatch_mail(int $limit = 5): array
+// $first: a mail id to try before older queued mail (the verification code must not wait behind other mail).
+function dispatch_mail(int $limit = 5, string $first = ''): array
 {
     if (!mail_ready()) {
         return ['enabled' => false, 'processed' => 0];
     }
     $processed = 0;
-    foreach (array_map(fn ($r) => json_decode($r['data_json'], true), sql("SELECT data_json FROM rb_records WHERE kind='mail' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.status')) IN ('queued','retry','sending') AND CAST(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.next_attempt_at')), '0') AS UNSIGNED)<=UNIX_TIMESTAMP() AND (JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.status'))<>'sending' OR CAST(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.lease_until')), '0') AS UNSIGNED)<=UNIX_TIMESTAMP()) ORDER BY created_at,id LIMIT 50")->fetchAll()) as $candidate) {
+    foreach (array_map(fn ($r) => json_decode($r['data_json'], true), sql("SELECT data_json FROM rb_records WHERE kind='mail' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.status')) IN ('queued','retry','sending') AND CAST(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.next_attempt_at')), '0') AS UNSIGNED)<=UNIX_TIMESTAMP() AND (JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.status'))<>'sending' OR CAST(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.lease_until')), '0') AS UNSIGNED)<=UNIX_TIMESTAMP()) ORDER BY id=? DESC,created_at,id LIMIT 50", ['mail:'.$first])->fetchAll()) as $candidate) {
         if ($processed >= $limit) {
             break;
         }
@@ -339,7 +340,9 @@ function dispatch_mail(int $limit = 5): array
                 }
             }[$code,$result] = remote_http('https://api.resend.com/emails', 'POST', $send, ['Authorization: Bearer '.config()['resend_key'], 'Content-Type: application/json', 'Idempotency-Key: rb-php/'.$m['id']]);
             $status = $code >= 200 && $code < 300 && !empty($result['id']) ? 'accepted' : ($code === 429 || $code >= 500 ? 'retry' : 'failed');
-            $error = $status === 'accepted' ? null : 'PROVIDER_HTTP_'.$code;
+            // Keep Resend's own reason (e.g. "domain is not verified") so the admin page shows what to fix.
+            $why = is_string($result['message'] ?? null) ? trim(preg_replace('/\s+/', ' ', $result['message'])) : '';
+            $error = $status === 'accepted' ? null : 'PROVIDER_HTTP_'.$code.($why !== '' ? ': '.mb_substr($why, 0, 300) : '');
             $provider = $result['id'] ?? null;
         } catch (Throwable) {
             if (db()->inTransaction()) {
