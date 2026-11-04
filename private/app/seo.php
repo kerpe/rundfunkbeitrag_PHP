@@ -353,7 +353,7 @@ function seo_hub_html(string $slug, string $lang): string
     return '<article class="rb-service rb-hub" lang="'.$lang.'">'
     .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
     .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1>'
-    .'<p class="rb-svc-key">'.$L('49 € einmalig · kein Abo · wir warten nicht auf Ihre Zahlung', '€49 one-off · no subscription · we start without waiting for your payment').'</p>'
+    .'<p class="rb-svc-key">'.$L('Kein Abo · wir warten nicht auf Ihre Zahlung', 'No subscription · we start without waiting for your payment').'</p>'
     .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p></header>'
     .'<section class="rb-svc-block"><h2>'.h($d['ask']).'</h2><p class="rb-hub-lead">'.h($d['lead']).'</p><ul class="rb-hub-cards">'.$cards.'</ul><p class="rb-svc-note">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></section>'
     .'<section class="rb-svc-block rb-hub-note"><h2>'.h($d['note'][0]).'</h2><p>'.h($d['note'][1]).'</p></section>'
