@@ -88,7 +88,22 @@
     }
     // Microsoft Clarity: heatmaps and session recordings. Loaded only after consent, so the consent signal is "granted" for
     // analytics; nothing is shared for advertising. Order form and case pages carry data-clarity-mask (all text masked).
+    // Public pages carry data-clarity-unmask so prices and durations are readable (Clarity's Balanced mode hides numbers);
+    // every form field there (contact form, search) gets data-clarity-mask before Clarity sees it, so typed text stays hidden.
+    // This observer is created before Clarity's own, so its callback runs first for each new node.
+    var FIELDS = 'input,textarea,select,[contenteditable]';
+    function maskFields(root) {
+        if (!root.querySelectorAll) return;
+        if (root.matches && root.matches(FIELDS)) root.setAttribute('data-clarity-mask', 'True');
+        root.querySelectorAll(FIELDS).forEach(function (el) { el.setAttribute('data-clarity-mask', 'True'); });
+    }
     function clarity() {
+        maskFields(document);
+        if (window.MutationObserver) {
+            new MutationObserver(function (list) {
+                list.forEach(function (m) { m.addedNodes.forEach(maskFields); });
+            }).observe(document.documentElement, { childList: true, subtree: true });
+        }
         var c = window.clarity = window.clarity || function () { (c.q = c.q || []).push(arguments); };
         c('consentv2', { ad_Storage: 'denied', analytics_Storage: 'granted' });
         var s = document.createElement('script');
