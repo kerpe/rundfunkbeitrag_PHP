@@ -352,10 +352,13 @@ function seo_hub_html(string $slug, string $lang): string
     $alt = seo_hub_url($slug, $en ? 'de' : 'en');
     return '<article class="rb-service rb-hub" lang="'.$lang.'">'
     .'<nav class="rb-crumbs" aria-label="'.$L('Brotkrumen', 'Breadcrumb').'"><a href="/">'.$L('Startseite', 'Home').'</a><span aria-hidden="true">/</span><a href="/#leistungen">'.$L('Leistungen', 'Services').'</a></nav>'
-    .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1>'
+    .'<header class="rb-hub-hero"><h1>'.h($d['title']).'</h1></header>'
+    // Cards come straight after the title so visitors from ads or search can pick their case at once.
+    .'<section class="rb-svc-block rb-hub-pick"><h2>'.h($d['ask']).'</h2><ul class="rb-hub-cards">'.$cards.'</ul>'
+    .'<p class="rb-hub-lead">'.h($d['lead']).'</p>'
     .'<p class="rb-svc-key">'.$L('Kein Abo · wir warten nicht auf Ihre Zahlung', 'No subscription · we start without waiting for your payment').'</p>'
-    .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p></header>'
-    .'<section class="rb-svc-block"><h2>'.h($d['ask']).'</h2><p class="rb-hub-lead">'.h($d['lead']).'</p><ul class="rb-hub-cards">'.$cards.'</ul><p class="rb-svc-note">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></section>'
+    .'<p class="rb-svc-trust">'.$L('EU-Unternehmen · volle Erstattung, wenn es an uns liegt · persönliche Prüfung', 'EU company · full refund if it is down to us · checked by a person').'</p>'
+    .'<p class="rb-svc-note">'.$L('Unabhängiger Service. Die offiziellen Formulare sind kostenlos.', 'Independent service. The official forms are free.').'</p></section>'
     .'<section class="rb-svc-block rb-hub-note"><h2>'.h($d['note'][0]).'</h2><p>'.h($d['note'][1]).'</p></section>'
     .'<section class="rb-svc-block rb-svc-faq"><h2>'.$L('Häufige Fragen', 'Frequently asked questions').'</h2>'.$fq.'</section>'
     .'<p class="rb-article-alt"><a href="'.h($alt).'" hreflang="'.($en ? 'de' : 'en').'">'.($en ? 'Auf Deutsch lesen' : 'Read in English').'</a></p>'.seo_disclaimer($lang).'</article>';
