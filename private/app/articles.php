@@ -16,7 +16,7 @@ return [
 <h2>Kostenlos selbst erledigen</h2>
 <p>Die Abmeldung ist beim Beitragsservice kostenlos. Das offizielle Online-Formular finden Sie auf rundfunkbeitrag.de unter „Formulare“. Wählen Sie dort die Abmeldung und als Grund den Todesfall.</p>
 <h2>Wann wir helfen</h2>
-<p>In einer belastenden Zeit übernehmen wir die Abmeldung für Sie: Wir prüfen Ihre Angaben und Nachweise, reichen die Abmeldung mit Ihrer Vollmacht ein, und Sie sehen jeden Schritt in Ihrem Vorgang. Einmalig 49 €.</p>
+<p>In einer belastenden Zeit übernehmen wir die Abmeldung für Sie: Wir prüfen Ihre Angaben und Nachweise, reichen die Abmeldung mit Ihrer Vollmacht ein, und Sie sehen jeden Schritt in Ihrem Vorgang. Einmalig 35 €.</p>
 HTML],
     ['slug' => 'cancel-rundfunkbeitrag-after-death', 'lang' => 'en', 'alt' => 'rundfunkbeitrag-abmelden-todesfall', 'service' => 'sterbefall',
         'title' => 'Cancelling the Rundfunkbeitrag after a death',
@@ -30,7 +30,7 @@ HTML],
 <h2>Do it yourself for free</h2>
 <p>Deregistering with Beitragsservice is free. You will find the official online form on rundfunkbeitrag.de under “Formulare” (forms). Choose deregistration and give the death as the reason. The form is in German.</p>
 <h2>When we help</h2>
-<p>At a difficult time, we can take care of this for you: we check your details and documents, submit the deregistration with your authorisation, and you can follow every step in your case. One-off €49.</p>
+<p>At a difficult time, we can take care of this for you: we check your details and documents, submit the deregistration with your authorisation, and you can follow every step in your case. One-off €35.</p>
 HTML],
     ['slug' => 'rundfunkbeitrag-abmelden-ausland', 'lang' => 'de', 'alt' => 'cancel-rundfunkbeitrag-leaving-germany', 'service' => 'ausland',
         'title' => 'Rundfunkbeitrag abmelden beim Umzug ins Ausland',
@@ -44,7 +44,7 @@ HTML],
 <h2>Kostenlos selbst erledigen</h2>
 <p>Die Abmeldung ist kostenlos. Das offizielle Online-Formular finden Sie auf rundfunkbeitrag.de unter „Formulare“. Wählen Sie die Abmeldung und als Grund den Wegzug ins Ausland.</p>
 <h2>Wann wir helfen</h2>
-<p>Wenn Sie schon im Umzugsstress sind oder kein Deutsch sprechen, übernehmen wir die Abmeldung: Wir prüfen Ihre Nachweise, reichen die Abmeldung mit Ihrer Vollmacht ein, und Sie verfolgen alles online, auch aus dem Ausland. Einmalig 49 €.</p>
+<p>Wenn Sie schon im Umzugsstress sind oder kein Deutsch sprechen, übernehmen wir die Abmeldung: Wir prüfen Ihre Nachweise, reichen die Abmeldung mit Ihrer Vollmacht ein, und Sie verfolgen alles online, auch aus dem Ausland. Einmalig 35 €.</p>
 HTML],
     ['slug' => 'cancel-rundfunkbeitrag-leaving-germany', 'lang' => 'en', 'alt' => 'rundfunkbeitrag-abmelden-ausland', 'service' => 'ausland',
         'title' => 'Leaving Germany: how to cancel the Rundfunkbeitrag',
@@ -58,7 +58,7 @@ HTML],
 <h2>Do it yourself for free</h2>
 <p>Deregistering is free. You will find the official online form on rundfunkbeitrag.de under “Formulare” (forms). Choose deregistration and give moving abroad as the reason. The form is in German.</p>
 <h2>When we help</h2>
-<p>If you are busy with the move or do not speak German, we handle the deregistration in English: we check your documents and submit them with your authorisation, and you can follow everything online, even from abroad. One-off €49.</p>
+<p>If you are busy with the move or do not speak German, we handle the deregistration in English: we check your documents and submit them with your authorisation, and you can follow everything online, even from abroad. One-off €35.</p>
 HTML],
     ['slug' => 'nebenwohnung-befreien-frist', 'lang' => 'de', 'alt' => 'second-home-exemption-deadline', 'service' => 'zweitwohnung',
         'title' => 'Nebenwohnung vom Rundfunkbeitrag befreien: die 3-Monats-Frist',
@@ -72,7 +72,7 @@ HTML],
 <h2>Kostenlos selbst erledigen</h2>
 <p>Der Antrag ist kostenlos. Das offizielle Formular finden Sie auf rundfunkbeitrag.de unter „Formulare“ bei der Befreiung für eine Nebenwohnung.</p>
 <h2>Wann wir helfen</h2>
-<p>Ist die Nebenwohnung noch nicht angemeldet, melden wir sie an und beantragen im selben Auftrag die Befreiung. Unser Formular zeigt Ihnen, wie viele Tage der 3-Monats-Frist noch bleiben. Einmalig 49 €.</p>
+<p>Ist die Nebenwohnung noch nicht angemeldet, melden wir sie an und beantragen im selben Auftrag die Befreiung. Unser Formular zeigt Ihnen, wie viele Tage der 3-Monats-Frist noch bleiben. Einmalig 35 €.</p>
 HTML],
     ['slug' => 'second-home-exemption-deadline', 'lang' => 'en', 'alt' => 'nebenwohnung-befreien-frist', 'service' => 'zweitwohnung',
         'title' => 'Second home exemption from the Rundfunkbeitrag: the 3-month deadline',
@@ -86,7 +86,7 @@ HTML],
 <h2>Do it yourself for free</h2>
 <p>The application is free. You will find the official form on rundfunkbeitrag.de under “Formulare” (forms), in the section on exempting a second home. The form is in German.</p>
 <h2>When we help</h2>
-<p>If the second home is not registered yet, we register it and apply for the exemption in the same order. Our form shows how many days of the three-month deadline remain. One-off €49.</p>
+<p>If the second home is not registered yet, we register it and apply for the exemption in the same order. Our form shows how many days of the three-month deadline remain. One-off €35.</p>
 HTML],
     ['slug' => 'zusammenziehen-rundfunkbeitrag', 'lang' => 'de', 'alt' => 'moving-in-together-rundfunkbeitrag', 'service' => 'zusammenziehen',
         'title' => 'Zusammenziehen: Rundfunkbeitrag nur einmal pro Wohnung',
@@ -100,7 +100,7 @@ HTML],
 <h2>Kostenlos selbst erledigen</h2>
 <p>Die Abmeldung ist kostenlos. Das offizielle Online-Formular finden Sie auf rundfunkbeitrag.de unter „Formulare“. Wählen Sie die Abmeldung und geben Sie die Beitragsnummer der zahlenden Person an.</p>
 <h2>Wann wir helfen</h2>
-<p>Unsicher, ob Abmeldung oder Adressänderung passt? Wir prüfen Ihre Situation, reichen mit Ihrer Vollmacht ein, und Sie sehen jeden Schritt in Ihrem Vorgang. Einmalig 49 €.</p>
+<p>Unsicher, ob Abmeldung oder Adressänderung passt? Wir prüfen Ihre Situation, reichen mit Ihrer Vollmacht ein, und Sie sehen jeden Schritt in Ihrem Vorgang. Einmalig 35 €.</p>
 HTML],
     ['slug' => 'moving-in-together-rundfunkbeitrag', 'lang' => 'en', 'alt' => 'zusammenziehen-rundfunkbeitrag', 'service' => 'zusammenziehen',
         'title' => 'Moving in together: one Rundfunkbeitrag per home',
@@ -114,7 +114,7 @@ HTML],
 <h2>Do it yourself for free</h2>
 <p>Deregistering is free. You will find the official online form on rundfunkbeitrag.de under “Formulare” (forms). Choose deregistration and give the contribution number of the person who pays. The form is in German.</p>
 <h2>When we help</h2>
-<p>Not sure whether you need a deregistration or an address change? We check your situation and submit your request with your authorisation, and you can follow every step in your case. One-off €49.</p>
+<p>Not sure whether you need a deregistration or an address change? We check your situation and submit your request with your authorisation, and you can follow every step in your case. One-off €35.</p>
 HTML],
     ['slug' => 'erste-wohnung-anmelden', 'lang' => 'de', 'alt' => 'register-first-home-rundfunkbeitrag', 'service' => 'anmelden',
         'title' => 'Erste eigene Wohnung: Rundfunkbeitrag anmelden',
@@ -128,7 +128,7 @@ HTML],
 <h2>Kostenlos selbst erledigen</h2>
 <p>Die Anmeldung ist kostenlos. Das offizielle Online-Formular finden Sie auf rundfunkbeitrag.de unter „Formulare“ bei der Anmeldung.</p>
 <h2>Wann wir helfen</h2>
-<p>Wir prüfen Ihre Angaben, melden die Wohnung mit Ihrer Vollmacht an, und Sie sehen jeden Schritt in Ihrem Vorgang. Einmalig 49 €.</p>
+<p>Wir prüfen Ihre Angaben, melden die Wohnung mit Ihrer Vollmacht an, und Sie sehen jeden Schritt in Ihrem Vorgang. Einmalig 35 €.</p>
 HTML],
     ['slug' => 'register-first-home-rundfunkbeitrag', 'lang' => 'en', 'alt' => 'erste-wohnung-anmelden', 'service' => 'anmelden',
         'title' => 'Your first home in Germany: registering for the Rundfunkbeitrag',
@@ -142,6 +142,6 @@ HTML],
 <h2>Do it yourself for free</h2>
 <p>Registering is free. You will find the official online form on rundfunkbeitrag.de under “Formulare” (forms), in the registration section. The form is in German.</p>
 <h2>When we help</h2>
-<p>We check your details, register the home with your authorisation, and you can follow every step in your case, in English. One-off €49.</p>
+<p>We check your details, register the home with your authorisation, and you can follow every step in your case, in English. One-off €35.</p>
 HTML],
 ];

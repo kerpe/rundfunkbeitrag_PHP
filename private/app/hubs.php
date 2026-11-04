@@ -8,7 +8,7 @@ return [
     'abmelden' => ['enslug' => 'deregister',
         'de' => ['title' => 'Rundfunkbeitrag abmelden',
             'seo' => 'Rundfunkbeitrag abmelden: Grund wählen, wir erledigen den Rest',
-            'description' => 'Rundfunkbeitrag abmelden nach Todesfall, beim Umzug ins Ausland, beim Zusammenziehen oder bei mehreren Wohnungen. Wir reichen die Abmeldung für Sie ein. Einmalig 49 €.',
+            'description' => 'Rundfunkbeitrag abmelden nach Todesfall, beim Umzug ins Ausland, beim Zusammenziehen oder bei mehreren Wohnungen. Wir reichen die Abmeldung für Sie ein. Einmalig 35 €.',
             'lead' => 'Wählen Sie Ihren Grund. Wir bereiten die Abmeldung vor und reichen sie mit Ihrer Vollmacht beim Beitragsservice ein.',
             'ask' => 'Warum möchten Sie abmelden?',
             'cards' => [
@@ -26,7 +26,7 @@ return [
             ]],
         'en' => ['title' => 'Deregister from the Rundfunkbeitrag',
             'seo' => 'Deregister from the Rundfunkbeitrag: choose your reason, we handle the rest',
-            'description' => 'Deregister the German broadcasting fee after a death, when leaving Germany, moving in with someone or giving up one of several homes. We submit it for you. One-off €49.',
+            'description' => 'Deregister the German broadcasting fee after a death, when leaving Germany, moving in with someone or giving up one of several homes. We submit it for you. One-off €35.',
             'lead' => 'Choose your reason. We prepare the deregistration and submit it to Beitragsservice with your authorisation.',
             'ask' => 'Why do you want to deregister?',
             'cards' => [
