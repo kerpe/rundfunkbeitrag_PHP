@@ -41,6 +41,30 @@ function withdraw_case(array $c, array $b): array
     return $c;
 }
 
+// Obviously fake orders (test names, invented data) can be removed completely while nothing has happened yet:
+// no payment, no invoice, nothing sent to the Beitragsservice. Only a short note without personal data is kept.
+function delete_fake_case(array $c, array $b): array
+{
+    $ref = $c['order']['reference'] ?? '';
+    if (!in_array($c['state'], ['ordered', 'in_review'], true) || !empty($c['checks']['paid']) || !empty($c['submission']) || isset($c['operations']['transmission']) || record('invoice:'.$c['id'])) {
+        fail('DELETE_NOT_ALLOWED', 409);
+    }
+    if ($ref === '' || strtoupper(trim((string)($b['confirm'] ?? ''))) !== strtoupper($ref)) {
+        fail('DELETE_CONFIRMATION_REQUIRED');
+    }
+    $reason = text($b['reason'] ?? null, 3, 500);
+    $keys = array_column($c['documents'], 'objectKey');
+    foreach (records('document', $c['id']) as $d) {
+        $keys[] = $d['objectKey'] ?? '';
+    }
+    foreach (array_unique(array_filter($keys)) as $k) {
+        $GLOBALS['unlink_after_commit'][] = private_root().'/data/uploads/'.basename($k);
+    }
+    sql('DELETE FROM rb_records WHERE parent_id=? OR id=?', [$c['id'], 'case:'.$c['id']]);
+    put('erasure:'.$c['id'], 'erasure', ['id' => $c['id'], 'reference' => $ref, 'at' => now(), 'by' => actor(), 'kind' => 'fake-order', 'reason' => $reason, 'status' => 'complete']);
+    return ['deleted' => true, 'reference' => $ref];
+}
+
 function staff_action(array $c, array $b): array
 {
     $action = $b['action'] ?? '';

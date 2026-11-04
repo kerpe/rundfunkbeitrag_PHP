@@ -61,6 +61,9 @@ function api(array $p, string $method): array
                 return ['case' => public_case($old)];
             }
             expected($b, $c);
+            if (($b['action'] ?? '') === 'delete-fake') {
+                return delete_fake_case($c, $b);
+            }
             return ['case' => public_case(save_case($c, staff_action($c, $b), $op, actor(), $b['action'] ?? '', $b))];
         }
         if ($part === 'notifications') {
