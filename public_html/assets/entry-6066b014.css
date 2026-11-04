@@ -568,3 +568,4 @@ html body .rb-sticky-cta{padding:8px}html body .rb-sticky-cta a{flex:1;justify-c
 .rb-hub-badge:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--t-primary)}
 .rb-hub-tag{display:block;width:max-content;margin:0 0 4px;padding:2px 8px;border-radius:999px;background:var(--t-accent-soft);color:#7a4310;font-size:11px;font-weight:800;line-height:1.5;letter-spacing:.06em;text-transform:uppercase}
 @media (width<=760px){.rb-hub-key{font-size:1rem;margin-top:6px}.rb-hub-badge{margin-top:8px}}
+@media (width<=600px){.mj .mj-footer-actions>button{white-space:normal;height:auto;min-width:0;padding:10px 20px;line-height:1.25;text-align:center}.mj .mj-footer-actions>button:not(.mj-primary){flex:0 0 auto}.mj .mj-footer-actions>.mj-primary{flex:1 1 auto}}
