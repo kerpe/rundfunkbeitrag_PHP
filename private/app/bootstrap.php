@@ -347,12 +347,6 @@ function save_case(array $before, array $next, string $op, string $by, string $a
         put('package:'.$op, 'package', ['id' => $op, 'sequence' => count(records('package', $before['id'])) + 1, 'created_at' => now(), 'snapshot' => $next], $before['id']);
         queue_notice($next, $action, $op);
         staff_case_notice($next, $op, 'order');
-        // Unconfirmed email: hold the order confirmation until the customer confirms the address (release_held_mail).
-        if (!email_confirmed($next) && ($m = record('mail:'.$op, true))) {
-            $m['value']['status'] = 'held';
-            put('mail:'.$op, 'mail', $m['value'], $before['id']);
-            order_verify_mail($next);
-        }
     } elseif ($action === 'payment' && empty($before['operations']['paymentNotified']) && !empty($next['operations']['paymentNotified'])) {
         queue_notice($next, 'payment-received', $op);
     } elseif (in_array($action, ['request-information', 'record-submission', 'record-response', 'withdraw', 'review-withdrawal', 'plan-refund', 'record-refund', 'official-follow-up', 'complaint', 'privacy-request', 'resolve-privacy'], true)) {

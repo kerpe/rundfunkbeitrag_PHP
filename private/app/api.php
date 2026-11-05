@@ -350,24 +350,6 @@ function api(array $p, string $method): array
         return ['case' => public_case($old)];
     }
     expected($b, $c);
-    if ($which === 'verify-email') {
-        $mailId = access_mail($c, 'verify');
-        return ['dispatchFirst' => $mailId, 'message' => 'VERIFICATION_QUEUED', 'verificationMode' => 'email', 'sender' => preg_match('/[^<>\s]+@[^<>\s]+/', (string)(config()['email_from'] ?? ''), $fm) ? $fm[0] : ''];
-    }
-    if ($which === 'verify-code') {
-        check_verify_code($c, $b['code'] ?? null);
-        release_held_mail($c['id']);
-        return ['verified' => true, 'verificationMode' => 'email'];
-    }
-    if ($which === 'verification-delivery') {
-        $m = array_values(array_filter(records('mail', $c['id']), fn ($m) => $m['kind'] === 'verify'));
-        $last = end($m);
-        if ($last && $last['status'] === 'accepted') {
-            $refreshed = refresh_delivery($last['id']);
-            $last = $refreshed['mail'];
-        }
-        return ['verificationDelivery' => $last ? public_mail($last) : null];
-    }
     if ($which === 'link') {
         $raw = bin2hex(random_bytes(32));
         put('token:'.secret_hash($raw), 'token', ['caseId' => $c['id'], 'kind' => 'resume', 'expires' => time() + 7 * 86400], $c['id'], '', time() + 7 * 86400);
