@@ -77,7 +77,9 @@ function parse_input(array $b, bool $partial = false): array
             continue;
         }
         $error = null;
-        if ($f['required'] && ($v === null || $v === '' || $v === [] || (is_string($v) && trim($v) === ''))) {
+        // A German address may have no house number: the customer ticks "<prefix>NoNumber" instead (Vilius, 2026-11-05).
+        $noNumber = str_ends_with($key, 'Number') && !empty($d[substr($key, 0, -6).'NoNumber']);
+        if ($f['required'] && !$noNumber && ($v === null || $v === '' || $v === [] || (is_string($v) && trim($v) === ''))) {
             $error = 'Please complete this field.';
         } elseif ($v !== null && $v !== '' && $v !== []) {
             $type = $f['type'];

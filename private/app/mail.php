@@ -112,6 +112,35 @@ function staff_message_notice(array $c, string $id): void
     queue_mail($id.'-staff', $c, 'staff-message', $to, ['subject' => 'Neue Kundennachricht / New customer message · '.$ref, 'text' => "Neue Kundennachricht / New customer message\n{$ref} · {$route} · {$name} · {$c['data']['email']}\n\n".$c['operations']['complaint']['message']."\n\nAntworten Sie bei Bedarf per E-Mail an die Kundin oder den Kunden. / Reply to the customer by email if needed.\n".config()['public_url'].'/admin']);
 }
 
+// New order (ready to work on) and documents uploaded later by the customer: a short note to the support address (Vilius, 2026-11-05).
+function staff_case_notice(array $c, string $id, string $what): void
+{
+    $to = strtolower(trim(settings()['supportEmail'] ?? ''));
+    if (!$c['order'] || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        return;
+    }
+    $ref = $c['order']['reference'];
+    $route = rules()['routes'][$c['route']]['title']['de'] ?? $c['route'];
+    $name = trim(($c['data']['firstName'] ?? '').' '.($c['data']['lastName'] ?? ''));
+    $link = config()['public_url'].'/admin#u-'.$c['id'];
+    if ($what === 'order') {
+        $subject = 'Neuer Auftrag / New order · '.$ref;
+        $body = "Neuer Auftrag / New order\n{$ref} · {$route} · {$name} · {$c['data']['email']}";
+    } else {
+        $d = end($c['documents']) ?: [];
+        $title = '';
+        foreach (field_set($c['route'], $c['data'])['documents'] as $x) {
+            if ($x['id'] === ($d['kind'] ?? '')) {
+                $title = $x['title']['de'] ?? '';
+            }
+        }
+        $title = $title !== '' ? $title : ($d['kind'] ?? '');
+        $subject = 'Neuer Nachweis / New document · '.$ref;
+        $body = "Neuer Nachweis / New document\n{$ref} · {$route} · {$name}\n\n{$title}: ".($d['name'] ?? '');
+    }
+    queue_mail($id.'-staff', $c, 'staff-message', $to, ['subject' => $subject, 'text' => $body."\n\n".$link]);
+}
+
 function staff_review_notice(array $c, string $id): void
 {
     $to = strtolower(trim(settings()['supportEmail'] ?? ''));
@@ -164,9 +193,6 @@ function withdrawal_mails(array $ack, string $op, ?array $match): void
 function access_mail(array $c, string $kind): string
 {
     $email = email($c['data']['email'] ?? null);
-    if ($kind === 'verify') {
-        return verify_code_mail($c, $email);
-    }
     rate($kind.':'.$email, 3, 3600);
     $raw = bin2hex(random_bytes(32));
     $id = uuid();
@@ -177,38 +203,7 @@ function access_mail(array $c, string $kind): string
     return $id;
 }
 
-function verify_code_mail(array $c, string $email): string
-{
-    rate('verify:'.$email, 5, 3600);
-    $code = sprintf('%06d', random_int(0, 999999));
-    $id = uuid();
-    put('vcode:'.$c['id'], 'vcode', ['hash' => secret_hash($c['id'].':'.$code), 'email' => $email, 'attempts' => 0], $c['id'], '', time() + 1800);
-    $l = request_lang();
-    queue_mail($id, $c, 'verify', $email, ['subject' => mt('verify.subject', $l, ['code' => $code]), 'text' => mt('verify.title', $l).":\n\n{$code}\n\n".mt('verify.use', $l)."\n\n".mt('verify.ignore', $l), 'view' => ['lang' => $l, 'title' => mt('verify.title', $l), 'code' => $code, 'preheader' => mt('verify.preheader', $l, ['code' => $code]), 'after' => [mt('verify.use', $l), mt('verify.ignore', $l)]], 'expiresAt' => time() + 1800]);
-    return $id;
-}
-
-// After an order with an unconfirmed address: one mail with a confirmation link (7 days).
-function order_verify_mail(array $c): void
-{
-    $email = email($c['data']['email'] ?? null);
-    try {
-        rate('verify:'.$email, 5, 3600);
-    } catch (AppError) {
-        return;
-    }
-    $raw = bin2hex(random_bytes(32));
-    put('token:'.secret_hash($raw), 'token', ['caseId' => $c['id'], 'email' => $email, 'kind' => 'verify', 'expires' => time() + 7 * 86400], $c['id'], '', time() + 7 * 86400);
-    $url = config()['public_url'].'/verify-contact#'.$raw;
-    $l = rb_lang($c['order']['language'] ?? 'de');
-    $ref = $c['order']['reference'];
-    $title = mt('confirm.title', $l);
-    $paras = [mt('confirm.body', $l)];
-    $after = [mt('confirm.valid', $l), mt('verify.ignore', $l)];
-    queue_mail('verify-'.$c['id'].'-'.$ref, $c, 'verify', $email, ['subject' => $title.' · '.$ref, 'text' => $title."\n".$ref."\n\n".$paras[0]."\n\n".$url."\n\n".implode("\n\n", $after), 'view' => ['lang' => $l, 'title' => $title, 'ref' => $ref, 'preheader' => mt('confirm.preheader', $l), 'paras' => $paras, 'link' => $url, 'button' => mt('confirm.button', $l), 'after' => $after], 'expiresAt' => time() + 7 * 86400]);
-}
-
-// Sends the order confirmation that waited for the email confirmation.
+// Sends an order confirmation that was held for an email confirmation (orders of 2026-11-04 only; see cron.php).
 function release_held_mail(string $caseId): void
 {
     foreach (records('mail', $caseId) as $m) {
@@ -218,25 +213,6 @@ function release_held_mail(string $caseId): void
             put('mail:'.$m['id'], 'mail', $m, $caseId);
         }
     }
-}
-
-function check_verify_code(array $c, mixed $input): void
-{
-    $code = preg_replace('/\D/', '', is_scalar($input) ? (string)$input : '');
-    $email = strtolower(trim((string)($c['data']['email'] ?? '')));
-    $r = record('vcode:'.$c['id'], true);
-    if (!$r || $r['expires_at'] < time() || $r['value']['email'] !== $email || $r['value']['attempts'] >= 5) {
-        fail('CODE_EXPIRED', 410);
-    }
-    $v = $r['value'];
-    if (strlen($code) !== 6 || !hash_equals($v['hash'], secret_hash($c['id'].':'.$code))) {
-        $v['attempts']++;
-        put($r['id'], 'vcode', $v, $c['id'], '', (int)$r['expires_at']);
-        db()->commit();
-        fail($v['attempts'] >= 5 ? 'CODE_EXPIRED' : 'CODE_INVALID', $v['attempts'] >= 5 ? 410 : 422);
-    }
-    put('contact:'.$c['id'], 'contact', ['email' => $email, 'verifiedAt' => now()], $c['id']);
-    sql('DELETE FROM rb_records WHERE id=?', [$r['id']]);
 }
 
 function remote_http(string $url, string $method = 'GET', ?array $payload = null, array $headers = []): array
