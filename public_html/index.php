@@ -73,7 +73,7 @@ try {
         }
         $GLOBALS['uploads_rollback'] = [];
         if (!in_array($method, ['GET', 'HEAD'], true) || isset($result['dispatchAfterCommit'])) {
-            $sent = dispatch_mail(1, (string)($result['dispatchFirst'] ?? ''));
+            $sent = dispatch_mail(2, (string)($result['dispatchFirst'] ?? ''));
             unset($result['dispatchAfterCommit'], $result['dispatchFirst']);
             $result += $sent;
         }

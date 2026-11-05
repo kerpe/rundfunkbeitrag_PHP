@@ -112,6 +112,35 @@ function staff_message_notice(array $c, string $id): void
     queue_mail($id.'-staff', $c, 'staff-message', $to, ['subject' => 'Neue Kundennachricht / New customer message · '.$ref, 'text' => "Neue Kundennachricht / New customer message\n{$ref} · {$route} · {$name} · {$c['data']['email']}\n\n".$c['operations']['complaint']['message']."\n\nAntworten Sie bei Bedarf per E-Mail an die Kundin oder den Kunden. / Reply to the customer by email if needed.\n".config()['public_url'].'/admin']);
 }
 
+// New order (ready to work on) and documents uploaded later by the customer: a short note to the support address (Vilius, 2026-11-05).
+function staff_case_notice(array $c, string $id, string $what): void
+{
+    $to = strtolower(trim(settings()['supportEmail'] ?? ''));
+    if (!$c['order'] || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        return;
+    }
+    $ref = $c['order']['reference'];
+    $route = rules()['routes'][$c['route']]['title']['de'] ?? $c['route'];
+    $name = trim(($c['data']['firstName'] ?? '').' '.($c['data']['lastName'] ?? ''));
+    $link = config()['public_url'].'/admin#u-'.$c['id'];
+    if ($what === 'order') {
+        $subject = 'Neuer Auftrag / New order · '.$ref;
+        $body = "Neuer Auftrag / New order\n{$ref} · {$route} · {$name} · {$c['data']['email']}";
+    } else {
+        $d = end($c['documents']) ?: [];
+        $title = '';
+        foreach (field_set($c['route'], $c['data'])['documents'] as $x) {
+            if ($x['id'] === ($d['kind'] ?? '')) {
+                $title = $x['title']['de'] ?? '';
+            }
+        }
+        $title = $title !== '' ? $title : ($d['kind'] ?? '');
+        $subject = 'Neuer Nachweis / New document · '.$ref;
+        $body = "Neuer Nachweis / New document\n{$ref} · {$route} · {$name}\n\n{$title}: ".($d['name'] ?? '');
+    }
+    queue_mail($id.'-staff', $c, 'staff-message', $to, ['subject' => $subject, 'text' => $body."\n\n".$link]);
+}
+
 function staff_review_notice(array $c, string $id): void
 {
     $to = strtolower(trim(settings()['supportEmail'] ?? ''));

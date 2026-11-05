@@ -146,7 +146,27 @@ function payment_reminders(): int
     }
     return $n;
 }
+// Orders placed 2026-11-04 waited for an email confirmation link; that step is gone (2026-11-05). Treat their address as given
+// and send the order confirmation that was held back.
+function release_unconfirmed_orders(): int
+{
+    $n = 0;
+    foreach (sql("SELECT id, parent_id FROM rb_records WHERE kind='mail' AND JSON_UNQUOTE(JSON_EXTRACT(data_json,'$.status'))='held' LIMIT 200")->fetchAll() as $row) {
+        db()->beginTransaction();
+        $c = record('case:'.$row['parent_id'])['value'] ?? null;
+        if ($c && !empty($c['order']) && !email_confirmed($c)) {
+            put('contact:'.$c['id'], 'contact', ['email' => strtolower(trim((string)$c['data']['email'])), 'verifiedAt' => null, 'source' => 'order'], $c['id']);
+        }
+        if ($c) {
+            release_held_mail($c['id']);
+            $n++;
+        }
+        db()->commit();
+    }
+    return $n;
+}
 try {
+    release_unconfirmed_orders();
     $reminders = payment_reminders();
     $result = dispatch_mail();
     $purged = purge_stale_drafts();

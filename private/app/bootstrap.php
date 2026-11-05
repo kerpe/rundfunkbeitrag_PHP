@@ -346,6 +346,7 @@ function save_case(array $before, array $next, string $op, string $by, string $a
     if ($action === 'order') {
         put('package:'.$op, 'package', ['id' => $op, 'sequence' => count(records('package', $before['id'])) + 1, 'created_at' => now(), 'snapshot' => $next], $before['id']);
         queue_notice($next, $action, $op);
+        staff_case_notice($next, $op, 'order');
         // Unconfirmed email: hold the order confirmation until the customer confirms the address (release_held_mail).
         if (!email_confirmed($next) && ($m = record('mail:'.$op, true))) {
             $m['value']['status'] = 'held';
@@ -356,6 +357,9 @@ function save_case(array $before, array $next, string $op, string $by, string $a
         queue_notice($next, 'payment-received', $op);
     } elseif (in_array($action, ['request-information', 'record-submission', 'record-response', 'withdraw', 'review-withdrawal', 'plan-refund', 'record-refund', 'official-follow-up', 'complaint', 'privacy-request', 'resolve-privacy'], true)) {
         queue_notice($next, $action, $op);
+    }
+    if ($action === 'upload' && $by === 'customer' && $next['order']) {
+        staff_case_notice($next, $op, 'upload');
     }
     if ($action === 'complaint' && $by === 'customer') {
         staff_message_notice($next, $op);
@@ -399,7 +403,8 @@ function public_case(array $c): array
     return $c;
 }
 
-// True when the customer confirmed the order's email address (code or link). We start work only after that.
+// True when the case has a contact record for its current email. Since 2026-11-05 every order writes one (no confirmation step);
+// only orders placed 2026-11-04 with the old link confirmation can lack it until cron.php release_unconfirmed_orders() runs.
 function email_confirmed(array $c): bool
 {
     $contact = record('contact:'.$c['id']);
